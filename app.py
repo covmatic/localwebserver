@@ -2,6 +2,8 @@ from flask import Flask, request
 from flask_cors import CORS
 import json
 import time
+import subprocess
+# from opentronsA import execute
 
 app = Flask(__name__)
 CORS(app)
@@ -14,7 +16,10 @@ def barcodeReader():
 @app.route('/automation', methods = ['GET'])
 def executeAutomation():
   if request.method == 'GET':
-    return json.dumps({'res':"data"}), 200, {'ContentType':'application/json'}
+    import os
+    subprocess.Popen('explorer')
+    #res = execute()
+    return json.dumps({'res': 1}), 200, {'ContentType':'application/json'}
 
 if __name__ == '__main__':
   app.debug = True

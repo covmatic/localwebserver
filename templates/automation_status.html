@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="/static/css/basic.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div class="container">
+        <form id="start_run" action="/automation/status" method="post">
+            <h4>Verify automation status </h4>
+            <fieldset>
+                {{ form.process_uuid.label }} {{ form.process_uuid(placeholder="Process UUID", type="text",
+                tabindex="1") }}
+            </fieldset>
+            {{ form.submit }}
+            {{ form.hidden_tag() }}
+            <h4>{{ msg }}</h4>
+        </form>
+    </div>
+</div>
+</body>
+</html>

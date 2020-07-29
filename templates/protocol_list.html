@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script type="text/javascript" src="/static/DataTables/jQuery-3.3.1/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="/static/DataTables/datatables.js"></script>
+    <link href="/static/css/basic.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h3>Protocol types</h3>
+    <table id="start_run" class="display">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Created by</th>
+                    <th>Creation Date</th>
+                    <th>Filename</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in protocol_types %}
+                   <tr>
+                        <td>{{ p['id'] }}</td>
+                        <td>{{ p['name'] }}</td>
+                        <td>{{ p['created_by'] }}</td>
+                        <td>{{ p['creation_date'] }}</td>
+                        <td>{{ p['filename'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+</div>
+</body>
+</html>

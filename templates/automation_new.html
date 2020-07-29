@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="/static/css/basic.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <form form id="start_run" action="/automation" method="post">
+        <h3>Start a new protocol run</h3>
+        {% if msg %}<h4>{{ msg }}</h4>{% endif %}
+        <fieldset>
+            {{ form.process_uuid.label }} {{ form.process_uuid(placeholder="Process UUID", type="text", tabindex="1") }}
+        </fieldset>
+        <fieldset>
+            {{ form.operator_id.label }} {{ form.operator_id(placeholder="Operator ID", type="text", tabindex="1") }}
+        </fieldset>
+        <fieldset>
+            {{ form.supervisor_id.label }} {{ form.supervisor_id(placeholder="Supervisor ID", type="text", tabindex="1")
+            }}
+        </fieldset>
+        <fieldset>
+            {{ form.container_in.label }} {{ form.container_in(placeholder="Input Container Barcode", type="text",
+            tabindex="1") }}
+        </fieldset>
+        <fieldset>
+            {{ form.container_out.label }} {{ form.container_out(placeholder="Output Container Barcode", type="text",
+            tabindex="1") }}
+        </fieldset>
+        <fieldset>
+            {{ form.protocol_type.label }} {{ form.protocol_type(placeholder="Protocol...", type="text", tabindex="1")
+            }}
+        </fieldset>
+        {{ form.submit }}
+        {{ form.hidden_tag() }}
+    </form>
+</div>
+</body>
+</html>

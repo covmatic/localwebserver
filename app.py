@@ -1,36 +1,27 @@
-from flask import Flask, request
+from api import api
+from database import init_db
+from flask import Flask
 from flask_cors import CORS
-import json
-import time
-import subprocess
-# from opentronsA import execute
+from services import task_runner
+from views import bp_automation
 
-app = Flask(__name__)
-CORS(app)
-i = 1
 
-@app.route('/barcode', methods = ['GET'])
-def barcodeReader():
-  if request.method == 'GET':
-    return json.dumps({'res':"123456"}) , 200, {'ContentType':'application/json'}
+def create_app():
+    app = Flask(__name__)
+    app.secret_key = b'_5#y2L"s8zxec]/'
+    app.config.from_object('config')
 
-@app.route('/automation', methods = ['GET'])
-def executeAutomation():
-  if request.method == 'GET':
-    return json.dumps({'res': 1}), 200, {'ContentType':'application/json'}
+    # Init all plugins
+    CORS(app)
+    init_db(app)
+    api.init_app(app)
 
-@app.route('/settemp', methods = ['GET'])
-def settemp():
-  if request.method == 'GET':
-    return json.dumps({'res': 1}), 200, {'ContentType':'application/json'}
+    # Register all views blueprints
+    app.register_blueprint(bp_automation)
+    return app
 
-@app.route('/check', methods = ['GET'])
-def check():
-  if request.method == 'GET':
-    global i
-    i +=1
-    return json.dumps({'status': i%5==0, 'res':5}), 200, {'ContentType':'application/json'}
 
-if __name__ == '__main__':
-  app.debug = True
-  app.run(host='localhost', port=5001, threaded=True, use_reloader=False)
+if __name__ == "__main__":
+    local_app = create_app()
+    task_runner.start_scheduler(local_app)
+    local_app.run(host='127.0.0.1', port=5001, debug=False)

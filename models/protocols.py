@@ -14,7 +14,7 @@ class Protocol(Base):
 
     __tablename__ = 'protocols'
     id = Column(Integer, primary_key=True)
-    process_uuid = Column(String, nullable=False)
+    process_uuid = Column(String, nullable=True)
     creation_date = Column(BigInteger, nullable=False, default=lambda: unix_epoch_now())
     last_update = Column(BigInteger, nullable=False, default=lambda: unix_epoch_now())
     end_date = Column(BigInteger, nullable=True)
@@ -26,16 +26,14 @@ class Protocol(Base):
     operator_id = Column(String, nullable=True)
     supervisor_id = Column(Integer, nullable=True)
     success = Column(Boolean, nullable=True)
-    protocol_type_id = Column(Integer, ForeignKey('protocol_types.id'))
-    protocol_type = relationship('ProtocolType')
+    station = Column(Integer, nullable=True)
+    action = Column(String, nullable=True)
+    # protocol_type_id = Column(Integer, ForeignKey('protocol_types.id'))
+    # protocol_type = relationship('ProtocolType')
 
-    def __init__(self, process_uuid, container_in, container_out, operator_id, supervisor_id, protocol_id):
-        self.process_uuid = process_uuid
-        self.operator_id = operator_id
-        self.supervisor_id = supervisor_id
-        self.input_container_ids = container_in
-        self.output_container_id = container_out
-        self.protocol_type_id = protocol_id
+    def __init__(self, station, action):
+        self.station = station
+        self.action = action
 
     def set_paused(self):
         self.set_status('paused')
@@ -49,7 +47,7 @@ class Protocol(Base):
 
     def set_completed(self):
         self.set_status('completed')
-        self.success=True
+        self.success = True
         self.end_date = unix_epoch_now()
 
     def set_aborted(self):
@@ -80,39 +78,41 @@ class Protocol(Base):
             status=self.status,
             lab_equipment=self.lab_equipment,
             avg_run_temperature=self.avg_process_temp,
-            success=self.success
+            success=self.success,
+            station=self.station,
+            action=self.action
         )
 
 
-class ProtocolType(Base):
+# class ProtocolType(Base):
 
-    __tablename__ = 'protocol_types'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    filename = Column(String, nullable=False)
-    module_name = Column(String, nullable=False)
-    checksum = Column(String, nullable=False)
-    creation_date = Column(BigInteger, nullable=False, default=lambda: unix_epoch_now())
-    last_update = Column(BigInteger, nullable=False, default=lambda: unix_epoch_now())
-    created_by = Column(String, nullable=False)
-    dismissed = Column(Boolean, nullable=False, default=False)
+#     __tablename__ = 'protocol_types'
+#     id = Column(Integer, primary_key=True)
+#     name = Column(String, nullable=False)
+#     filename = Column(String, nullable=False)
+#     module_name = Column(String, nullable=False)
+#     checksum = Column(String, nullable=False)
+#     creation_date = Column(BigInteger, nullable=False, default=lambda: unix_epoch_now())
+#     last_update = Column(BigInteger, nullable=False, default=lambda: unix_epoch_now())
+#     created_by = Column(String, nullable=False)
+#     dismissed = Column(Boolean, nullable=False, default=False)
 
-    def __init__(self, name, created_by, filename, module_name, checksum):
-        self.name = name
-        self.created_by = created_by
-        self.module_name = module_name
-        self.filename = filename
-        self.checksum = checksum
+#     def __init__(self, name, created_by, filename, module_name, checksum):
+#         self.name = name
+#         self.created_by = created_by
+#         self.module_name = module_name
+#         self.filename = filename
+#         self.checksum = checksum
 
-    def serialize(self):
-        return dict(
-            id=self.id,
-            name=self.name,
-            created_by=self.created_by,
-            creation_date=self.creation_date,
-            last_update=self.last_update,
-            filename=self.filename,
-            module_name=self.module_name,
-            checksum=self.checksum,
-            dismissed=self.dismissed
-        )
+#     def serialize(self):
+#         return dict(
+#             id=self.id,
+#             name=self.name,
+#             created_by=self.created_by,
+#             creation_date=self.creation_date,
+#             last_update=self.last_update,
+#             filename=self.filename,
+#             module_name=self.module_name,
+#             checksum=self.checksum,
+#             dismissed=self.dismissed
+#         )

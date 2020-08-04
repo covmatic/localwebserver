@@ -31,7 +31,7 @@ temp_a = 3.9  # we will set the temp 0.1 less in order to make a check more safe
 temp_check = 4.0
 TempUB = temp_check + 0.3  # It is fixed the warning if we go over 0.3
 
-
+"""Removed the light part until there is a way to use them with ssh"""
 # # Definitions for deck light flashing
 # class CancellationToken:
 #     def __init__(self):
@@ -56,12 +56,12 @@ TempUB = temp_check + 0.3  # It is fixed the warning if we go over 0.3
 #     t1 = threading.Thread(target=turn_on_blinking_notification, args=(ctx._hw_manager.hardware, cancel_token))
 #     t1.start()
 #     return t1
-#
-#
+
+
 def delay(minutesToDelay, message, context):
     message += ' for ' + str(minutesToDelay) + ' minutes.'
     if SKIP_DELAY:
-        context.pause(message  + "Pausing for skipping delay. Please resume")
+        context.pause(message + "Pausing for skipping delay. Please resume")
     else:
         context.delay(minutes=minutesToDelay, msg=message)
 
@@ -184,7 +184,7 @@ def run(ctx):
 
         switch = True
         drop_count = 0
-        drop_threshold = 296 # number of tips trash will accommodate before prompting user to empty
+        drop_threshold = 296  # number of tips trash will accommodate before prompting user to empty
 
         def drop(pip):
             nonlocal switch
@@ -355,4 +355,3 @@ def run(ctx):
 
     except RuntimeError:
         update_log_file(message='Temperature module is disconnected', check_temperature=False)
-

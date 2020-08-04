@@ -15,7 +15,7 @@ OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.jso
 OT2_TARGET_IP_ADDRESS = '10.213.55.215'
 OT2_ROBOT_PASSWORD = 'opentrons'
 TASK_QUEUE_POLLING_INTERVAL = 5
-TASK_RUNNING = False
+# TASK_RUNNING = False
 
 app = object()
 scheduler = Timeloop()

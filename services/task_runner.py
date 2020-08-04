@@ -1,14 +1,19 @@
 from database import session
 from models.protocols import Protocol
-from datetime import timedelta
+from datetime import timedelta, datetime
 from timeloop import Timeloop
 from utils import secure_load_opentrons_module
+import paramiko as pk
+from scp import SCPClient
+import time
+import subprocess
+
 
 OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
-OT2_PROTOCOL_FILE = 'new_protocol.py' # For stations in general keep protocol name constant.
-OT2_PROTOCOL1V1_FILE = 'new_protocol.py' # Pre-incubation Protocol for station A Purebase P1000S
-OT2_PROTOCOL1V2_FILE = 'new_protocol.py' # Pre-incubation Protocol for station A Purebase P1000S
+OT2_PROTOCOL_FILE = 'new_protocol.py'  # For stations in general keep protocol name constant.
+OT2_PROTOCOL1V1_FILE = 'new_protocol.py'  # Pre-incubation Protocol for station A Purebase P1000S
+OT2_PROTOCOL1V2_FILE = 'new_protocol.py'  # Pre-incubation Protocol for station A Purebase P1000S
 OT2_PROTOCOL2V1_FILE = 'new_protocol.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
@@ -19,6 +24,13 @@ TASK_QUEUE_POLLING_INTERVAL = 5
 
 app = object()
 scheduler = Timeloop()
+
+
+def create_ssh_client(usr, key_file, pwd):
+    client = pk.SSHClient()  # Create an object SSH client
+    client.set_missing_host_key_policy(pk.AutoAddPolicy())  # It is needed to add the device policy
+    client.connect(OT2_TARGET_IP_ADDRESS, username=usr, key_filename=key_file, password=pwd)
+    return client
 
 
 def start_scheduler(app_ctx):
@@ -75,7 +87,7 @@ def check_new_tasks():
                 scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                 scp_client.close()
                 ####################################################################################
-            elif action == "checktemp": # For testing this is the same as set temp
+            elif action == "checktemp":  # For testing this is the same as set temp
                 # TODO: Modify protocol
                 print("station 1 is checking the current temperature matches target ")
                 ###################################################################################
@@ -165,8 +177,8 @@ def check_new_tasks():
                         scp_client.close()
                     else:
                         print("Action not defined")
-                elif station == 2: #station B
-                    print("Performing Protocol") #For Debugging
+                elif station == 2:  # station B
+                    print("Performing Protocol")  # For Debugging
                     ####################################################################################
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -181,8 +193,8 @@ def check_new_tasks():
                     local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
                     scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                     scp_client.close()
-                elif station == 3: #station C
-                    print("Performing Protocol") #for Debugging
+                elif station == 3:  # station C
+                    print("Performing Protocol")  # for Debugging
                     ####################################################################################
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -197,7 +209,7 @@ def check_new_tasks():
                     local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
                     scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                     scp_client.close()
-                elif station == 4: #PCR
+                elif station == 4:  # PCR
                     if action == "run":
                         subprocess.call('PCR_api.exe')
                     else:

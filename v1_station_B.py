@@ -344,9 +344,13 @@ def run(ctx):
         update_log_file()
 
         magdeck.disengage()
+        current_status = 'Airdrying beads at room temperature.'
         delay(12, 'Airdrying beads at room temperature.', ctx)
+        update_log_file()
 
+        current_status = 'Elute'
         elute(ELUTION_VOL, park=PARK)
+        update_log_file()
         magdeck.disengage()
 
     except RuntimeError:

@@ -17,7 +17,7 @@ def start_scheduler(app_ctx):
 
 @scheduler.job(interval=timedelta(seconds=5))
 def check_new_tasks():
-    print("Checking new tasks")
+    # print("Checking new tasks")
     protocol = Protocol.query.filter_by(status="queued").first()
     if protocol is not None:
         protocol.set_running()
@@ -26,24 +26,28 @@ def check_new_tasks():
         try:
             # Call your code using execute_automation()
             # execute_automation()
-            module = secure_load_opentrons_module(
-                module_name=protocol.protocol_type.module_name,
-                file_path=app.config["OT2_MODULES_PATH"],
-                filename=protocol.protocol_type.filename,
-                checksum=protocol.protocol_type.checksum,
-                verify=False
-            )
-            otm = module.OpenTronsModule(
-                usr=app.config["OT2_ROBOT_USER"],
-                pwd=app.config["OT2_ROBOT_PASSWORD"],
-                key_file=app.config["OT2_SSH_KEY"],
-                target_ip=app.config["OT2_TARGET_IP_ADDRESS"],
-                protocol_path=app.config["OT2_PROTOCOL_PATH"],
-                protocol_file=app.config["OT2_PROTOCOL_FILE"],
-                remote_path=app.config["OT2_REMOTE_LOG_FILEPATH"]
-            )
-            # Call your routine here
-            otm.test_import()
+            # module = secure_load_opentrons_module(
+            #     module_name=protocol.protocol_type.module_name,
+            #     file_path=app.config["OT2_MODULES_PATH"],
+            #     filename=protocol.protocol_type.filename,
+            #     checksum=protocol.protocol_type.checksum,
+            #     verify=False
+            # )
+            # otm = module.OpenTronsModule(
+            #     usr=app.config["OT2_ROBOT_USER"],
+            #     pwd=app.config["OT2_ROBOT_PASSWORD"],
+            #     key_file=app.config["OT2_SSH_KEY"],
+            #     target_ip=app.config["OT2_TARGET_IP_ADDRESS"],
+            #     protocol_path=app.config["OT2_PROTOCOL_PATH"],
+            #     protocol_file=app.config["OT2_PROTOCOL_FILE"],
+            #     remote_path=app.config["OT2_REMOTE_LOG_FILEPATH"]
+            # )
+            # # Call your routine here
+            # otm.test_import()
+            station = protocol.station
+            action = protocol.action
+            if station == 1 and action == "settemp":
+                print("station 1 is setting the temperature module!")
             protocol.set_completed()
             session.add(protocol)
             session.commit()

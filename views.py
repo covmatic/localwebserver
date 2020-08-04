@@ -5,19 +5,18 @@ from forms.form_protocol_automation import NewRunForm
 from forms.form_protocol_automation import RunStatusForm
 from forms.form_protocol_automation import CreateProtocolType
 from models.protocols import Protocol
-from models.protocols import ProtocolType
 from werkzeug.utils import secure_filename
 
 bp_automation = Blueprint('automation', __name__)
 
 
-def retrieve_protocol_types():
-    protocol_types = list()
-    for pt in ProtocolType.query.all():
-        t = tuple([pt.id, pt.name])
-        protocol_types.append(t)
-    print(protocol_types)
-    return protocol_types
+# def retrieve_protocol_types():
+#     protocol_types = list()
+#     for pt in ProtocolType.query.all():
+#         t = tuple([pt.id, pt.name])
+#         protocol_types.append(t)
+#     print(protocol_types)
+#     return protocol_types
 
 
 @bp_automation.route('/automation', methods=['GET', 'POST'])

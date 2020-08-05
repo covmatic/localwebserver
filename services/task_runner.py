@@ -2,7 +2,7 @@ from database import session
 from models.protocols import Protocol
 from datetime import timedelta, datetime
 from timeloop import Timeloop
-from utils import secure_load_opentrons_module
+# from utils import secure_load_opentrons_module
 import paramiko as pk
 from scp import SCPClient
 import time
@@ -15,6 +15,7 @@ OT2_PROTOCOL_FILE = 'new_protocol.py'  # For stations in general keep protocol n
 OT2_PROTOCOL1V1_FILE = 'new_protocol.py'  # Pre-incubation Protocol for station A Purebase P1000S
 OT2_PROTOCOL1V2_FILE = 'new_protocol.py'  # Pre-incubation Protocol for station A Purebase P1000S
 OT2_PROTOCOL2V1_FILE = 'new_protocol.py'
+OT2_PROTOCOL2V2_FILE = 'new_protocol.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 OT2_TARGET_IP_ADDRESS = '10.213.55.215'
@@ -110,9 +111,9 @@ def check_new_tasks():
                 ####################################################################################
                 time.sleep(5)
             else:
-                if station == 1: #station A     V1 = Purebase P1000S    V2 = Purebase P300S
-                    if action == "Pre-incubation V1": # Purebase P1000S
-                        print("Performing Pre-Incubation Protocol V1") #For Debugging
+                if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
+                    if action == "Pre-incubation V1":  # Purebase P1000S
+                        print("Performing Pre-Incubation Protocol V1")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -128,7 +129,7 @@ def check_new_tasks():
                         scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                         scp_client.close()
                     elif action == "Post-incubation V1":
-                        print("Performing Post-Incubation Protocol V1") #For Debugging
+                        print("Performing Post-Incubation Protocol V1")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -144,7 +145,7 @@ def check_new_tasks():
                         scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                         scp_client.close()
                     elif action == "Pre-incubation V2":
-                        print("Performing Pre-Incubation Protocol V2") # For Debugging
+                        print("Performing Pre-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -160,7 +161,7 @@ def check_new_tasks():
                         scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                         scp_client.close()
                     elif action == "Post-incubation V2":
-                        print("Performing Post-Incubation Protocol V2") #For Debugging
+                        print("Performing Post-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)

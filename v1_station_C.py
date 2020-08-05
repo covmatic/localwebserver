@@ -23,7 +23,7 @@ TempUB = temp_check + 1.0
 
 
 def run(ctx: protocol_api.ProtocolContext):
-    # Define the Path for the log temperature file
+    # Define the Path for the logs
     folder_path = '/var/lib/jupyter/notebooks/outputs'
     temp_file_path = folder_path + '/completion_log.json'
     Log_Dict = {"stages": []}  # For log file data
@@ -95,7 +95,8 @@ def run(ctx: protocol_api.ProtocolContext):
 
         tip_log = {'count': {}}
         tip_file_path = folder_path + '/tip_log.json'
-        if TIP_TRACK and not ctx.is_simulating():  # if i need to simulate and check the json file i need to remove the not
+        # if i need to simulate and check the json file i need to remove the not
+        if TIP_TRACK and not ctx.is_simulating():
             if os.path.isfile(tip_file_path):
                 with open(tip_file_path) as json_file:
                     data = json.load(json_file)

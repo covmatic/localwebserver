@@ -11,6 +11,7 @@ import subprocess
 
 OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
+# TODO: Put the names in a json file and read the filenames
 OT2_PROTOCOL_FILE = 'new_protocol.py'  # For stations in general keep protocol name constant.
 OT2_PROTOCOL1V1_FILE = 'new_protocol.py'  # Pre-incubation Protocol for station A Purebase P1000S
 OT2_PROTOCOL1V2_FILE = 'new_protocol.py'  # Pre-incubation Protocol for station A Purebase P1000S
@@ -89,7 +90,7 @@ def check_new_tasks():
                 scp_client.close()
                 ####################################################################################
             elif action == "checktemp":  # For testing this is the same as set temp
-                # TODO: Modify protocol
+                # TODO: Check the protocol
                 print("station 1 is checking the current temperature matches target ")
                 ###################################################################################
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)

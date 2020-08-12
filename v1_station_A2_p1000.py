@@ -2,6 +2,8 @@ from opentrons import protocol_api
 import json
 import os
 import math
+import time
+import datetime
 
 # metadata
 metadata = {
@@ -34,34 +36,53 @@ TempUB = temp_check + 0.3  # It is fixed the warning if we go over 0.3
 def run(ctx: protocol_api.ProtocolContext):
     # Define the Path for the logs
     folder_path = '/var/lib/jupyter/notebooks/outputs'
+    temp_file_path = folder_path + '/completion_log.json'
+    Log_Dict = {"stages": []}  # For log file data
+    current_status = "Setting environment"
+
+    def update_log_file(message="Step executed successfully", check_temperature=True):
+        current_Log_dict = {"stage_name": current_status,
+                            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
+                            "temp": None,
+                            "message": message}
+        if check_temperature:
+            current_Log_dict["temp"] = tempdeck.temperature
+            if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
+                if tempdeck.status != 'holding at target':
+                    ctx.pause('The temperature is above {}°C'.format(TempUB))
+                    while tempdeck.temperature >= temp_check:
+                        print("sleeping for 0.5 s to wait for Temp_Deck")
+                        print("current temperature is {}°C".format(tempdeck.temperature))
+                        time.sleep(0.1)
+
     ctx.comment("Station A protocol for {} COPAN 330C samples.".format(NUM_SAMPLES))
     # load labware
     tempdeck = ctx.load_module('Temperature Module Gen2', '10')
     tempdeck.set_temperature(temp_a)
     internal_control_labware = tempdeck.load_labware(
-       'opentrons_96_aluminumblock_generic_pcr_strip_200ul',
-       'chilled tubeblock for internal control (strip 1)')
-    source_racks = [ctx.load_labware('copan_15_tuberack_14000ul', slot, 'source tuberack' + ' ' + str(i+1))
+        'opentrons_96_aluminumblock_generic_pcr_strip_200ul',
+        'chilled tubeblock for internal control (strip 1)')
+    # Added Custom Labware inside the protocol
+    with open('/var/lib/jupyter/notebooks/COPAN 15 Tube Rack 14000 µL.json', 'r') as source_file:
+        source_def = json.load(source_file)
+    source_racks = [ctx.load_labware_from_definition(source_def, slot, 'source tuberack' + ' ' + str(i + 1))
                     for i, slot in enumerate(['2', '3', '5', '6'])]
     dest_plate = ctx.load_labware(
         'nest_96_wellplate_2ml_deep', '1', '96-deepwell sample plate')
     lys_buff = ctx.load_labware(
         'opentrons_6_tuberack_falcon_50ml_conical', '4',
         '50ml tuberack for lysis buffer + PK (tube A1)').wells()[0]
-    tipracks1000 = [ctx.load_labware('opentrons_96_filtertiprack_1000ul', slot,
-                                     '1000µl filter tiprack')
-                    for slot in ['8', '9', '11']]
+    tipracks300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
+                                    '200ul filter tiprack')
+                   for slot in ['8', '9', '11']]
     tipracks20 = [ctx.load_labware('opentrons_96_filtertiprack_20ul', '7',
                                    '20µl filter tiprack')]
 
     # load pipette
     m20 = ctx.load_instrument('p20_multi_gen2', 'left', tip_racks=tipracks20)
-    p1000 = ctx.load_instrument(
-        'p1000_single_gen2', 'right', tip_racks=tipracks1000)
-    p1000.flow_rate.aspirate = DEFAULT_ASPIRATE
-    p1000.flow_rate.dispense = DEFAULT_DISPENSE
-    p1000.flow_rate.blow_out = 300
-
+    p300 = ctx.load_instrument(
+        'p300_single_gen2', 'right', tip_racks=tipracks300)
+    p300.flow_rate.blow_out = 300
     # setup samples
 
     """"we try to allocate the maximum number of samples available in racks (e.g. 15*number of racks)
@@ -69,13 +90,13 @@ def run(ctx: protocol_api.ProtocolContext):
     if number of samples is bigger than samples in racks."""
 
     sources = [
-        well for rack in source_racks for well in rack.wells()][:NUM_SAMPLES]
+                  well for rack in source_racks for well in rack.wells()][:NUM_SAMPLES]
     max_sample_per_set = len(sources)
-    set_of_samples = math.ceil(NUM_SAMPLES/max_sample_per_set)
+    set_of_samples = math.ceil(NUM_SAMPLES / max_sample_per_set)
 
     # setup destinations
     dests_single = dest_plate.wells()[:NUM_SAMPLES]
-    dests_multi = dest_plate.rows()[0][:math.ceil(NUM_SAMPLES/8)]
+    dests_multi = dest_plate.rows()[0][:math.ceil(NUM_SAMPLES / 8)]
 
     tip_log = {'count': {}}
     tip_file_path = folder_path + '/tip_log.json'
@@ -84,23 +105,23 @@ def run(ctx: protocol_api.ProtocolContext):
             with open(tip_file_path) as json_file:
                 data = json.load(json_file)
                 if 'tips1000' in data:
-                    tip_log['count'][p1000] = data['tips1000']
+                    tip_log['count'][p300] = data['tips1000']
                 else:
-                    tip_log['count'][p1000] = 0
+                    tip_log['count'][p300] = 0
                 if 'tips20' in data:
                     tip_log['count'][m20] = data['tips20']
                 else:
                     tip_log['count'][m20] = 0
     else:
-        tip_log['count'] = {p1000: 0, m20: 0}
+        tip_log['count'] = {p300: 0, m20: 0}
 
     tip_log['tips'] = {
-        p1000: [tip for rack in tipracks1000 for tip in rack.wells()],
+        p300: [tip for rack in tipracks300 for tip in rack.wells()],
         m20: [tip for rack in tipracks20 for tip in rack.rows()[0]]
     }
     tip_log['max'] = {
         pip: len(tip_log['tips'][pip])
-        for pip in [p1000, m20]
+        for pip in [p300, m20]
     }
 
     # setup internal control
@@ -142,7 +163,9 @@ def run(ctx: protocol_api.ProtocolContext):
         return tube.bottom(heights[tube])
 
     """Part 2 of the protocol: before is equal to part 1"""
+
     # transfer internal control
+    current_status = "transfer internal control"
     for idx, d in enumerate(dests_multi):
         strip_ind = idx // ic_cols_per_strip
         internal_control = internal_control_strips[strip_ind]
@@ -156,12 +179,13 @@ def run(ctx: protocol_api.ProtocolContext):
         m20.air_gap(5)
         m20.drop_tip()
 
+    update_log_file()
     # track final used tip
     if not ctx.is_simulating():
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)
         data = {
-            'tips1000': tip_log['count'][p1000],
+            'tips1000': tip_log['count'][p300],
             'tips20': tip_log['count'][m20]
         }
         with open(tip_file_path, 'w') as outfile:

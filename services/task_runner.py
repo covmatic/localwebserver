@@ -8,17 +8,20 @@ from scp import SCPClient
 import time
 import subprocess
 
-
+PCR_API_NAME = 'BioRad.Example_Application.exe'
+PCR_PATH = 'C:/Users/inse9/OneDrive/Desktop/Bio-Rad CFX API v1.1'
 OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # TODO: Put the names in a json file and read the filenames
 OT2_PROTOCOL_FILE = 'new_protocol.py'  # For stations in general keep protocol name constant.
+# FIXME: Decide how to differentiate the 2 lines of station A i.e: P300 or P1000
 OT2_PROTOCOL1V1_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
 OT2_PROTOCOL1V2_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
 OT2_PROTOCOL2V1_FILE = 'v1_station_A2_p1000.py'
 OT2_PROTOCOL2V2_FILE = 'v1_station_A2_p1000.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
+# TODO: Put the Ips of the machines on a json file and read them
 OT2_TARGET_IP_ADDRESS = '10.213.55.191'
 OT2_ROBOT_PASSWORD = 'opentrons'
 TASK_QUEUE_POLLING_INTERVAL = 5
@@ -107,6 +110,7 @@ def check_new_tasks():
                 scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                 scp_client.close()
                 ####################################################################################
+                # TODO: Decide what we need to do with calibration
             elif action == "calibration":
                 print("Calibrating")
                 ####################################################################################
@@ -213,7 +217,7 @@ def check_new_tasks():
                     scp_client.close()
                 elif station == 4:  # PCR
                     if action == "PCR":
-                        subprocess.call('PCR_api.exe')
+                        subprocess.call(PCR_PATH + PCR_API_NAME)
                     else:
                         print("Action not defined")
                 else:

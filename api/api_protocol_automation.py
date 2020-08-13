@@ -73,15 +73,18 @@ class AutomationAPI_MVP(Resource):
                 )
                 session.add(protocol)
                 session.commit()
-                res = {"status": protocol.status, "id": protocol.id}
-                return res, 201
+                # res = {"status": protocol.status, "id": protocol.id}
+                # return res, 201
+                return jsonify(status=protocol.status, id=protocol.id), 201
             else:
                 res = {"status": "failed",
                        "message": "There's a task already queued or in progress. Please try again later"}
                 return res, 403
         except Exception as e:
-            res = {"status": "failed", "message": str(e)}
-            return res, 500
+            # res = {"status": "failed", "message": str(e)}
+            return jsonify(status="failed", message=str(e)), 500
+            # return res, 500
+
 
 class CheckFunction(Resource):
 
@@ -89,6 +92,8 @@ class CheckFunction(Resource):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
         if not(queued_protocols or running_protocols):
-            return {"status": True, "res": ":)"}, 200
+            return jsonify(status=True, res=":)"), 200
+            # return {"status": True, "res": ":)"}, 200
         else:
-            return {"status": False, "res": ":("}, 200
+            return jsonify(status=False, res=":("), 200
+            # return {"status": False, "res": ":("}, 200

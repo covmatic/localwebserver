@@ -1,24 +1,41 @@
 from database import session
 from models.protocols import Protocol
-from datetime import timedelta
+from datetime import timedelta, datetime
 from timeloop import Timeloop
-from utils import secure_load_opentrons_module
+# from utils import secure_load_opentrons_module
+import paramiko as pk
+from scp import SCPClient
+import time
+import subprocess
 
+PCR_API_NAME = 'BioRad.Example_Application.exe'
+PCR_PATH = 'C:/Users/inse9/OneDrive/Desktop/Bio-Rad CFX API v1.1'
 OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
-OT2_PROTOCOL_FILE = 'new_protocol.py' # For stations in general keep protocol name constant.
-OT2_PROTOCOL1V1_FILE = 'new_protocol.py' # Pre-incubation Protocol for station A Purebase P1000S
-OT2_PROTOCOL1V2_FILE = 'new_protocol.py' # Pre-incubation Protocol for station A Purebase P1000S
-OT2_PROTOCOL2V1_FILE = 'new_protocol.py'
+# TODO: Put the names in a json file and read the filenames
+OT2_PROTOCOL_FILE = 'new_protocol.py'  # For stations in general keep protocol name constant.
+# FIXME: Decide how to differentiate the 2 lines of station A i.e: P300 or P1000
+OT2_PROTOCOL1V1_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
+OT2_PROTOCOL1V2_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
+OT2_PROTOCOL2V1_FILE = 'v1_station_A2_p1000.py'
+OT2_PROTOCOL2V2_FILE = 'v1_station_A2_p1000.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
-OT2_TARGET_IP_ADDRESS = '10.213.55.215'
+# TODO: Put the Ips of the machines on a json file and read them
+OT2_TARGET_IP_ADDRESS = '10.213.55.191'
 OT2_ROBOT_PASSWORD = 'opentrons'
 TASK_QUEUE_POLLING_INTERVAL = 5
-TASK_RUNNING = False
+# TASK_RUNNING = False
 
 app = object()
 scheduler = Timeloop()
+
+
+def create_ssh_client(usr, key_file, pwd):
+    client = pk.SSHClient()  # Create an object SSH client
+    client.set_missing_host_key_policy(pk.AutoAddPolicy())  # It is needed to add the device policy
+    client.connect(OT2_TARGET_IP_ADDRESS, username=usr, key_filename=key_file, password=pwd)
+    return client
 
 
 def start_scheduler(app_ctx):
@@ -75,8 +92,8 @@ def check_new_tasks():
                 scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                 scp_client.close()
                 ####################################################################################
-            elif action == "checktemp": # For testing this is the same as set temp
-                # TODO: Modify protocol
+            elif action == "checktemp":  # For testing this is the same as set temp
+                # TODO: Check the protocol
                 print("station 1 is checking the current temperature matches target ")
                 ###################################################################################
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
@@ -93,6 +110,7 @@ def check_new_tasks():
                 scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                 scp_client.close()
                 ####################################################################################
+                # TODO: Decide what we need to do with calibration
             elif action == "calibration":
                 print("Calibrating")
                 ####################################################################################
@@ -101,6 +119,9 @@ def check_new_tasks():
                 if station == 1: #station A     V1 = Purebase P1000S    V2 = Purebase P300S
                     if action == "Pre-incubationV1": # Purebase P1000S
                         print("Performing Pre-Incubation Protocol V1") #For Debugging
+                if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
+                    if action == "Pre-IncubationV1":  # Purebase P1000S
+                        print("Performing Pre-Incubation Protocol V1")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -117,6 +138,8 @@ def check_new_tasks():
                         scp_client.close()
                     elif action == "Post-incubationV1":
                         print("Performing Post-Incubation Protocol V1") #For Debugging
+                    elif action == "Post-IncubationV1":
+                        print("Performing Post-Incubation Protocol V1")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -133,6 +156,8 @@ def check_new_tasks():
                         scp_client.close()
                     elif action == "Pre-incubationV2":
                         print("Performing Pre-Incubation Protocol V2") # For Debugging
+                    elif action == "Pre-IncubationV2":
+                        print("Performing Pre-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -149,6 +174,8 @@ def check_new_tasks():
                         scp_client.close()
                     elif action == "Post-incubationV2":
                         print("Performing Post-Incubation Protocol V2") #For Debugging
+                    elif action == "Post-IncubationV2":
+                        print("Performing Post-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -165,8 +192,8 @@ def check_new_tasks():
                         scp_client.close()
                     else:
                         print("Action not defined")
-                elif station == 2: #station B
-                    print("Performing Protocol") #For Debugging
+                elif station == 2:  # station B
+                    print("Performing Protocol")  # For Debugging
                     ####################################################################################
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -181,8 +208,8 @@ def check_new_tasks():
                     local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
                     scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                     scp_client.close()
-                elif station == 3: #station C
-                    print("Performing Protocol") #for Debugging
+                elif station == 3:  # station C
+                    print("Performing Protocol")  # for Debugging
                     ####################################################################################
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -197,9 +224,9 @@ def check_new_tasks():
                     local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
                     scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                     scp_client.close()
-                elif station == 4: #PCR
-                    if action == "run":
-                        subprocess.call('PCR_api.exe')
+                elif station == 4:  # PCR
+                    if action == "PCR":
+                        subprocess.call(PCR_PATH + PCR_API_NAME)
                     else:
                         print("Action not defined")
                 else:

@@ -7,6 +7,9 @@ import paramiko as pk
 from scp import SCPClient
 import time
 import subprocess
+import glob
+import os
+import json
 
 PCR_API_NAME = 'BioRad.Example_Application.exe'
 PCR_PATH = 'C:/Users/inse9/OneDrive/Desktop/Bio-Rad CFX API v1.1'
@@ -231,11 +234,22 @@ def check_new_tasks():
                         print("Action not defined")
                 else:
                     print("Station not defined ! ")
-            protocol.set_completed()
-            session.add(protocol)
-            session.commit()
-        except Exception as e:
-            protocol.set_failed()
-            session.add(protocol)
-            session.commit()
-            print(e)
+                # Get latest created file might be useful later
+                # list_of_files = glob.glob( './*.json')  # * means all if need specific format then *.json , CHECK IF FILEPATH IS CORRECT
+                # latest_file = max(list_of_files, key=os.path.getctime)
+                # #filetopen = local_filepath + latest_file
+                with open(local_filepath) as f:
+                    data = json.load(f)
+                    stat = data["stages"][end]["status"]
+                    if "FAILED" in stat
+                        print("Protocol Failed")
+                        protocol.set_failed()
+                    else
+                        protocol.set_completed()
+                session.add(protocol)
+                session.commit()
+        # except Exception as e:
+        #     protocol.set_failed()
+        #     session.add(protocol)
+        #     session.commit()
+        #     print(e)

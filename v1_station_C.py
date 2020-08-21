@@ -29,11 +29,12 @@ def run(ctx: protocol_api.ProtocolContext):
     Log_Dict = {"stages": []}  # For log file data
     current_status = "Setting environment"
 
-    def update_log_file(message="Step executed successfully", check_temperature=True):
+    def update_log_file(status="SUCCESS", check_temperature=True, message=None):
         current_Log_dict = {"stage_name": current_status,
                             "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
                             "temp": None,
-                            "message": message}
+                            "status": status,
+                            "message": None}
         if check_temperature:
             current_Log_dict["temp"] = tempdeck.temperature
             if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
@@ -46,7 +47,8 @@ def run(ctx: protocol_api.ProtocolContext):
 
                     # tempdeck.await_temperature(temp_check)  # not sure if needed or we break the protocol
                     ctx.resume()
-                    current_Log_dict["message"] = "Temperature rose above threshold"
+                    current_Log_dict["status"] = "FAILED"
+                    current_Log_dict["message"] = "Temperature rose above threshold value"
         Log_Dict["stages"].append(current_Log_dict)
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)
@@ -230,4 +232,4 @@ def run(ctx: protocol_api.ProtocolContext):
                 json.dump(data, outfile)
 
     except RuntimeError:
-        update_log_file(message='Temperature module is disconnected', check_temperature=False)
+        update_log_file(status='FAILED', check_temperature=False, message = "RUNTIME ERROR")

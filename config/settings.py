@@ -1,5 +1,6 @@
 import os
 
+
 class BaseConfig():
     API_PREFIX = '/api'
     TESTING = False

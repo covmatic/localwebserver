@@ -129,5 +129,7 @@ dmypy.json
 .pyre/
 
 # Ignore the keys
+ot2_ssh_key
+ot2_ssh_key.pub
 /ot2_ssh_key.pub
 /ot2_ssh_key

@@ -8,6 +8,7 @@ from scp import SCPClient
 import json
 import time
 import subprocess
+from os import environ
 
 PCR_API_NAME = 'BioRad.Example_Application.exe'
 PCR_PATH = 'C:/Users/inse9/OneDrive/Desktop/Bio-Rad CFX API v1.1'
@@ -22,7 +23,9 @@ OT2_PROTOCOL2V1_FILE = 'v1_station_A2_p1000.py'
 OT2_PROTOCOL2V2_FILE = 'v1_station_A2_p1000.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
-OT2_TARGET_IP_ADDRESS = '10.213.55.247'
+# OT-2-IP is the name of environment variable in order to fix the IPs of the robot
+OT2_TARGET_IP_ADDRESS = environ['OT-2-IP']
+# OT2_TARGET_IP_ADDRESS = '10.213.55.232'
 OT2_ROBOT_PASSWORD = 'opentrons'
 TASK_QUEUE_POLLING_INTERVAL = 5
 # TASK_RUNNING = False

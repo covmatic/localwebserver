@@ -232,4 +232,4 @@ def run(ctx: protocol_api.ProtocolContext):
                 json.dump(data, outfile)
 
     except RuntimeError:
-        update_log_file(status='FAILED', check_temperature=False, message = "RUNTIME ERROR")
+        update_log_file(status='FAILED', check_temperature=False, message="RUNTIME ERROR")

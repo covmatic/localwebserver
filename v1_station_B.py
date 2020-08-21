@@ -16,7 +16,7 @@ NUM_SAMPLES = 16  # start with 8 samples, slowly increase to 48, then 94 (max is
 STARTING_VOL = 380
 ELUTION_VOL = 40
 TIP_TRACK = False
-PARK = False
+PARK = True
 
 SKIP_DELAY = False
 
@@ -60,7 +60,6 @@ TempUB = temp_check + 0.3  # It is fixed the warning if we go over 0.3
 
 def delay(minutesToDelay, message, context):
     message += ' for ' + str(minutesToDelay) + ' minutes.'
-    return
     if SKIP_DELAY:
         context.pause(message + "Pausing for skipping delay. Please resume")
     else:
@@ -140,11 +139,6 @@ def run(ctx):
         wash2 = res12.wells()[7:11]
         water = res12.wells()[11]
 
-        # #Todo:
-        # # Only for test
-        # if not ctx.is_simulating():
-        #     return
-        # ###############################
         mag_samples_m = magplate.rows()[0][:num_cols]
         elution_samples_m = flatplate.rows()[0][:num_cols]
 
@@ -155,6 +149,7 @@ def run(ctx):
         m300.flow_rate.dispense = 150
         m300.flow_rate.blow_out = 300
 
+        folder_path = '/data/B'
         tip_file_path = folder_path + '/tip_log.json'
         tip_log = {'count': {}}
         if TIP_TRACK and not ctx.is_simulating():
@@ -205,7 +200,7 @@ def run(ctx):
                 # if not ctx._hw_manager.hardware.is_simulator:
                 #     cancellationToken.set_true()
                 # thread = create_thread(ctx, cancellationToken)
-                # ctx.pause('Please empty tips from waste before resuming.')
+                ctx.pause('Please empty tips from waste before resuming.')
 
                 ctx.home()  # home before continuing with protocol
                 # cancellationToken.set_false()  # stop light flashing after home
@@ -324,24 +319,23 @@ def run(ctx):
 
             delay(3, 'Incubating on magnet at room temperature.', ctx)
 
-            # for i, (m, e, spot) in enumerate(
-            #         zip(mag_samples_m, elution_samples_m, parking_spots)):
-            #     if park:
-            #         pick_up(m300, spot)
-            #     else:
-            #         pick_up(m300)
-            #     side = -1 if i % 2 == 0 else 1
-            #     loc = m.bottom(0.5).move(Point(x=side*2))
-            #     m300.transfer(40, loc, e.bottom(5), air_gap=20, new_tip='never')
-            #     # m300.blow_out(e.top(-2))
-            #     m300.air_gap(20)
-            #     drop(m300)
+            for i, (m, e, spot) in enumerate(
+                    zip(mag_samples_m, elution_samples_m, parking_spots)):
+                if park:
+                    pick_up(m300, spot)
+                else:
+                    pick_up(m300)
+                side = -1 if i % 2 == 0 else 1
+                loc = m.bottom(0.5).move(Point(x=side*2))
+                m300.transfer(40, loc, e.bottom(5), air_gap=20, new_tip='never')
+                # m300.blow_out(e.top(-2))
+                m300.air_gap(20)
+                drop(m300)
 
-        # bind(210, park=PARK)
+        bind(210, park=PARK)
         current_status = 'Washing from 3 to 7'
-        # wash(500, wash1, 20, park=PARK)
+        wash(500, wash1, 20, park=PARK)
         update_log_file()
-        return
         current_status = 'Washing from 7 to 11'
         wash(500, wash2, 20, park=PARK)
         update_log_file()

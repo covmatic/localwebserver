@@ -5,6 +5,7 @@ from timeloop import Timeloop
 # from utils import secure_load_opentrons_module
 import paramiko as pk
 from scp import SCPClient
+import json
 import time
 import subprocess
 
@@ -21,8 +22,7 @@ OT2_PROTOCOL2V1_FILE = 'v1_station_A2_p1000.py'
 OT2_PROTOCOL2V2_FILE = 'v1_station_A2_p1000.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
-# TODO: Put the Ips of the machines on a json file and read them
-OT2_TARGET_IP_ADDRESS = '10.213.55.191'
+OT2_TARGET_IP_ADDRESS = '10.213.55.247'
 OT2_ROBOT_PASSWORD = 'opentrons'
 TASK_QUEUE_POLLING_INTERVAL = 5
 # TASK_RUNNING = False
@@ -53,26 +53,6 @@ def check_new_tasks():
         session.add(protocol)
         session.commit()
         try:
-            # Call your code using execute_automation()
-            # execute_automation()
-            # module = secure_load_opentrons_module(
-            #     module_name=protocol.protocol_type.module_name,
-            #     file_path=app.config["OT2_MODULES_PATH"],
-            #     filename=protocol.protocol_type.filename,
-            #     checksum=protocol.protocol_type.checksum,
-            #     verify=False
-            # )
-            # otm = module.OpenTronsModule(
-            #     usr=app.config["OT2_ROBOT_USER"],
-            #     pwd=app.config["OT2_ROBOT_PASSWORD"],
-            #     key_file=app.config["OT2_SSH_KEY"],
-            #     target_ip=app.config["OT2_TARGET_IP_ADDRESS"],
-            #     protocol_path=app.config["OT2_PROTOCOL_PATH"],
-            #     protocol_file=app.config["OT2_PROTOCOL_FILE"],
-            #     remote_path=app.config["OT2_REMOTE_LOG_FILEPATH"]
-            # )
-            # # Call your routine here
-            # otm.test_import()
             station = protocol.station
             action = protocol.action
             if action == "settemp":
@@ -95,7 +75,6 @@ def check_new_tasks():
             elif action == "checktemp":  # For testing this is the same as set temp
                 # TODO: Check the protocol
                 print("station 1 is checking the current temperature matches target ")
-                ###################################################################################
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
                 channel = client.invoke_shell()
@@ -114,7 +93,7 @@ def check_new_tasks():
             elif action == "calibration":
                 print("Calibrating")
                 ####################################################################################
-                time.sleep(5)
+                time.sleep(2)
             else:
                 if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
                     if action == "Pre-IncubationV1":  # Purebase P1000S
@@ -203,7 +182,6 @@ def check_new_tasks():
                     print("Performing Protocol")  # for Debugging
                     ####################################################################################
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
                     channel = client.invoke_shell()
                     channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_FILE))
                     channel.send('exit \n')
@@ -225,6 +203,21 @@ def check_new_tasks():
             protocol.set_completed()
             session.add(protocol)
             session.commit()
+            if not action == 'calibration':
+                with open(local_filepath) as f:
+                    data = json.load(f)
+                    stat = data["stages"][-1]["status"]
+                if "FAILED" in stat:
+                    print("Protocol Failed")
+                    protocol.set_failed()
+                else:
+                    protocol.set_completed()
+                    session.add(protocol)
+                    session.commit()
+            else:
+                protocol.set_completed()
+                session.add(protocol)
+                session.commit()
         except Exception as e:
             protocol.set_failed()
             session.add(protocol)

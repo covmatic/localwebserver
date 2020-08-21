@@ -56,4 +56,3 @@ class MyOpenTronsModule(OpenTronsModule):
 
     def run(self):
         print("If you can read this, you've successfully imported me!")
-

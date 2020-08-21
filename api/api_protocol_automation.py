@@ -90,9 +90,8 @@ class CheckFunction(Resource):
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
-        if not(queued_protocols or running_protocols):
-            
+
+        if not (queued_protocols or running_protocols):
             return {"status": True, "res": ":)"}, 200
         else:
-            
             return {"status": False, "res": ":("}, 200

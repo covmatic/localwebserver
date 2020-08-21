@@ -25,7 +25,7 @@ OT2_PROTOCOL2V2_FILE = 'v1_station_A2_p1000.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 # TODO: Put the Ips of the machines on a json file and read them
-OT2_TARGET_IP_ADDRESS = '10.213.55.191'
+OT2_TARGET_IP_ADDRESS = '10.213.55.247'
 OT2_ROBOT_PASSWORD = 'opentrons'
 TASK_QUEUE_POLLING_INTERVAL = 5
 # TASK_RUNNING = False
@@ -35,6 +35,7 @@ scheduler = Timeloop()
 
 
 def create_ssh_client(usr, key_file, pwd):
+    print('enter in the ssh channel function')
     client = pk.SSHClient()  # Create an object SSH client
     client.set_missing_host_key_policy(pk.AutoAddPolicy())  # It is needed to add the device policy
     client.connect(OT2_TARGET_IP_ADDRESS, username=usr, key_filename=key_file, password=pwd)
@@ -56,26 +57,6 @@ def check_new_tasks():
         session.add(protocol)
         session.commit()
         try:
-            # Call your code using execute_automation()
-            # execute_automation()
-            # module = secure_load_opentrons_module(
-            #     module_name=protocol.protocol_type.module_name,
-            #     file_path=app.config["OT2_MODULES_PATH"],
-            #     filename=protocol.protocol_type.filename,
-            #     checksum=protocol.protocol_type.checksum,
-            #     verify=False
-            # )
-            # otm = module.OpenTronsModule(
-            #     usr=app.config["OT2_ROBOT_USER"],
-            #     pwd=app.config["OT2_ROBOT_PASSWORD"],
-            #     key_file=app.config["OT2_SSH_KEY"],
-            #     target_ip=app.config["OT2_TARGET_IP_ADDRESS"],
-            #     protocol_path=app.config["OT2_PROTOCOL_PATH"],
-            #     protocol_file=app.config["OT2_PROTOCOL_FILE"],
-            #     remote_path=app.config["OT2_REMOTE_LOG_FILEPATH"]
-            # )
-            # # Call your routine here
-            # otm.test_import()
             station = protocol.station
             action = protocol.action
             if action == "settemp":
@@ -84,6 +65,7 @@ def check_new_tasks():
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
                 channel = client.invoke_shell()
+                print('invoke shell')
                 channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_TEMP_PROTOCOL_FILE))
                 channel.send('exit \n')
                 code = channel.recv_exit_status()
@@ -119,9 +101,6 @@ def check_new_tasks():
                 ####################################################################################
                 time.sleep(5)
             else:
-                if station == 1: #station A     V1 = Purebase P1000S    V2 = Purebase P300S
-                    if action == "Pre-incubationV1": # Purebase P1000S
-                        print("Performing Pre-Incubation Protocol V1") #For Debugging
                 if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
                     if action == "Pre-IncubationV1":  # Purebase P1000S
                         print("Performing Pre-Incubation Protocol V1")  # For Debugging
@@ -139,8 +118,6 @@ def check_new_tasks():
                         local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
                         scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                         scp_client.close()
-                    elif action == "Post-incubationV1":
-                        print("Performing Post-Incubation Protocol V1") #For Debugging
                     elif action == "Post-IncubationV1":
                         print("Performing Post-Incubation Protocol V1")  # For Debugging
                         ####################################################################################
@@ -157,8 +134,6 @@ def check_new_tasks():
                         local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
                         scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                         scp_client.close()
-                    elif action == "Pre-incubationV2":
-                        print("Performing Pre-Incubation Protocol V2") # For Debugging
                     elif action == "Pre-IncubationV2":
                         print("Performing Pre-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
@@ -175,8 +150,6 @@ def check_new_tasks():
                         local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
                         scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                         scp_client.close()
-                    elif action == "Post-incubationV2":
-                        print("Performing Post-Incubation Protocol V2") #For Debugging
                     elif action == "Post-IncubationV2":
                         print("Performing Post-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
@@ -235,21 +208,22 @@ def check_new_tasks():
                 else:
                     print("Station not defined ! ")
                 # Get latest created file might be useful later
-                # list_of_files = glob.glob( './*.json')  # * means all if need specific format then *.json , CHECK IF FILEPATH IS CORRECT
+                # list_of_files = glob.glob( './*.json')
+                # * means all if need specific format then *.json , CHECK IF FILEPATH IS CORRECT
                 # latest_file = max(list_of_files, key=os.path.getctime)
                 # #filetopen = local_filepath + latest_file
-                with open(local_filepath) as f:
-                    data = json.load(f)
-                    stat = data["stages"][end]["status"]
-                    if "FAILED" in stat
-                        print("Protocol Failed")
-                        protocol.set_failed()
-                    else
-                        protocol.set_completed()
-                session.add(protocol)
-                session.commit()
-        # except Exception as e:
-        #     protocol.set_failed()
-        #     session.add(protocol)
-        #     session.commit()
-        #     print(e)
+                # with open(local_filepath) as f:
+                #     data = json.load(f)
+                #     stat = data["stages"][-1]["status"]
+                #     if "FAILED" in stat:
+                #         print("Protocol Failed")
+                #         protocol.set_failed()
+                #     else:
+            protocol.set_completed()
+            session.add(protocol)
+            session.commit()
+        except Exception as e:
+            protocol.set_failed()
+            session.add(protocol)
+            session.commit()
+            print(e)

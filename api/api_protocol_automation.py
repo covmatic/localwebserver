@@ -4,6 +4,9 @@ from flask_restful import Resource
 from flask_restful import reqparse
 from models.protocols import Protocol
 from sqlalchemy import or_
+import glob
+import os
+import json
 
 
 # Define endpoint methods
@@ -89,15 +92,24 @@ class CheckFunction(Resource):
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
-        if not(queued_protocols or running_protocols):
+        PCR_result_file_scheme = 'BR202310_Data_??-??-????_??-??-??_Result.json'
+        if not (queued_protocols or running_protocols):
             last_protocol = Protocol.query.order_by(Protocol.start_date.desc()).first()
             last_status = last_protocol.status
             if last_status == "failed":
                 last_protocol.set_running()
                 session.add(last_protocol)
                 session.commit()
-                return "There has been an error in execusion, please verify and try again", 400
+                return "There has been an error in execution, please verify and try again", 400
             else:
-                return {"status": True, "res": ":)"}, 200
+                # Searching all PCR results file
+                PCR_result_file = glob.glob('./' + PCR_result_file_scheme)
+                # Sorting the PCR's results
+                PCR_result_file.sort(key=os.path.getctime)
+                # Opening the the last created and encoded with utf-8-sig
+                with open(str(PCR_result_file[-1]), 'r', endcoding='utf-8-sig') as result:
+                    read = json.load(result)
+                return {"status": True, "res": read}, 200
+                # return {"status": True, "res": ":)"}, 200
         else:
             return {"status": False, "res": ":("}, 200

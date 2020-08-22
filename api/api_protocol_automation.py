@@ -89,8 +89,15 @@ class CheckFunction(Resource):
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
-        if not (queued_protocols or running_protocols):
-
-            return {"status": True, "res": ":)"}, 200
+        if not(queued_protocols or running_protocols):
+            last_protocol = Protocol.query.order_by(Protocol.start_date.desc()).first()
+            last_status = last_protocol.status
+            if last_status == "failed":
+                last_protocol.set_running()
+                session.add(protocol)
+                session.commit()
+                return "There has been an error in execusion, please verify and try again", 400
+            else:
+                return {"status": True, "res": ":)"}, 200
         else:
-            return  {"status": False, "res": ":("}, 200
+            return {"status": False, "res": ":("}, 200

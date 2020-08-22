@@ -133,3 +133,6 @@ ot2_ssh_key
 ot2_ssh_key.pub
 /ot2_ssh_key.pub
 /ot2_ssh_key
+
+# Ignore the database file
+/store/app.db

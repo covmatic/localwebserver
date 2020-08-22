@@ -94,7 +94,7 @@ class CheckFunction(Resource):
             last_status = last_protocol.status
             if last_status == "failed":
                 last_protocol.set_running()
-                session.add(protocol)
+                session.add(last_protocol)
                 session.commit()
                 return "There has been an error in execusion, please verify and try again", 400
             else:

@@ -26,6 +26,7 @@ of the downloaded repository
 - [x] Tested the method of the environment variable for the IP of the robot
 - [ ] Add to the environment variable `OT-2-IP` the IP of the robot
 - [ ] Test the newer code with the PCR results
+- [ ] Check the protocols
 
 In order to include locally on the laptop the IP of the robot:
 It can be done with prompt of commands: `setx OT-2-IP <IP-OF-THE-ROBOT>`

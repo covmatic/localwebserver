@@ -1,14 +1,23 @@
-# Introduction
+# localWebServer
 
-The protocol files that you can upload to your OT-2s will be kept here.
+## Table of Contents
 
-In order to avoid errors running local protocol simulations add the ./custom_defaults/*.json files to your ~/.opentrons folder.
+* [Execute the program](#Execute the program)
 
-How simulate opentrons protocol on Windows, OS X or Linux:
+## Execute the program
 
-$ opentrons_simulate <my_protocol_filename.py>
+1. Download from Github the latest version: on **MVP branch** there
+is the testing code
 
-If you want to execute the protocol on the robot you can use:
+2. Open the commander (prompt of the command) in the same directory
+of the downloaded repository
 
-$ opentrons_execute <path_protocol>/<protocol_name.py>
+3. Install the needed requirements with: `pip install -r requirements.txt`
+ and wait the completion
+ 
+4. Run the `app.py` with: `python app.py`
+
+> Pay attention to have the `ot2_ssh_key` and `ot2_ssh_key.pub`
+> on the root folder of the repository
+
 

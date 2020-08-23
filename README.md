@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-* [Execute the program](#Execute the program)
+* [Execute the program](https://github.com/OpenSourceCovidTesting/localWebServer/tree/MVP#execute-the-program)
 
 ## Execute the program
 

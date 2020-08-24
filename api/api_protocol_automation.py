@@ -106,10 +106,17 @@ class CheckFunction(Resource):
                 PCR_result_file = glob.glob('./' + PCR_result_file_scheme)
                 # Sorting the PCR's results
                 PCR_result_file.sort(key=os.path.getctime)
-                # Opening the the last created and encoded with utf-8-sig
-                with open(str(PCR_result_file[-1]), 'r', endcoding='utf-8-sig') as result:
-                    read = json.load(result)
-                return {"status": True, "res": read}, 200
+                # Check if the results are available
+                if not PCR_result_file:
+                    print('there are no results available')
+                    return {"status": True, "res": ":)"}, 200
+                else:
+                    # Opening the the last created and encoded with utf-8-sig
+                    with open(str(PCR_result_file[-1]), 'r', endcoding='utf-8-sig') as result:
+                        read = json.load(result)
+                    # Delete the last file in order to don't create confusion
+                    os.remove(PCR_result_file[-1])
+                    return {"status": True, "res": read}, 200
                 # return {"status": True, "res": ":)"}, 200
         else:
             return {"status": False, "res": ":("}, 200

@@ -3,7 +3,7 @@ from flask import jsonify
 from flask_restful import Resource
 from flask_restful import reqparse
 from models.protocols import Protocol
-from sqlalchemy import or_
+from sqlalchemy import or_, desc
 import glob
 import os
 from shutil import copy2
@@ -95,11 +95,14 @@ class CheckFunction(Resource):
         running_protocols = Protocol.query.filter_by(status='running').all()
         PCR_result_file_scheme = 'BR202310_Data_??-??-????_??-??-??_Result.json'
         if not (queued_protocols or running_protocols):
-            last_protocol = Protocol.query.order_by(Protocol.start_date.desc()).first()
+            # FIXME: Check this
+            last_protocol = Protocol.query.order_by(Protocol.creation_date.desc()).first()
             last_status = last_protocol.status
             if last_status == "failed":
-                last_protocol.set_running()
-                session.add(last_protocol)
+                last_protocol.set_failed()
+                # last_protocol.set_running()
+                session.remove()
+                # session.add(last_protocol)
                 session.commit()
                 return "There has been an error in execution, please verify and try again", 400
             else:

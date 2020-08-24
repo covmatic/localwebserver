@@ -24,4 +24,4 @@ def create_app():
 if __name__ == "__main__":
     local_app = create_app()
     task_runner.start_scheduler(local_app)
-    local_app.run(host='127.0.0.1', port=5001, debug=False)
+    local_app.run(host='127.0.0.1', port=5001, debug=True)

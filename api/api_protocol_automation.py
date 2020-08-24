@@ -6,6 +6,7 @@ from models.protocols import Protocol
 from sqlalchemy import or_
 import glob
 import os
+from shutil import copy2
 import json
 
 
@@ -114,6 +115,8 @@ class CheckFunction(Resource):
                     # Opening the the last created and encoded with utf-8-sig
                     with open(str(PCR_result_file[-1]), 'r', endcoding='utf-8-sig') as result:
                         read = json.load(result)
+                    # Make the backup of the PCR results
+                    copy2(PCR_result_file[-1], './')
                     # Delete the last file in order to don't create confusion
                     os.remove(PCR_result_file[-1])
                     return {"status": True, "res": read}, 200

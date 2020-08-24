@@ -113,7 +113,7 @@ class CheckFunction(Resource):
                 # Check if the results are available
                 if not PCR_result_file:
                     print('there are no results available')
-                    return {"status": True, "res": ":)"}, 200
+                    return {"status": True, "res": ":)"}, 204  # HTTP code 204 success but not contents
                 else:
                     # Opening the the last created and encoded with utf-8-sig
                     with open(str(PCR_result_file[-1]), 'r', endcoding='utf-8-sig') as result:

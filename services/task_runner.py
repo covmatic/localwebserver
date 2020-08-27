@@ -198,7 +198,8 @@ def check_new_tasks():
                     scp_client.close()
                 elif station == 4:  # PCR
                     if action == "PCR":
-                        subprocess.call(PCR_PATH + PCR_API_NAME)
+                        print('i should do something here')
+                        # subprocess.call(PCR_PATH + PCR_API_NAME)
                     else:
                         print("Action not defined")
                 else:
@@ -206,7 +207,10 @@ def check_new_tasks():
             protocol.set_completed()
             session.add(protocol)
             session.commit()
-            if not action == 'calibration':
+            if action != 'calibration' and action != "PCR":
+                print('i\' inside the PCR/calibration')
+                print(station)
+                print(action)
                 with open(local_filepath) as f:
                     data = json.load(f)
                     stat = data["stages"][-1]["status"]
@@ -221,6 +225,7 @@ def check_new_tasks():
                 protocol.set_completed()
                 session.add(protocol)
                 session.commit()
+            print(protocol.status)
         except Exception as e:
             protocol.set_failed()
             session.add(protocol)

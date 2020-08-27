@@ -9,6 +9,8 @@ import os
 from shutil import copy2
 import json
 
+PCR_result_file_scheme = 'BR202310_Data_??-??-????_??-??-??_Result.json'
+
 
 # Define endpoint methods
 # noinspection PyMethodMayBeStatic
@@ -93,15 +95,15 @@ class CheckFunction(Resource):
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
-        PCR_result_file_scheme = 'BR202310_Data_??-??-????_??-??-??_Result.json'
         if not (queued_protocols or running_protocols):
             # FIXME: Check this
             last_protocol = Protocol.query.order_by(Protocol.creation_date.desc()).first()
             last_status = last_protocol.status
+            print(last_status)
             if last_status == "failed":
-                last_protocol.set_failed()
                 # last_protocol.set_running()
                 session.remove()
+                last_protocol.remove()
                 # session.add(last_protocol)
                 session.commit()
                 return "There has been an error in execution, please verify and try again", 400
@@ -113,7 +115,7 @@ class CheckFunction(Resource):
                 # Check if the results are available
                 if not PCR_result_file:
                     print('there are no results available')
-                    return {"status": True, "res": ":)"}, 204  # HTTP code 204 success but not contents
+                    return {"status": True, "res": ":)"}, 200
                 else:
                     # Opening the the last created and encoded with utf-8-sig
                     with open(str(PCR_result_file[-1]), 'r', endcoding='utf-8-sig') as result:

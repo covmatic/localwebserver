@@ -9,7 +9,8 @@ import os
 from shutil import copy2
 import json
 
-PCR_result_file_scheme = 'BR202310_Data_??-??-????_??-??-??_Result.json'
+PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
+PCR_results_path = 'C:/Users/Admin/Desktop/json_results'
 
 
 # Define endpoint methods
@@ -103,13 +104,12 @@ class CheckFunction(Resource):
             if last_status == "failed":
                 # last_protocol.set_running()
                 session.remove()
-                last_protocol.remove()
                 # session.add(last_protocol)
                 session.commit()
                 return "There has been an error in execution, please verify and try again", 400
             else:
                 # Searching all PCR results file
-                PCR_result_file = glob.glob('./' + PCR_result_file_scheme)
+                PCR_result_file = glob.glob(PCR_results_path + PCR_result_file_scheme)
                 # Sorting the PCR's results
                 PCR_result_file.sort(key=os.path.getctime)
                 # Check if the results are available

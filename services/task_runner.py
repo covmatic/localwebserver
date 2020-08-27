@@ -41,6 +41,15 @@ def create_ssh_client(usr, key_file, pwd):
     return client
 
 
+def ssh_scp():
+    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+    scp_client = SCPClient(client.get_transport())
+    local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+    scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+    scp_client.close()
+    return local_filepath
+
+
 def start_scheduler(app_ctx):
     global app
     app = app_ctx
@@ -68,12 +77,13 @@ def check_new_tasks():
                 channel.send('exit \n')
                 code = channel.recv_exit_status()
                 print("I got the code: {}".format(code))
-                # SCP Client takes a paramiko transport as an argument
-                client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                scp_client = SCPClient(client.get_transport())
-                local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                scp_client.close()
+                local_filepath = ssh_scp()
+                # # SCP Client takes a paramiko transport as an argument
+                # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                # scp_client = SCPClient(client.get_transport())
+                # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                # scp_client.close()
                 ####################################################################################
             elif action == "checktemp":  # For testing this is the same as set temp
                 # TODO: Check the protocol
@@ -85,12 +95,13 @@ def check_new_tasks():
                 channel.send('exit \n')
                 code = channel.recv_exit_status()
                 print("I got the code: {}".format(code))
-                # SCP Client takes a paramiko transport as an argument
-                client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                scp_client = SCPClient(client.get_transport())
-                local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                scp_client.close()
+                local_filepath = ssh_scp()
+                # # SCP Client takes a paramiko transport as an argument
+                # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                # scp_client = SCPClient(client.get_transport())
+                # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                # scp_client.close()
                 ####################################################################################
                 # TODO: Decide what we need to do with calibration
             elif action == "calibration":
@@ -110,11 +121,12 @@ def check_new_tasks():
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
                         # SCP Client takes a paramiko transport as an argument
-                        client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                        scp_client = SCPClient(client.get_transport())
-                        local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                        scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                        scp_client.close()
+                        local_filepath = ssh_scp()
+                        # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                        # scp_client = SCPClient(client.get_transport())
+                        # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                        # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                        # scp_client.close()
                     elif action == "Post-IncubationV1":
                         print("Performing Post-Incubation Protocol V1")  # For Debugging
                         ####################################################################################
@@ -125,12 +137,13 @@ def check_new_tasks():
                         channel.send('exit \n')
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
-                        # SCP Client takes a paramiko transport as an argument
-                        client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                        scp_client = SCPClient(client.get_transport())
-                        local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                        scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                        scp_client.close()
+                        local_filepath = ssh_scp()
+                        # # SCP Client takes a paramiko transport as an argument
+                        # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                        # scp_client = SCPClient(client.get_transport())
+                        # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                        # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                        # scp_client.close()
                     elif action == "Pre-IncubationV2":
                         print("Performing Pre-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
@@ -141,12 +154,13 @@ def check_new_tasks():
                         channel.send('exit \n')
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
-                        # SCP Client takes a paramiko transport as an argument
-                        client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                        scp_client = SCPClient(client.get_transport())
-                        local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                        scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                        scp_client.close()
+                        local_filepath = ssh_scp()
+                        # # SCP Client takes a paramiko transport as an argument
+                        # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                        # scp_client = SCPClient(client.get_transport())
+                        # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                        # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                        # scp_client.close()
                     elif action == "Post-IncubationV2":
                         print("Performing Post-Incubation Protocol V2")  # For Debugging
                         ####################################################################################
@@ -157,12 +171,13 @@ def check_new_tasks():
                         channel.send('exit \n')
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
-                        # SCP Client takes a paramiko transport as an argument
-                        client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                        scp_client = SCPClient(client.get_transport())
-                        local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                        scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                        scp_client.close()
+                        local_filepath = ssh_scp()
+                        # # SCP Client takes a paramiko transport as an argument
+                        # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                        # scp_client = SCPClient(client.get_transport())
+                        # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                        # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                        # scp_client.close()
                     else:
                         print("Action not defined")
                 elif station == 2:  # station B
@@ -175,12 +190,13 @@ def check_new_tasks():
                     channel.send('exit \n')
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))
-                    # SCP Client takes a paramiko transport as an argument
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    scp_client = SCPClient(client.get_transport())
-                    local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                    scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                    scp_client.close()
+                    local_filepath = ssh_scp()
+                    # # SCP Client takes a paramiko transport as an argument
+                    # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                    # scp_client = SCPClient(client.get_transport())
+                    # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                    # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                    # scp_client.close()
                 elif station == 3:  # station C
                     print("Performing Protocol")  # for Debugging
                     ####################################################################################
@@ -190,16 +206,16 @@ def check_new_tasks():
                     channel.send('exit \n')
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))
-                    # SCP Client takes a paramiko transport as an argument
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    scp_client = SCPClient(client.get_transport())
-                    local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                    scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                    scp_client.close()
+                    local_filepath = ssh_scp()
+                    # # SCP Client takes a paramiko transport as an argument
+                    # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                    # scp_client = SCPClient(client.get_transport())
+                    # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+                    # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+                    # scp_client.close()
                 elif station == 4:  # PCR
                     if action == "PCR":
-                        print('i should do something here')
-                        # subprocess.call(PCR_PATH + PCR_API_NAME)
+                        subprocess.call(PCR_PATH + PCR_API_NAME)
                     else:
                         print("Action not defined")
                 else:
@@ -208,9 +224,6 @@ def check_new_tasks():
             session.add(protocol)
             session.commit()
             if action != 'calibration' and action != "PCR":
-                print('i\' inside the PCR/calibration')
-                print(station)
-                print(action)
                 with open(local_filepath) as f:
                     data = json.load(f)
                     stat = data["stages"][-1]["status"]

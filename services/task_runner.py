@@ -20,10 +20,10 @@ OT2_PROTOCOLBP1_FILE = 'protocol_B_part1'
 OT2_PROTOCOLBP2_FILE = 'protocol_B_part2'
 OT2_PROTOCOLBP3_FILE = 'protocol_B_part3'
 # FIXME: Decide how to differentiate the 2 lines of station A i.e: P300 or P1000
-OT2_PROTOCOL1V1_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
-OT2_PROTOCOL1V2_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
-OT2_PROTOCOL2V1_FILE = 'v1_station_A2_p1000.py'
-OT2_PROTOCOL2V2_FILE = 'v1_station_A2_p1000.py'
+OT2_PROTOCOL1V1_FILE = 'protocol_A_part1.py'  # Pre-incubation Protocol for station A Purebase P1000S
+OT2_PROTOCOL1V2_FILE = 'protocol_A_part1.py'  # Pre-incubation Protocol for station A Purebase P1000S
+OT2_PROTOCOL2V1_FILE = 'protocol_A_part2.py'
+OT2_PROTOCOL2V2_FILE = 'protocol_A_part2.py'
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 # OT-2-IP is the name of environment variable in order to fix the IPs of the robot

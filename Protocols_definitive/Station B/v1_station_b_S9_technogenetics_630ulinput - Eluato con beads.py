@@ -15,7 +15,7 @@ NUM_SAMPLES = 30  # start with 8 samples, slowly increase to 48, then 94 (max is
 STARTING_VOL = 650
 ELUTION_VOL = 40
 WASH_VOL = 680
-TIP_TRACK = False
+TIP_TRACK = True
 PARK = False
 
 SKIP_DELAY = False

@@ -2,6 +2,8 @@ from opentrons import protocol_api
 import json
 import os
 import math
+import time
+import datetime
 
 # metadata
 metadata = {
@@ -27,9 +29,48 @@ LYSIS_RATE_DISPENSE = 100
 liquid_headroom = 1.1
 pk_capacity = 180
 
+# For setting and checking the temperature
+temp_a = 24.9
+temp_check = 25.0
+TempUB = temp_check + 0.3
+
 
 def run(ctx: protocol_api.ProtocolContext):
+    # Define the Path for the log temperature file
+    folder_path = '/var/lib/jupyter/notebooks/outputs'
+    temp_file_path = folder_path + '/completion_log.json'
+    Log_Dict = {"stages": []}  # For log file data
+    current_status = "Setting Temperature"
+
+    def update_log_file(status="SUCCESS", check_temperature=True, message=None):
+        current_Log_dict = {"stage_name": current_status,
+                            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
+                            "temp": None,
+                            "status": status,
+                            "message": None}
+        if check_temperature:
+            current_Log_dict["temp"] = tempdeck.temperature
+            if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
+                if tempdeck.status != 'holding at target':
+                    ctx.pause('The temperature is above {}°C'.format(TempUB))
+                    while tempdeck.temperature >= temp_check:
+                        print("sleeping for 0.5 s to wait for Temp_Deck")
+                        print("current temperature is {}°C".format(tempdeck.temperature))
+                        time.sleep(0.1)
+
+                    current_Log_dict["status"] = "FAILED"
+                    current_Log_dict["message"] = "Temperature rose above threshold value"
+        Log_Dict["stages"].append(current_Log_dict)
+        if not os.path.isdir(folder_path):
+            os.mkdir(folder_path)
+        with open(temp_file_path, 'w') as outfiletemp:
+            json.dump(Log_Dict, outfiletemp)
+
+        print('{}: {}'.format(current_status, message))
+
     ctx.comment("Station A Technogenetics protocol for {} COPAN 330C samples.".format(NUM_SAMPLES))
+
+    current_status = 'load labware'
     # load labware
     source_racks = [ctx.load_labware(
         'copan_15_tuberack_14000ul', slot, 'source tuberack ' + str(i + 1))
@@ -60,10 +101,11 @@ def run(ctx: protocol_api.ProtocolContext):
     p1000.flow_rate.dispense = DEFAULT_DISPENSE
     p1000.flow_rate.blow_out = 300
 
+    tempdeck.set_temperature(temp_a)
+    update_log_file()
+
     # setup samples
-    # we try to allocate the maximum number of samples available in racks (e.g. 15*number of racks)
-    # and after we will ask the user to replace the samples to reach NUM_SAMPLES
-    # if number of samples is bigger than samples in racks.
+    current_status = "setup samples and proteinase K"
     sources = [
                   well for rack in source_racks for well in rack.wells()][:NUM_SAMPLES]
     max_sample_per_set = len(sources)
@@ -83,7 +125,6 @@ def run(ctx: protocol_api.ProtocolContext):
     dests_multi = dest_plate.rows()[0][:math.ceil(NUM_SAMPLES / 8)]
 
     tip_log = {'count': {}}
-    folder_path = '/data/A'
     tip_file_path = folder_path + '/tip_log.json'
     if TIP_TRACK and not ctx.is_simulating():
         if os.path.isfile(tip_file_path):
@@ -140,17 +181,21 @@ resuming.')
         context.comment("Going {} mm deep".format(heights[tube]))
         return tube.bottom(heights[tube])
 
+    update_log_file()
+
     # transfer beads
+    current_status = "transfer beads"
     for idx, d in enumerate(dests_multi):
         pick_up(m20)
         # transferring beads
         # no air gap to use 1 transfer only avoiding drop during multiple transfers.
-        m20.transfer(BEADS_VOLUME, beads, d.bottom(2), air_gap = 5,
+        m20.transfer(BEADS_VOLUME, beads, d.bottom(2), air_gap=5,
                      new_tip='never')
         m20.mix(2, 20, d.bottom(2))
         m20.air_gap(5)
         m20.drop_tip()
 
+    update_log_file()
     ctx.comment('Move deepwell plate to Station B for RNA extraction.')
 
     # track final used tip
@@ -163,3 +208,6 @@ resuming.')
         }
         with open(tip_file_path, 'w') as outfile:
             json.dump(data, outfile)
+
+    current_status = "protocol A part 2 finished"
+    update_log_file()

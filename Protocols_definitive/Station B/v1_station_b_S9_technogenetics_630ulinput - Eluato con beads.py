@@ -1,5 +1,6 @@
 from opentrons.types import Point
-from system9.b import magnets
+# noinspection PyUnresolvedReferences
+from system9.b import magnets  # library inside the opentrons. ignore
 import json
 import os
 import math
@@ -42,7 +43,7 @@ def run(ctx):
     num_cols = math.ceil(NUM_SAMPLES/8)
     tips300 = [
         ctx.load_labware('opentrons_96_tiprack_300ul', slot, '200µl filtertiprack')
-        for slot in [ '3','6', '8', '9', '10']
+        for slot in ['3', '4', '6', '8', '9', '10']
     ]
     m300 = ctx.load_instrument('p300_multi_gen2', 'left', tip_racks=tips300)
     
@@ -54,7 +55,6 @@ def run(ctx):
     
     # PCR plate
     pcr_plate = ctx.load_labware('opentrons_96_aluminumblock_nest_wellplate_100ul', '1', 'chilled elution plate on block for Station C')
-    last_plate = ctx.load_labware('nest_96_wellplate_2ml_deep', '4', '96-deepwell sample plate')
     
     # Liquids
     waste = ctx.load_labware('nest_1_reservoir_195ml', '11', 'Liquid Waste').wells()[0].top()
@@ -66,7 +66,6 @@ def run(ctx):
     
     # Positions
     mag_samples_m = magplate.rows()[0][:num_cols]
-    last_samples_m = last_plate.rows()[0][:num_cols]
     pcr_samples_m = pcr_plate.rows()[0][:num_cols]
     # -------------------------------------------------------------------------
     
@@ -182,11 +181,11 @@ resuming.')
     
     def elute(vol):
         magdeck.disengage()
-        ctx.pause("Check the drying of deepwell plate and then move the plate on slot 4.")
+        ctx.pause("Check the drying of deepwell plate")
         
         # resuspend beads in elution
         m300.flow_rate.aspirate = ELUTE_ASPIRATION_RATE
-        for i, m in enumerate(last_samples_m):
+        for i, m in enumerate(mag_samples_m):
             pick_up(m300)
             m300.aspirate(vol, elution)
             m300.move_to(m.center())
@@ -201,7 +200,7 @@ resuming.')
         magdeck.engage(height=magheight)
         delay(3, 'Incubating on magnet at room temperature', ctx)
         
-        for i, (m, e) in enumerate(zip(last_samples_m, pcr_samples_m)):
+        for i, (m, e) in enumerate(zip(mag_samples_m, pcr_samples_m)):
             pick_up(m300)
             m300.mix(10, 40, m.bottom(0.3))
             m300.transfer(vol, m.bottom(0.5), e.bottom(5), air_gap=20, new_tip='never')

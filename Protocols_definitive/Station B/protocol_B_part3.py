@@ -17,10 +17,10 @@ NUM_SAMPLES = 30  # start with 8 samples, slowly increase to 48, then 94 (max is
 STARTING_VOL = 650
 ELUTION_VOL = 40
 WASH_VOL = 680
-TIP_TRACK = False
+TIP_TRACK = True
 PARK = False
 
-SKIP_DELAY = False
+SKIP_DELAY = True
 
 DEFAULT_ASPIRATION_RATE	= 150
 SUPERNATANT_REMOVAL_ASPIRATION_RATE = 25
@@ -32,7 +32,9 @@ MAG_OFFSET = -0.35
 def delay(minutesToDelay, message, context):
     message += ' for ' + str(minutesToDelay) + ' minutes.'
     if SKIP_DELAY:
-        context.pause(message  + "Pausing for skipping delay. Please resume")
+        print(message + "Pausing for skipping delay. Please resume")
+        pass
+        # context.pause(message + "Pausing for skipping delay. Please resume")
     else:
         context.delay(minutes=minutesToDelay, msg=message)
 
@@ -181,7 +183,7 @@ resuming.')
         delay(5, 'Incubating on MagDeck', ctx)
         remove_supernatant(wash_vol)
         
-    wash_tot_vol = NUM_SAMPLES * WASH_VOL *1.1
+    wash_tot_vol = NUM_SAMPLES * WASH_VOL * 1.1
     ctx.comment("WashA expected volume: {} mL".format(wash_tot_vol/1000))
     ctx.comment("WashB expected volume: {} mL".format(wash_tot_vol/1000))
 
@@ -197,15 +199,12 @@ resuming.')
                 json.dump(data, outfile)
 
     def update_log_file(status="SUCCESS", check_temperature=False, message=None):
-        current_Log_dict = {
-            "stage_name": current_status,
-            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
-            "temp": None,
-            "status": status,
-            "message": None}
+        current_Log_dict = {"stage_name": current_status,
+                            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
+                            "temp": None,
+                            "status": status,
+                            "message": None}
 
-        current_Log_dict["status"] = "FAILED"
-        current_Log_dict["message"] = "Temperature rose above threshold value"
         Log_Dict["stages"].append(current_Log_dict)
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)
@@ -237,4 +236,4 @@ resuming.')
     current_status = 'Station B  DONE'
     update_log_file()
     tip_track()
-    # -------------------------------------------------------------------------
+    ctx.home()

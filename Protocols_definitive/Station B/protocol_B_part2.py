@@ -32,7 +32,9 @@ MAG_OFFSET = -0.35
 def delay(minutesToDelay, message, context):
     message += ' for ' + str(minutesToDelay) + ' minutes.'
     if SKIP_DELAY:
-        context.pause(message + "Pausing for skipping delay. Please resume")
+        print(message + "Pausing for skipping delay. Please resume")
+        pass
+        # context.pause(message + "Pausing for skipping delay. Please resume")
     else:
         context.delay(minutes=minutesToDelay, msg=message)
 
@@ -204,8 +206,6 @@ resuming.')
             "status": status,
             "message": None}
 
-        current_Log_dict["status"] = "FAILED"
-        current_Log_dict["message"] = "Temperature rose above threshold value"
         Log_Dict["stages"].append(current_Log_dict)
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)
@@ -214,9 +214,6 @@ resuming.')
 
         print('{}: {}'.format(current_status, message))
 
-
-    # -------------------------------------------------------------------------
-    
     # --- RUN -----------------------------------------------------------------
     update_log_file()
     current_status = 'Eluting'
@@ -234,4 +231,4 @@ resuming.')
     current_status = 'Station B part 2 DONE'
     update_log_file()
     tip_track()
-    # -------------------------------------------------------------------------
+    ctx.home()

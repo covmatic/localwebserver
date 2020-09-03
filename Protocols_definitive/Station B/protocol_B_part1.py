@@ -37,7 +37,9 @@ TempUB = temp_check + 0.3
 def delay(minutesToDelay, message, context):
     message += ' for ' + str(minutesToDelay) + ' minutes.'
     if SKIP_DELAY:
-        context.pause(message + "Pausing for skipping delay. Please resume")
+        print(message + "Pausing for skipping delay. Please resume")
+        pass
+        # context.pause(message + "Pausing for skipping delay. Please resume")
     else:
         context.delay(minutes=minutesToDelay, msg=message)
 
@@ -76,8 +78,7 @@ def run(ctx):
     # Positions
     mag_samples_m = magplate.rows()[0][:num_cols]
     pcr_samples_m = pcr_plate.rows()[0][:num_cols]
-    # -------------------------------------------------------------------------
-    
+
     # --- Setup ---------------------------------------------------------------
     m300.flow_rate.dispense = 150
     m300.flow_rate.blow_out = 300
@@ -211,8 +212,6 @@ resuming.')
             "status": status,
             "message": None}
 
-        current_Log_dict["status"] = "FAILED"
-        current_Log_dict["message"] = "Temperature rose above threshold value"
         Log_Dict["stages"].append(current_Log_dict)
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)
@@ -221,8 +220,6 @@ resuming.')
 
         print('{}: {}'.format(current_status, message))
 
-    # -------------------------------------------------------------------------
-    
     # --- RUN -----------------------------------------------------------------
     update_log_file()
     current_status = 'Mixing Samples'
@@ -244,4 +241,5 @@ resuming.')
     magdeck.disengage()
     update_log_file()
     tip_track()
-    # -------------------------------------------------------------------------
+
+    ctx.home()

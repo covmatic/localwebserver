@@ -11,7 +11,7 @@ import subprocess
 from os import environ
 
 PCR_API_NAME = 'BioRad.Example_Application.exe'
-PCR_PATH = 'C:/Users/inse9/OneDrive/Desktop/Bio-Rad CFX API v1.1'
+PCR_PATH = 'C:/PCR_BioRad/APIs/BioRad_CFX_API_v.1.3/'
 OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # TODO: Put the names in a json file and read the filenames

@@ -72,9 +72,9 @@ def run(ctx: protocol_api.ProtocolContext):
 
     current_status = "loading labwares"
     # load labware
-    source_racks = [ctx.load_labware(
-        'copan_15_tuberack_14000ul', slot, 'source tuberack ' + str(i + 1))
-        for i, slot in enumerate(['2', '3', '5', '6'])]
+    with open('/var/lib/jupyter/notebooks/COPAN 15 Tube Rack 14000 µL.json') as f:
+        source_racks = [ctx.load_labware_from_definition(f, slot, 'source tuberack ' + str(i + 1))
+                        for i, slot in enumerate(['2', '3', '5', '6'])]
     dest_plate = ctx.load_labware(
         'nest_96_wellplate_2ml_deep', '1', '96-deepwell sample plate')
     tempdeck = ctx.load_module('Temperature Module Gen2', '10')

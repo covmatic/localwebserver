@@ -16,6 +16,9 @@ OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # TODO: Put the names in a json file and read the filenames
 OT2_PROTOCOL_FILE = 'new_protocol.py'  # For stations in general keep protocol name constant.
+OT2_PROTOCOLBP1_FILE = 'protocol_B_part1'
+OT2_PROTOCOLBP1_FILE = 'protocol_B_part2'
+OT2_PROTOCOLBP1_FILE = 'protocol_B_part3'
 # FIXME: Decide how to differentiate the 2 lines of station A i.e: P300 or P1000
 OT2_PROTOCOL1V1_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
 OT2_PROTOCOL1V2_FILE = 'v1_station_A1_p1000.py'  # Pre-incubation Protocol for station A Purebase P1000S
@@ -182,11 +185,18 @@ def check_new_tasks():
                         print("Action not defined")
                 elif station == 2:  # station B
                     print("Performing Protocol")  # For Debugging
-                    ####################################################################################
+                    ###################################################################################
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
                     channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_FILE))
+                    if action == 'Pre-Deepwell-Check':
+                        channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP1_FILE))
+                    elif action == 'Pre-Incubation':
+                        channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP2_FILE))
+                    elif action == 'Post-Incubation':
+                        channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP3_FILE))
+                    else:
+                        print('Action Not Defined')
                     channel.send('exit \n')
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))

@@ -10,7 +10,7 @@ from shutil import copy2
 import json
 
 PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
-PCR_results_path = 'C:/Users/Admin/Desktop/json_results'
+PCR_results_path = 'C:/PCR_BioRad/json_results/'
 
 
 # Define endpoint methods

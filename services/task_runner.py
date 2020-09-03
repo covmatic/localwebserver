@@ -109,7 +109,6 @@ def check_new_tasks():
                 # TODO: Decide what we need to do with calibration
             elif action == "calibration":
                 print("Calibrating")
-                ####################################################################################
                 time.sleep(2)
             else:
                 if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S

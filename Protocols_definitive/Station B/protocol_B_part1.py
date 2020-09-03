@@ -4,6 +4,8 @@ from system9.b import magnets  # library inside the opentrons. ignore
 import json
 import os
 import math
+import datetime
+import time
 
 metadata = {
     'protocolName': 'Version 1 S9 Station B Technogenetics (630µl sample input)',
@@ -15,7 +17,7 @@ NUM_SAMPLES = 30  # start with 8 samples, slowly increase to 48, then 94 (max is
 STARTING_VOL = 650
 ELUTION_VOL = 40
 WASH_VOL = 680
-TIP_TRACK = False
+TIP_TRACK = True
 PARK = False
 
 SKIP_DELAY = False
@@ -26,11 +28,16 @@ ELUTE_ASPIRATION_RATE = 50
 
 MAG_OFFSET = -0.35
 
+# For setting and checking the temperature
+temp_a = 24.9
+temp_check = 25.0
+TempUB = temp_check + 0.3
+
 
 def delay(minutesToDelay, message, context):
     message += ' for ' + str(minutesToDelay) + ' minutes.'
     if SKIP_DELAY:
-        context.pause(message  + "Pausing for skipping delay. Please resume")
+        context.pause(message + "Pausing for skipping delay. Please resume")
     else:
         context.delay(minutes=minutesToDelay, msg=message)
 
@@ -50,11 +57,13 @@ def run(ctx):
     # Magnetic module
     magdeck = ctx.load_module('Magnetic Module Gen2', '7')
     magdeck.disengage()
-    magheight = MAG_OFFSET + magnets.height.by_serial.get(magdeck._module._driver.get_device_info()['serial'], 6.65)
+    magheight = MAG_OFFSET + magnets.height.by_serial.get(
+        magdeck._module._driver.get_device_info()['serial'], 6.65)
     magplate = magdeck.load_labware('nest_96_wellplate_2ml_deep')
     
     # PCR plate
-    pcr_plate = ctx.load_labware('opentrons_96_aluminumblock_nest_wellplate_100ul', '1', 'chilled elution plate on block for Station C')
+    pcr_plate = ctx.load_labware('opentrons_96_aluminumblock_nest_wellplate_100ul', '1',
+                                 'chilled elution plate on block for Station C')
     
     # Liquids
     waste = ctx.load_labware('nest_1_reservoir_195ml', '11', 'Liquid Waste').wells()[0].top()
@@ -182,6 +191,7 @@ resuming.')
     wash_tot_vol = NUM_SAMPLES * WASH_VOL *1.1
     ctx.comment("WashA expected volume: {} mL".format(wash_tot_vol/1000))
     ctx.comment("WashB expected volume: {} mL".format(wash_tot_vol/1000))
+
     def tip_track():
         # track final used tip
         if not ctx.is_simulating():
@@ -192,24 +202,17 @@ resuming.')
             }
             with open(tip_file_path, 'w') as outfile:
                 json.dump(data, outfile)
-    def update_log_file(status="SUCCESS", check_temperature=True, message=None):
-        current_Log_dict = {"stage_name": current_status,
-                            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
-                            "temp": None,
-                            "status": status,
-                            "message": None}
-        if check_temperature:
-            current_Log_dict["temp"] = tempdeck.temperature
-            if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
-                if tempdeck.status != 'holding at target':
-                    ctx.pause('The temperature is above {}°C'.format(TempUB))
-                    while tempdeck.temperature >= temp_check:
-                        print("sleeping for 0.5 s to wait for Temp_Deck")
-                        print("current temperature is {}°C".format(tempdeck.temperature))
-                        time.sleep(0.1)
 
-                    current_Log_dict["status"] = "FAILED"
-                    current_Log_dict["message"] = "Temperature rose above threshold value"
+    def update_log_file(status="SUCCESS", check_temperature=False, message=None):
+        current_Log_dict = {
+            "stage_name": current_status,
+            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
+            "temp": None,
+            "status": status,
+            "message": None}
+
+        current_Log_dict["status"] = "FAILED"
+        current_Log_dict["message"] = "Temperature rose above threshold value"
         Log_Dict["stages"].append(current_Log_dict)
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)

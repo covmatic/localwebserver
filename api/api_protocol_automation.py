@@ -127,4 +127,4 @@ class CheckFunction(Resource):
                     return {"status": True, "res": read}, 200
                 # return {"status": True, "res": ":)"}, 200
         else:
-            return {"status": False, "res": ":("}, 200
+            return {"status": False, "res": "outputting progress"}, 200

@@ -2,6 +2,8 @@ from opentrons import protocol_api
 import json
 import os
 import math
+import time
+import datetime
 
 # metadata
 metadata = {
@@ -11,7 +13,7 @@ metadata = {
     'apiLevel': '2.3'
 }
 
-NUM_SAMPLES = 96
+NUM_SAMPLES = 8
 SAMPLE_VOLUME = 200
 LYSIS_VOLUME = 160
 IEC_VOLUME = 19
@@ -34,7 +36,27 @@ TempUB = temp_check + 0.3  # It is fixed the warning if we go over 0.3
 def run(ctx: protocol_api.ProtocolContext):
     # Define the Path for the logs
     folder_path = '/var/lib/jupyter/notebooks/outputs'
+    temp_file_path = folder_path + '/completion_log.json'
+    Log_Dict = {"stages": []}  # For log file data
+    current_status = "Setting environment"
+
+    def update_log_file(message="Step executed successfully", check_temperature=True):
+        current_Log_dict = {"stage_name": current_status,
+                            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
+                            "temp": None,
+                            "message": message}
+        if check_temperature:
+            current_Log_dict["temp"] = tempdeck.temperature
+            if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
+                if tempdeck.status != 'holding at target':
+                    ctx.pause('The temperature is above {}°C'.format(TempUB))
+                    while tempdeck.temperature >= temp_check:
+                        print("sleeping for 0.5 s to wait for Temp_Deck")
+                        print("current temperature is {}°C".format(tempdeck.temperature))
+                        time.sleep(0.1)
+
     ctx.comment("Station A protocol for {} COPAN 330C samples.".format(NUM_SAMPLES))
+    current_status = "loading labware"
     # load labware
     tempdeck = ctx.load_module('Temperature Module Gen2', '10')
     tempdeck.set_temperature(temp_a)
@@ -62,12 +84,13 @@ def run(ctx: protocol_api.ProtocolContext):
     p1000.flow_rate.dispense = DEFAULT_DISPENSE
     p1000.flow_rate.blow_out = 300
 
+    update_log_file()
     # setup samples
 
     """"we try to allocate the maximum number of samples available in racks (e.g. 15*number of racks)
     and after we will ask the user to replace the samples to reach NUM_SAMPLES
     if number of samples is bigger than samples in racks."""
-
+    current_status = "setup samples"
     sources = [
         well for rack in source_racks for well in rack.wells()][:NUM_SAMPLES]
     max_sample_per_set = len(sources)
@@ -102,7 +125,7 @@ def run(ctx: protocol_api.ProtocolContext):
         pip: len(tip_log['tips'][pip])
         for pip in [p1000, m20]
     }
-
+    update_log_file()
     # setup internal control
     num_cols = math.ceil(NUM_SAMPLES / 8)
     num_ic_strips = math.ceil(IEC_VOLUME * num_cols * ic_headroom / ic_capacity)
@@ -142,6 +165,10 @@ def run(ctx: protocol_api.ProtocolContext):
         return tube.bottom(heights[tube])
 
     """Part 2 of the protocol: before is equal to part 1"""
+    current_status = "part 2 of the protocol starting"
+    update_log_file()
+
+    current_status = "transfer internal control"
     # transfer internal control
     for idx, d in enumerate(dests_multi):
         strip_ind = idx // ic_cols_per_strip
@@ -156,6 +183,7 @@ def run(ctx: protocol_api.ProtocolContext):
         m20.air_gap(5)
         m20.drop_tip()
 
+    update_log_file()
     # track final used tip
     if not ctx.is_simulating():
         if not os.path.isdir(folder_path):
@@ -167,6 +195,8 @@ def run(ctx: protocol_api.ProtocolContext):
         with open(tip_file_path, 'w') as outfile:
             json.dump(data, outfile)
 
+    current_status = "station A part 2 completed"
+    update_log_file()
     print('Station A part 2 completed')
     print('Move deepwell plate (slot 1) to Station B for RNA \
     extraction.')

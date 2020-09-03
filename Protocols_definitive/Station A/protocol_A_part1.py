@@ -18,7 +18,7 @@ SAMPLE_VOLUME = 200
 LYSIS_VOLUME = 400
 PK_VOLUME = 30
 BEADS_VOLUME = 10
-TIP_TRACK = True
+TIP_TRACK = False
 
 DEFAULT_ASPIRATE = 100
 DEFAULT_DISPENSE = 100
@@ -52,12 +52,6 @@ def run(ctx: protocol_api.ProtocolContext):
             current_Log_dict["temp"] = tempdeck.temperature
             if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
                 if tempdeck.status != 'holding at target':
-                    ctx.pause('The temperature is above {}°C'.format(TempUB))
-                    while tempdeck.temperature >= temp_check:
-                        print("sleeping for 0.5 s to wait for Temp_Deck")
-                        print("current temperature is {}°C".format(tempdeck.temperature))
-                        time.sleep(0.1)
-
                     current_Log_dict["status"] = "FAILED"
                     current_Log_dict["message"] = "Temperature rose above threshold value"
         Log_Dict["stages"].append(current_Log_dict)
@@ -72,9 +66,10 @@ def run(ctx: protocol_api.ProtocolContext):
 
     current_status = "loading labwares"
     # load labware
-    with open('/var/lib/jupyter/notebooks/COPAN 15 Tube Rack 14000 µL.json') as f:
-        source_racks = [ctx.load_labware_from_definition(f, slot, 'source tuberack ' + str(i + 1))
-                        for i, slot in enumerate(['2', '3', '5', '6'])]
+    with open('/var/lib/jupyter/notebooks/COPAN 15 Tube Rack 14000 µL.json', 'r') as f:
+        labware_readed = json.load(f)
+    source_racks = [ctx.load_labware_from_definition(labware_readed, slot, 'source tuberack ' + str(i + 1))
+                    for i, slot in enumerate(['2', '3', '5', '6'])]
     dest_plate = ctx.load_labware(
         'nest_96_wellplate_2ml_deep', '1', '96-deepwell sample plate')
     tempdeck = ctx.load_module('Temperature Module Gen2', '10')
@@ -143,6 +138,8 @@ def run(ctx: protocol_api.ProtocolContext):
                     tip_log['count'][m20] = data['tips20']
                 else:
                     tip_log['count'][m20] = 0
+        else:
+            tip_log['count'] = {p1000: 0, m20: 0}
     else:
         tip_log['count'] = {p1000: 0, m20: 0}
 
@@ -157,6 +154,7 @@ def run(ctx: protocol_api.ProtocolContext):
 
     def pick_up(pip):
         nonlocal tip_log
+        print(tip_log['max'][pip])
         if tip_log['count'][pip] == tip_log['max'][pip]:
             ctx.pause('Replace ' + str(pip.max_volume) + 'µl tipracks before \
 resuming.')

@@ -83,7 +83,6 @@ def run(ctx):
     tip_file_path = folder_path + '/tip_log.json'
     tip_log = {'count': {}}
     temp_file_path = folder_path + '/completion_log.json'
-    Log_Dict = {"stages": []}  # For log file data
     current_status = "Setting Temperature"
     
     if TIP_TRACK and not ctx.is_simulating():

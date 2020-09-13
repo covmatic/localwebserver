@@ -214,3 +214,4 @@ resuming.')
 
     current_status = "protocol A part 2 finished"
     update_log_file()
+    ctx.home()

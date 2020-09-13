@@ -39,6 +39,7 @@ def run(ctx: protocol_api.ProtocolContext):
     # Define the Path for the log temperature file
     folder_path = '/var/lib/jupyter/notebooks/outputs'
     temp_file_path = folder_path + '/completion_log.json'
+    # FIXME: check this line
     Log_Dict = {"stages": []}  # For log file data
     current_status = "Setting Temperature"
 
@@ -259,3 +260,4 @@ resuming.')
 
     current_status = "Protocol A part 1 Finished"
     update_log_file()
+    ctx.home()

@@ -52,15 +52,15 @@ def run(ctx: protocol_api.ProtocolContext):
         if check_temperature:
             current_Log_dict["temp"] = tempdeck.temperature
             if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
-                if tempdeck.status != 'holding at target':
-                    ctx.pause('The temperature is above {}°C'.format(TempUB))
-                    while tempdeck.temperature >= temp_check:
-                        print("sleeping for 0.5 s to wait for Temp_Deck")
-                        print("current temperature is {}°C".format(tempdeck.temperature))
-                        time.sleep(0.1)
+                # if tempdeck.status != 'holding at target':
+                while tempdeck.temperature >= temp_check:
+                    print("sleeping for 0.5 s to wait for Temp_Deck")
+                    print("current temperature is {}°C".format(tempdeck.temperature))
+                    time.sleep(0.5)
 
-                    current_Log_dict["status"] = "FAILED"
-                    current_Log_dict["message"] = "Temperature rose above threshold value"
+                current_Log_dict["status"] = "FAILED"
+                current_Log_dict["message"] = "Temperature rose above threshold value"
+
         Log_Dict["stages"].append(current_Log_dict)
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)

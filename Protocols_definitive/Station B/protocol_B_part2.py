@@ -82,6 +82,7 @@ def run(ctx):
     folder_path = '/var/lib/jupyter/notebooks/outputs'
     tip_file_path = folder_path + '/tip_log.json'
     tip_log = {'count': {}}
+    Log_Dict = {"stages": []}  # For log file data
     temp_file_path = folder_path + '/completion_log.json'
     current_status = "Setting Temperature"
     
@@ -182,7 +183,7 @@ resuming.')
         delay(5, 'Incubating on MagDeck', ctx)
         remove_supernatant(wash_vol)
         
-    wash_tot_vol = NUM_SAMPLES * WASH_VOL *1.1
+    wash_tot_vol = NUM_SAMPLES * WASH_VOL * 1.1
     ctx.comment("WashA expected volume: {} mL".format(wash_tot_vol/1000))
     ctx.comment("WashB expected volume: {} mL".format(wash_tot_vol/1000))
 

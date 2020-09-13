@@ -22,7 +22,7 @@ PARK = False
 
 SKIP_DELAY = True
 
-DEFAULT_ASPIRATION_RATE	= 150
+DEFAULT_ASPIRATION_RATE = 150
 SUPERNATANT_REMOVAL_ASPIRATION_RATE = 25
 ELUTE_ASPIRATION_RATE = 50
 
@@ -82,6 +82,7 @@ def run(ctx):
     folder_path = '/var/lib/jupyter/notebooks/outputs'
     tip_file_path = folder_path + '/tip_log.json'
     tip_log = {'count': {}}
+    Log_Dict = {"stages": []}  # For log file data
     temp_file_path = folder_path + '/completion_log.json'
     current_status = "Setting Temperature"
     

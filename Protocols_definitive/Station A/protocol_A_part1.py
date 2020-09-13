@@ -39,7 +39,7 @@ def run(ctx: protocol_api.ProtocolContext):
     # Define the Path for the log temperature file
     folder_path = '/var/lib/jupyter/notebooks/outputs'
     temp_file_path = folder_path + '/completion_log.json'
-    # FIXME: check this line
+    # FIXME: check this line: without this we can't append the data of the log
     Log_Dict = {"stages": []}  # For log file data
     current_status = "Setting Temperature"
 
@@ -52,9 +52,15 @@ def run(ctx: protocol_api.ProtocolContext):
         if check_temperature:
             current_Log_dict["temp"] = tempdeck.temperature
             if tempdeck.temperature >= TempUB and tempdeck.status != 'holding at target':
-                if tempdeck.status != 'holding at target':
-                    current_Log_dict["status"] = "FAILED"
-                    current_Log_dict["message"] = "Temperature rose above threshold value"
+                # if tempdeck.status != 'holding at target':
+                while tempdeck.temperature >= temp_check:
+                    print("sleeping for 0.5 s to wait for Temp_Deck")
+                    print("current temperature is {}°C".format(tempdeck.temperature))
+                    time.sleep(0.5)
+
+                current_Log_dict["status"] = "FAILED"
+                current_Log_dict["message"] = "Temperature rose above threshold value"
+
         Log_Dict["stages"].append(current_Log_dict)
         if not os.path.isdir(folder_path):
             os.mkdir(folder_path)

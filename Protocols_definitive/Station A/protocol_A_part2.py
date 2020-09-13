@@ -39,6 +39,7 @@ def run(ctx: protocol_api.ProtocolContext):
     # Define the Path for the log temperature file
     folder_path = '/var/lib/jupyter/notebooks/outputs'
     temp_file_path = folder_path + '/completion_log.json'
+    # Fixme: To check this line for all the protocols
     Log_Dict = {"stages": []}  # For log file data
     current_status = "Setting Temperature"
 
@@ -119,7 +120,10 @@ def run(ctx: protocol_api.ProtocolContext):
 
     prot_K_strips = strips_block.rows()[0][:num_pk_strips]
     ctx.comment("Proteinase K: using {} strips with at least {:.2f} uL each".format(num_pk_strips,
-                                                                                    pk_cols_per_strip * PK_VOLUME * liquid_headroom))
+                                                                                    pk_cols_per_strip * PK_VOLUME *
+                                                                                    liquid_headroom
+                                                                                    )
+                )
 
     # setup destinations
     dests_single = dest_plate.wells()[:NUM_SAMPLES]

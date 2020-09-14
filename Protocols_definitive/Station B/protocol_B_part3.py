@@ -58,7 +58,8 @@ def run(ctx):
     magplate = magdeck.load_labware('nest_96_wellplate_2ml_deep')
     
     # PCR plate
-    pcr_plate = ctx.load_labware('opentrons_96_aluminumblock_nest_wellplate_100ul', '1', 'chilled elution plate on block for Station C')
+    pcr_plate = ctx.load_labware('opentrons_96_aluminumblock_nest_wellplate_100ul', '1',
+                                 'chilled elution plate on block for Station C')
     
     # Liquids
     waste = ctx.load_labware('nest_1_reservoir_195ml', '11', 'Liquid Waste').wells()[0].top()

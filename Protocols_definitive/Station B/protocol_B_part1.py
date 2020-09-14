@@ -13,14 +13,14 @@ metadata = {
     'apiLevel': '2.3'
 }
 
-NUM_SAMPLES = 30  # start with 8 samples, slowly increase to 48, then 94 (max is 94)
+NUM_SAMPLES = 8  # start with 8 samples, slowly increase to 48, then 94 (max is 94)
 STARTING_VOL = 650
 ELUTION_VOL = 40
 WASH_VOL = 680
 TIP_TRACK = True
 PARK = False
 
-SKIP_DELAY = True
+SKIP_DELAY = False
 
 DEFAULT_ASPIRATION_RATE = 150
 SUPERNATANT_REMOVAL_ASPIRATION_RATE = 25
@@ -190,7 +190,7 @@ resuming.')
         delay(5, 'Incubating on MagDeck', ctx)
         remove_supernatant(wash_vol)
         
-    wash_tot_vol = NUM_SAMPLES * WASH_VOL *1.1
+    wash_tot_vol = NUM_SAMPLES * WASH_VOL * 1.1
     ctx.comment("WashA expected volume: {} mL".format(wash_tot_vol/1000))
     ctx.comment("WashB expected volume: {} mL".format(wash_tot_vol/1000))
 

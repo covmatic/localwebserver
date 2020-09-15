@@ -91,7 +91,22 @@ def run(ctx):
     Log_Dict = {"stages": []}  # For log file data
     temp_file_path = folder_path + '/completion_log.json'
     current_status = "Setting Temperature"
-    
+
+    def update_log_file(status="SUCCESS", check_temperature=True, message=None):
+        current_Log_dict = {"stage_name": current_status,
+                            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
+                            "temp": None,
+                            "status": status,
+                            "message": None}
+
+        Log_Dict["stages"].append(current_Log_dict)
+        if not os.path.isdir(folder_path):
+            os.mkdir(folder_path)
+        with open(temp_file_path, 'w') as outfiletemp:
+            json.dump(Log_Dict, outfiletemp)
+
+        print('{}: {}'.format(current_status, message))
+
     if TIP_TRACK and not ctx.is_simulating():
         if os.path.isfile(tip_file_path):
             with open(tip_file_path) as json_file:
@@ -204,22 +219,6 @@ resuming.')
             }
             with open(tip_file_path, 'w') as outfile:
                 json.dump(data, outfile)
-
-    def update_log_file(status="SUCCESS", check_temperature=False, message=None):
-        current_Log_dict = {
-            "stage_name": current_status,
-            "time": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S:%f"),
-            "temp": None,
-            "status": status,
-            "message": None}
-
-        Log_Dict["stages"].append(current_Log_dict)
-        if not os.path.isdir(folder_path):
-            os.mkdir(folder_path)
-        with open(temp_file_path, 'w') as outfiletemp:
-            json.dump(Log_Dict, outfiletemp)
-
-        print('{}: {}'.format(current_status, message))
 
     # --- RUN -----------------------------------------------------------------
     update_log_file()

@@ -140,7 +140,7 @@ def run(ctx: protocol_api.ProtocolContext):
         nonlocal tip_log
         if tip_log['count'][pip] == tip_log['max'][pip]:
             # print('Replace ' + str(pip.max_volume) + 'µl tipracks before resuming.')
-            ctx.pause('Replace ' + str(pip.max_volume) + 'µl tipracks before resuming.')
+            # ctx.pause('Replace ' + str(pip.max_volume) + 'µl tipracks before resuming.')
             pip.reset_tipracks()
             tip_log['count'][pip] = 0
         pip.pick_up_tip(tip_log['tips'][pip][tip_log['count'][pip]])
@@ -150,8 +150,7 @@ def run(ctx: protocol_api.ProtocolContext):
     def pick_up_no_a():
         nonlocal tip_log
         if tip_log['count']['tips20_no_a'] == tip_log['max']['tips20_no_a']:
-            ctx.pause('Replace 20ul tiprack in slot 10 (without tips in row A) \
-before resuming.')
+            # ctx.pause('Replace 20ul tiprack in slot 10 (without tips in row A) before resuming.')
             tip_log['count']['tips20_no_a'] = 0
         m20.pick_up_tip(tip_log['tips']['tips20_no_a'][tip_log['count']['tips20_no_a']])
         tip_log['count']['tips20_no_a'] += 1

@@ -47,10 +47,10 @@ def create_ssh_client(usr, key_file, pwd):
 def ssh_scp():
     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
     scp_client = SCPClient(client.get_transport())
-    local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-    scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
+    name_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+    scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=name_filepath)
     scp_client.close()
-    return local_filepath
+    return name_filepath
 
 
 def start_scheduler(app_ctx):
@@ -89,7 +89,6 @@ def check_new_tasks():
                 # scp_client.close()
                 ####################################################################################
             elif action == "checktemp":  # For testing this is the same as set temp
-                # TODO: Check the protocol
                 print("station 1 is checking the current temperature matches target ")
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -185,7 +184,7 @@ def check_new_tasks():
                 elif station == 2:  # station B
                     print("Performing Protocol")  # For Debugging
                     ###################################################################################
-                    if action == 'Pre-Deepwell-Check':
+                    if action == "Pre-Deepwell-Check":
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         channel = client.invoke_shell()
                         channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP1_FILE))
@@ -210,10 +209,12 @@ def check_new_tasks():
                         local_filepath = ssh_scp()
                     else:
                         print('Action Not Defined')
-                    channel.send('exit \n')
-                    code = channel.recv_exit_status()
-                    print("I got the code: {}".format(code))
-                    local_filepath = ssh_scp()
+
+                    # channel.send('exit \n')
+                    # code = channel.recv_exit_status()
+                    # print("I got the code: {}".format(code))
+                    # local_filepath = ssh_scp()
+
                     # # SCP Client takes a paramiko transport as an argument
                     # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     # scp_client = SCPClient(client.get_transport())

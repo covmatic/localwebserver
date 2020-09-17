@@ -204,6 +204,7 @@ def check_new_tasks():
                         client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         channel = client.invoke_shell()
                         channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP3_FILE))
+                        channel.send('exit \n')
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
                         local_filepath = ssh_scp()

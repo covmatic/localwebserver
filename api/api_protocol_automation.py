@@ -137,5 +137,9 @@ class CheckFunction(Resource):
             scp_client.close()
             with open('./' + logging_file, 'r') as r:
                 status = json.load(r)
+            if status["stages"][-1]["status"] == "Progress":
+                output = status["stages"][-1]["stage_name"]
+            else:
+                output = "Starting Protocol"
 
-            return {"status": False, "res": status["stages"][-1]["stage_name"]}, 200
+            return {"status": False, "res": output}, 200

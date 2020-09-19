@@ -143,3 +143,13 @@ class CheckFunction(Resource):
                 output = "Starting Protocol"
 
             return {"status": False, "res": output}, 200
+
+ class PauseFunction(Resource):
+    
+    def get(self):
+        requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
+        
+ class ResumeFunction(Resource):
+    
+    def get(self):
+        requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")

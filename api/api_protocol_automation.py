@@ -1,5 +1,6 @@
 from database import session
 from flask import jsonify
+import requests
 from flask_restful import Resource
 from flask_restful import reqparse
 from models.protocols import Protocol
@@ -153,7 +154,7 @@ class CheckFunction(Resource):
 
             return {"status": False, "res": output}, 200
 
-
+# FIXME: fix the library
  class PauseFunction(Resource):
     
     def get(self):

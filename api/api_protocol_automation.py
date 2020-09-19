@@ -8,6 +8,7 @@ import glob
 import os
 from shutil import copy2
 import json
+import time
 from services.task_runner import create_ssh_client
 from scp import SCPClient
 from services.task_runner import OT2_TARGET_IP_ADDRESS, OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
@@ -99,6 +100,7 @@ class CheckFunction(Resource):
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
+        protocol1 = Protocol.query.filter_by(status="running").first()
         if not (queued_protocols or running_protocols):
             # FIXME: Check this
             last_protocol = Protocol.query.order_by(Protocol.creation_date.desc()).first()
@@ -135,14 +137,22 @@ class CheckFunction(Resource):
             logging_file = 'completion_log'
             scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=logging_file)
             scp_client.close()
-            with open('./' + logging_file, 'r') as r:
-                status = json.load(r)
-            if status["stages"][-1]["status"] == "Progress":
-                output = status["stages"][-1]["stage_name"]
+            # Searching all PCR results file
+            result_file = glob.glob('./' + logging_file)
+            # Sorting the PCR's results
+            result_file.sort(key=os.path.getctime)
+            if result_file:
+                with open('./' + logging_file, 'r') as r:
+                    status = json.load(r)
+                if status["stages"][-1]["status"] == "Progress":
+                    output = status["stages"][-1]["stage_name"]
+                else:
+                    output = "Starting Protocol"
             else:
-                output = "Starting Protocol"
+                output = "initializing"
 
             return {"status": False, "res": output}, 200
+
 
  class PauseFunction(Resource):
     

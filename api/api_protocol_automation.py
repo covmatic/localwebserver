@@ -8,6 +8,9 @@ import glob
 import os
 from shutil import copy2
 import json
+from services.task_runner import create_ssh_client
+from scp import SCPClient
+from services.task_runner import OT2_TARGET_IP_ADDRESS, OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 
 PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
 PCR_results_path = 'C:/PCR_BioRad/json_results/'
@@ -127,4 +130,12 @@ class CheckFunction(Resource):
                     return {"status": True, "res": read}, 200
                 # return {"status": True, "res": ":)"}, 200
         else:
-            return {"status": False, "res": "outputting progress"}, 200
+            client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+            scp_client = SCPClient(client.get_transport())
+            logging_file = 'completion_log'
+            scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=logging_file)
+            scp_client.close()
+            with open('./' + logging_file, 'r') as r:
+                status = json.load(r)
+
+            return {"status": False, "res": status["stages"][-1]["stage_name"]}, 200

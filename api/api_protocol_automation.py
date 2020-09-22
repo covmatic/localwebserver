@@ -154,13 +154,16 @@ class CheckFunction(Resource):
 
             return {"status": False, "res": output}, 200
 
-# FIXME: fix the library
- class PauseFunction(Resource):
+
+class PauseFunction(Resource):
     
     def get(self):
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
-        
- class ResumeFunction(Resource):
+        return {"status": False, "res": "Pausa"}, 200
+
+
+class ResumeFunction(Resource):
     
     def get(self):
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
+        return {"status": False, "res": "Resumed"}, 200

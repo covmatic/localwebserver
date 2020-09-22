@@ -1,5 +1,5 @@
 from flask_restful import Api
-from .api_protocol_automation import AutomationAPI, AutomationAPI_MVP, CheckFunction
+from .api_protocol_automation import AutomationAPI, AutomationAPI_MVP, CheckFunction, PauseFunction, ResumeFunction
 import config
 
 

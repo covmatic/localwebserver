@@ -11,7 +11,7 @@ import subprocess
 from os import environ
 
 PCR_API_NAME = 'BioRad.Example_Application.exe'
-PCR_PATH = 'C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.3/'
+PCR_PATH = 'C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.4/'
 OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # TODO: Put the names in a json file and read the filenames
@@ -108,7 +108,7 @@ def check_new_tasks():
                 # TODO: Decide what we need to do with calibration
             elif action == "calibration":
                 print("Calibrating")
-                time.sleep(2)
+                pass
             else:
                 if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
                     if action == "Pre-IncubationV1":  # Purebase P1000S

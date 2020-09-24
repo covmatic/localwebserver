@@ -138,9 +138,9 @@ class CheckFunction(Resource):
             logging_file = 'completion_log'
             scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=logging_file)
             scp_client.close()
-            # Searching all PCR results file
+            # Searching all logfile results file
             result_file = glob.glob('./' + logging_file)
-            # Sorting the PCR's results
+            # Sorting the logs
             result_file.sort(key=os.path.getctime)
             if result_file:
                 with open('./' + logging_file, 'r') as r:

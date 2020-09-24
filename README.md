@@ -43,7 +43,9 @@ of the downloaded repository
 - [ ] Clean the repository and the code
 
 In order to include locally on the laptop the Hostname of the robot:
-It can be done with prompt of commands: `setx OT-2-IP <HOSTNAME-OF-THE-ROBOT>`
+It can be done with prompt of commands:
+
+`setx OT-2-IP <HOSTNAME-OF-THE-ROBOT>`
 
 ### Instruction for IT technicians
 
@@ -119,7 +121,7 @@ return {"status": False, "res": output}, 200
 The code do the following:
 
 * Create a connection to the robot and get the current log
-* Searching all the file in the root folder called as `logging_file`
+* Searching all the files in the root folder called as `logging_file`
 * Sorting by creation time
 * Open that file and read the last one which the status is progress
 * If the log file hasn't status in Progress is at the beginning
@@ -140,8 +142,9 @@ after executing the program.
 2. If there is shown on the interface or on the shell the code: `403 FORBIDDEN`:
 
     It happens when the previous run for some reason was failed.
-    Solution: STOP the localwebserver application, Delete the file [`app.db`](store/app.db)
-    If you to be sure, you can delete it each morning.
+    
+    Solution: STOP the localwebserver application, Delete the file `app.db` in the [store](store) folder
+    If you want to be sure, you can delete it each morning.
 
 3. If the execution of the protocol didn't work and/or is shown a code different from: `I got code: 0`
  

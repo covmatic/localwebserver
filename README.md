@@ -19,7 +19,7 @@ is the testing code
 of the downloaded repository
 
 3. Assign the IP or the localhost name of the robot to the environment variable
-called OT-2-IP 
+called `OT-2-IP` 
 
 4. Install the needed requirements with: `pip install -r requirements.txt`
  and wait the completion

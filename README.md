@@ -18,10 +18,13 @@ is the testing code
 2. Open the commander (prompt of the command) in the same directory
 of the downloaded repository
 
-3. Install the needed requirements with: `pip install -r requirements.txt`
+3. Assign the IP or the localhost name of the robot to the environment variable
+called OT-2-IP 
+
+4. Install the needed requirements with: `pip install -r requirements.txt`
  and wait the completion
  
-4. Run the [`app.py`](app.py) with: `python app.py`
+5. Run the [`app.py`](app.py) with: `python app.py`
 
 > If you want to avoid to the passage 4, write a .bat file with inside
 > `python app.py`

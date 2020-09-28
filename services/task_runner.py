@@ -6,14 +6,17 @@ from timeloop import Timeloop
 import paramiko as pk
 from scp import SCPClient
 import json
-import time
+# import time
 import subprocess
 from os import environ
 
+# PCR API name and path
 PCR_API_NAME = 'BioRad.Example_Application.exe'
 PCR_PATH = 'C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.4/'
 OT2_SSH_KEY = './ot2_ssh_key'
+# Path of the protocols inside the Robots
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
+# Protocol namefiles
 # TODO: Put the names in a json file and read the filenames
 OT2_PROTOCOLC_FILE = 'protocol_C.py'  # For stations in general keep protocol name constant.
 OT2_PROTOCOLBP1_FILE = 'protocol_B_part1.py'
@@ -71,7 +74,7 @@ def check_new_tasks():
             station = protocol.station
             action = protocol.action
             if action == "settemp":
-                print("station 1 is setting the temperature module!")
+                print("The robot is setting the temperature module!")
                 ###################################################################################
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
@@ -89,7 +92,7 @@ def check_new_tasks():
                 # scp_client.close()
                 ####################################################################################
             elif action == "checktemp":  # For testing this is the same as set temp
-                print("station 1 is checking the current temperature matches target ")
+                print("The robot is checking the current temperature matches target ")
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
                 channel = client.invoke_shell()
@@ -105,11 +108,8 @@ def check_new_tasks():
                 # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                 # scp_client.close()
                 ####################################################################################
-                # TODO: Decide what we need to do with calibration
-            elif action == "calibration":
-                print("Calibrating")
-                pass
             else:
+                # FIXME: adjust these things of the name of the protocols A
                 if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
                     if action == "Pre-IncubationV1":  # Purebase P1000S
                         print("Performing Pre-Incubation Protocol V1")  # For Debugging
@@ -211,17 +211,6 @@ def check_new_tasks():
                     else:
                         print('Action Not Defined')
 
-                    # channel.send('exit \n')
-                    # code = channel.recv_exit_status()
-                    # print("I got the code: {}".format(code))
-                    # local_filepath = ssh_scp()
-
-                    # # SCP Client takes a paramiko transport as an argument
-                    # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    # scp_client = SCPClient(client.get_transport())
-                    # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-                    # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
-                    # scp_client.close()
                 elif station == 3:  # station C
                     print("Performing Protocol")  # for Debugging
                     ####################################################################################
@@ -248,8 +237,9 @@ def check_new_tasks():
             protocol.set_completed()
             session.add(protocol)
             session.commit()
+            # Reading of the current stages in the Opentrons protocols
             if action != 'calibration' and action != "PCR":
-                with open(local_filepath) as f:
+                with open(local_filepath, 'r') as f:
                     data = json.load(f)
                     stat = data["stages"][-1]["status"]
                 if "FAILED" in stat:

@@ -170,6 +170,8 @@ the hard work in the lab, the programming and maintaining of the code.
 
 Thank you and Congrats to all!
 
+Here you can find us: https://covmatic.org/about-us/
+
 ## Licence
 Copyright (c) 2020 Covmatic.
 

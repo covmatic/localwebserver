@@ -2,6 +2,8 @@
 
 In this "documentation" should be explained some part of the code and how to set
 this program for the first time.
+
+The full documentation and informations can be obtained from: https://covmatic.org/
 ## Table of Contents
 
 * [Execute the program](#execute-the-program)
@@ -10,6 +12,7 @@ this program for the first time.
     * [Task Runner](#task-runner)
     * [api_protocol_automation](#api-protocol-automation)
     * [Troubleshooting](#troubleshooting)
+* [Licence](#licence)
 ## Execute the program
 
 1. Download from Github the latest version: on **MVP branch** there
@@ -157,6 +160,15 @@ after executing the program.
 
 > We didn't found any critical error, if everything was perfectly setted we didn't get any errors
 >or strange bugs.
+
+
+## Special Thanks
+
+I want to thank to each one that helped and collaborate to realize this project!
+This was possible thanks to the help of each volunteer and to the ideas of everyone,
+the hard work in the lab, the programming and maintaining of the code.
+
+Thank you and Congrats to all!
 
 ## Licence
 Copyright (c) 2020 Covmatic.

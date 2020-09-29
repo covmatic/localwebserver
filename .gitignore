@@ -139,3 +139,5 @@ dmypy.json
 # Ignore log files
 
 /*.json
+
+/external_execution.py

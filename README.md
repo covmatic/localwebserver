@@ -4,6 +4,9 @@ In this "documentation" should be explained some part of the code and how to set
 this program for the first time.
 
 The full documentation and informations can be obtained from: https://covmatic.org/
+
+Consult our [wiki](https://github.com/OpenSourceCovidTesting/localWebServer/wiki) for setting the program
+
 ## Table of Contents
 
 * [Execute the program](#execute-the-program)
@@ -13,6 +16,7 @@ The full documentation and informations can be obtained from: https://covmatic.o
     * [api_protocol_automation](#api-protocol-automation)
     * [Troubleshooting](#troubleshooting)
 * [Licence](#licence)
+
 ## Execute the program
 
 1. Download from Github the latest version: on **MVP branch** there

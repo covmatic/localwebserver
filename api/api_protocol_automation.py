@@ -133,26 +133,38 @@ class CheckFunction(Resource):
                     return {"status": True, "res": read}, 200
                 # return {"status": True, "res": ":)"}, 200
         else:
-            client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-            scp_client = SCPClient(client.get_transport())
-            logging_file = 'completion_log'
-            scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=logging_file)
-            scp_client.close()
-            # Searching all logfile results file
-            result_file = glob.glob('./' + logging_file)
-            # Sorting the logs
-            result_file.sort(key=os.path.getctime)
-            if result_file:
-                with open('./' + logging_file, 'r') as r:
-                    status = json.load(r)
-                if status["stages"][-1]["status"] == "Progress":
-                    output = status["stages"][-1]["stage_name"]
+            while True:
+                try:
+                    rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+                except requests.exceptions.ConnectionError:
+                    time.sleep(0.5)
                 else:
-                    output = "Starting Protocol"
-            else:
-                output = "initializing"
+                    break
+            output = rv.json()
+            print(rv)
+            # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+            # scp_client = SCPClient(client.get_transport())
+            # logging_file = 'completion_log'
+            # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=logging_file)
+            # scp_client.close()
+            # # Searching all logfile results file
+            # result_file = glob.glob('./' + logging_file)
+            # # Sorting the logs
+            # result_file.sort(key=os.path.getctime)
+            # if result_file:
+            #     with open('./' + logging_file, 'r') as r:
+            #         status = json.load(r)
+            #         print("Pippo è")
+            #         print(status)
+            #     if status["stages"][-1]["message"] == "Progress":
+            #         print(status)
+            #         output = status["stages"][-1]["stage_name"]
+            #     else:
+            #         output = "Starting Protocol"
+            # else:
+            #     output = "initializing"
 
-            return {"status": False, "res": output}, 200
+            return {"status": False, "res": "Status: {}, Stage è: {}".format(output["status"], output["stage"])}, 200
 
 
 class PauseFunction(Resource):

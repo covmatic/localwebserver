@@ -18,7 +18,7 @@ OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # Protocol namefiles
 # TODO: Put the names in a json file and read the filenames
-OT2_PROTOCOLC_FILE = 'protocol_C.py'  # For stations in general keep protocol name constant.
+OT2_PROTOCOLC_FILE = 'station_c.py'  # For stations in general keep protocol name constant.
 OT2_PROTOCOLBP1_FILE = 'protocol_B_part1.py'
 OT2_PROTOCOLBP2_FILE = 'protocol_B_part2.py'
 OT2_PROTOCOLBP3_FILE = 'protocol_B_part3.py'
@@ -30,8 +30,8 @@ OT2_PROTOCOL2V2_FILE = 'protocol_A_part2.py'  # it should be for the BP Genomics
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 # OT-2-IP is the name of environment variable in order to fix the IPs of the robot
-OT2_TARGET_IP_ADDRESS = environ['OT-2-IP']
-# OT2_TARGET_IP_ADDRESS = '10.213.55.64'  # Only for debugging
+# OT2_TARGET_IP_ADDRESS = environ['OT-2-IP']
+OT2_TARGET_IP_ADDRESS = '169.254.232.63'  # Only for debugging
 OT2_ROBOT_PASSWORD = 'opentrons'  # Opentrons password of the ssh key
 TASK_QUEUE_POLLING_INTERVAL = 5
 # TASK_RUNNING = False
@@ -110,6 +110,8 @@ def check_new_tasks():
                 # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=local_filepath)
                 # scp_client.close()
                 ####################################################################################
+            elif action == 'calibration':
+                print('calibro')
             else:
                 # FIXME: adjust these things of the name of the protocols A
                 if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
@@ -123,8 +125,9 @@ def check_new_tasks():
                         channel.send('exit \n')
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
+
                         # SCP Client takes a paramiko transport as an argument
-                        local_filepath = ssh_scp()
+                        # local_filepath = ssh_scp()
                         # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # scp_client = SCPClient(client.get_transport())
                         # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
@@ -243,7 +246,9 @@ def check_new_tasks():
             if action != 'calibration' and action != "PCR":
                 with open(local_filepath, 'r') as f:
                     data = json.load(f)
-                    stat = data["stages"][-1]["status"]
+                    # Nuovo formato di log
+                    stat = data["status"]
+                    # stat = data["stages"][-1]["status"]
                 if "FAILED" in stat:
                     print("Protocol Failed")
                     protocol.set_failed()
@@ -255,6 +260,7 @@ def check_new_tasks():
                 protocol.set_completed()
                 session.add(protocol)
                 session.commit()
+            # for debug
             print(protocol.status)
         except Exception as e:
             protocol.set_failed()

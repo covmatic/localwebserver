@@ -78,14 +78,16 @@ def check_new_tasks():
             if action == "settemp":
                 print("The robot is setting the temperature module!")
                 ###################################################################################
-                client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
-                channel = client.invoke_shell()
-                channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_TEMP_PROTOCOL_FILE))
-                channel.send('exit \n')
-                code = channel.recv_exit_status()
-                print("I got the code: {}".format(code))
-                local_filepath = ssh_scp()
+                pass
+                # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                # # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
+                # channel = client.invoke_shell()
+                # channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_TEMP_PROTOCOL_FILE))
+                # channel.send('exit \n')
+                # code = channel.recv_exit_status()
+                # print("I got the code: {}".format(code))
+                # local_filepath = ssh_scp()
+                # TODO: CLEAN
                 # # SCP Client takes a paramiko transport as an argument
                 # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 # scp_client = SCPClient(client.get_transport())
@@ -95,14 +97,16 @@ def check_new_tasks():
                 ####################################################################################
             elif action == "checktemp":  # For testing this is the same as set temp
                 print("The robot is checking the current temperature matches target ")
-                client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
-                channel = client.invoke_shell()
-                channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_TEMP_PROTOCOL_FILE))
-                channel.send('exit \n')
-                code = channel.recv_exit_status()
-                print("I got the code: {}".format(code))
-                local_filepath = ssh_scp()
+                pass
+                # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                # # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
+                # channel = client.invoke_shell()
+                # channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_TEMP_PROTOCOL_FILE))
+                # channel.send('exit \n')
+                # code = channel.recv_exit_status()
+                # print("I got the code: {}".format(code))
+                # local_filepath = ssh_scp()
+                # TODO: CLEAN
                 # # SCP Client takes a paramiko transport as an argument
                 # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 # scp_client = SCPClient(client.get_transport())
@@ -125,9 +129,10 @@ def check_new_tasks():
                         channel.send('exit \n')
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
-
                         # SCP Client takes a paramiko transport as an argument
-                        # local_filepath = ssh_scp()
+                        local_filepath = ssh_scp()
+
+                        # TODO: CLEAN
                         # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # scp_client = SCPClient(client.get_transport())
                         # local_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
@@ -144,6 +149,7 @@ def check_new_tasks():
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
                         local_filepath = ssh_scp()
+                        # TODO: CLEAN
                         # # SCP Client takes a paramiko transport as an argument
                         # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # scp_client = SCPClient(client.get_transport())
@@ -161,6 +167,7 @@ def check_new_tasks():
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
                         local_filepath = ssh_scp()
+                        # TODO: CLEAN
                         # # SCP Client takes a paramiko transport as an argument
                         # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # scp_client = SCPClient(client.get_transport())
@@ -178,6 +185,7 @@ def check_new_tasks():
                         code = channel.recv_exit_status()
                         print("I got the code: {}".format(code))
                         local_filepath = ssh_scp()
+                        # TODO: CLEAN
                         # # SCP Client takes a paramiko transport as an argument
                         # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                         # scp_client = SCPClient(client.get_transport())
@@ -226,6 +234,7 @@ def check_new_tasks():
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))
                     local_filepath = ssh_scp()
+                    # TODO: CLEAN
                     # # SCP Client takes a paramiko transport as an argument
                     # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     # scp_client = SCPClient(client.get_transport())

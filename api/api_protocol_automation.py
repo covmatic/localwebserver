@@ -1,18 +1,20 @@
 from database import session
-from flask import jsonify
+# from flask import jsonify
 import requests
 from flask_restful import Resource
 from flask_restful import reqparse
 from models.protocols import Protocol
-from sqlalchemy import or_, desc
+# from sqlalchemy import or_, desc
 import glob
 import os
 from shutil import copy2
 import json
 import time
-from services.task_runner import create_ssh_client
-from scp import SCPClient
-from services.task_runner import OT2_TARGET_IP_ADDRESS, OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
+# from services.task_runner import create_ssh_client
+# from scp import SCPClient
+from services.task_runner import OT2_TARGET_IP_ADDRESS
+# from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
+
 
 PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
 PCR_results_path = 'C:/PCR_BioRad/json_results/'
@@ -164,9 +166,11 @@ class CheckFunction(Resource):
             # else:
             #     output = "initializing"
 
+            # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
             return {"status": False, "res": "Status: {}, Stage è: {}".format(output["status"], output["stage"])}, 200
 
 
+# FUNZIONE DI PAUSA
 class PauseFunction(Resource):
     
     def get(self):
@@ -174,6 +178,7 @@ class PauseFunction(Resource):
         return {"status": False, "res": "Pausa"}, 200
 
 
+# FUNZIONE DI RESUME
 class ResumeFunction(Resource):
     
     def get(self):

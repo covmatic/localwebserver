@@ -1,9 +1,11 @@
 from database import session
 # from flask import jsonify
 import requests
+import tkinter as tk
 from flask_restful import Resource
 from flask_restful import reqparse
 from models.protocols import Protocol
+from tkinter import simpledialog
 # from sqlalchemy import or_, desc
 import glob
 import os
@@ -13,6 +15,7 @@ import time
 # from services.task_runner import create_ssh_client
 # from scp import SCPClient
 from services.task_runner import OT2_TARGET_IP_ADDRESS
+
 # from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 
 
@@ -99,6 +102,7 @@ class AutomationAPI_MVP(Resource):
 
 
 class CheckFunction(Resource):
+    last_barcode = None
 
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
@@ -143,7 +147,13 @@ class CheckFunction(Resource):
                 else:
                     break
             output = rv.json()
-            print(rv)
+            if CheckFunction.last_barcode is None and output["external"] and output["status"] == 'paused':
+                ROOT = tk.Tk()
+                ROOT.withdraw()
+                CheckFunction.last_barcode = simpledialog.askstring(title="User Input",
+                                                                    prompt="Please Input Barcode of Exiting Rack:")
+
+
             # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
             # scp_client = SCPClient(client.get_transport())
             # logging_file = 'completion_log'
@@ -172,7 +182,7 @@ class CheckFunction(Resource):
 
 # FUNZIONE DI PAUSA
 class PauseFunction(Resource):
-    
+
     def get(self):
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
         return {"status": False, "res": "Pausa"}, 200
@@ -180,8 +190,20 @@ class PauseFunction(Resource):
 
 # FUNZIONE DI RESUME
 class ResumeFunction(Resource):
-    
+
     def get(self):
+        try:
+            rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+        except requests.exceptions.ConnectionError:
+            return "There has been an error in execution, please verify and try again", 400
+        output = rv.json()
+        if output["external"]:
+            ROOT = tk.Tk()
+            ROOT.withdraw()
+            while CheckFunction.last_barcode != simpledialog.askstring(
+                    title="User Input", prompt="Please Input Barcode of Entering Rack:"):
+                pass
+            CheckFunction.last_barcode = None
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
         return {"status": False, "res": "Resumed"}, 200
 

@@ -26,6 +26,7 @@ _classes = {
     "A": ("system9.a.technogenetics", "StationATechnogenetics24"),
     "B": ("system9.b.technogenetics", "StationBTechnogenetics"),
     "C": ("system9.c.c", "StationC"),
+    "PCR": None
 }
 
 

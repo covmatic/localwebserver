@@ -1,12 +1,14 @@
 from datetime import datetime
 
 from scp import SCPClient
-
+import tkinter as tk
+import tkinter.filedialog
+from tkinter import simpledialog
 from api import api
 from database import init_db
 from flask import Flask
 from flask_cors import CORS
-from services import task_runner
+from services import task_runner, protocol_gen
 from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 from views import bp_automation
 import subprocess
@@ -27,20 +29,46 @@ def create_app():
     return app
 
 
-# def upload_protocol():
-#     #TODO: call utility function that returns filepath
-#     #protocol_file =
-#     client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-#     scp_client = SCPClient(client.get_transport())
-#     scp_client.put(protocol_file, '/var/lib/jupyter/notebooks')
-#     scp_client.close()
+def save_file():
+    file = tk.filedialog.asksaveasfilename(title="Save Protocol", defaultextension=".py",
+                                       filetypes=(("python scripts", "*.py"), ("all files", "*.*")))
+    if file is None:
+        return None
+    else:
+        return file
+
+
+def upload_protocol():
+    client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+    scp_client = SCPClient(client.get_transport())
+    scp_client.put(protocol_file, '/var/lib/jupyter/notebooks')
+    scp_client.close()
 
 
 if __name__ == "__main__":
     local_app = create_app()
     task_runner.start_scheduler(local_app)
-    # upload_protocol()
-    subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
+    ROOT = tk.Tk()
+    ROOT.withdraw()
+    # the input dialog
+    correct_input = False
+    station = simpledialog.askstring(title="User Input",
+                                     prompt="Please Input Station Name:")
+    while not correct_input:
+        if station in protocol_gen._classes.keys():
+            correct_input = True
+        else:
+            station = simpledialog.askstring(title="User Input",
+                                             prompt="Please Enter A Valid Input Station Name:")
+    samples = simpledialog.askinteger(title="User Input",
+                                      prompt="Please Input Number of Samples:")
+    if station != 'PCR':
+        protocol = protocol_gen.protocol_gen(station, num_samples=samples)
+        protocol_file = save_file()
+        with open(protocol_file, 'w') as location:
+            location.write(protocol)
+        upload_protocol()
+        subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
     local_app.run(host='127.0.0.1', port=5001, debug=False)
 
 

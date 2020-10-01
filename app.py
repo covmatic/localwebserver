@@ -1,8 +1,13 @@
+from datetime import datetime
+
+from scp import SCPClient
+
 from api import api
 from database import init_db
 from flask import Flask
 from flask_cors import CORS
 from services import task_runner
+from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 from views import bp_automation
 import subprocess
 
@@ -22,11 +27,22 @@ def create_app():
     return app
 
 
+# def upload_protocol():
+#     #TODO: call utility function that returns filepath
+#     #protocol_file =
+#     client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+#     scp_client = SCPClient(client.get_transport())
+#     scp_client.put(protocol_file, '/var/lib/jupyter/notebooks')
+#     scp_client.close()
+
+
 if __name__ == "__main__":
     local_app = create_app()
     task_runner.start_scheduler(local_app)
+    #upload_protocol()
     subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
     local_app.run(host='127.0.0.1', port=5001, debug=False)
+
 
 
 """ Copyright (c) 2020 Covmatic.

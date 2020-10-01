@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from services import task_runner
 from views import bp_automation
+import subprocess
 
 
 def create_app():
@@ -24,6 +25,7 @@ def create_app():
 if __name__ == "__main__":
     local_app = create_app()
     task_runner.start_scheduler(local_app)
+    subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
     local_app.run(host='127.0.0.1', port=5001, debug=False)
 
 

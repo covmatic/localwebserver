@@ -4,6 +4,7 @@ from scp import SCPClient
 import tkinter as tk
 import tkinter.filedialog
 from tkinter import simpledialog
+from tkinter import messagebox
 from api import api
 from database import init_db
 from flask import Flask
@@ -38,16 +39,22 @@ def save_file():
         return file
 
 
-def upload_protocol():
-    client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-    scp_client = SCPClient(client.get_transport())
-    scp_client.put(protocol_file, '/var/lib/jupyter/notebooks')
-    scp_client.close()
+def calibrate():
+    MsgBox = tk.messagebox.askquestion('Calibration', 'Do You want to calibrate this machine?',
+                                    icon='warning')
+    if MsgBox == 'yes':
+        subprocess.call('C:/Users/wassi/AppData/Local/Programs/Opentrons/Opentrons.exe')
+    else:
+        tk.messagebox.showinfo('Check', 'You confirm that the machine has already been calibrated')
 
 
-if __name__ == "__main__":
-    local_app = create_app()
-    task_runner.start_scheduler(local_app)
+def calibrate_message():
+    root = tk.Tk()
+    canvas1 = tk.Canvas(root, width=200, height=100)
+    canvas1.pack()
+    button1 = tk.Button(root, text='Calibrate Machine', command=calibrate(), bg='brown', fg='white')
+
+def create_protocol():
     ROOT = tk.Tk()
     ROOT.withdraw()
     # the input dialog
@@ -57,6 +64,8 @@ if __name__ == "__main__":
     while not correct_input:
         if station in protocol_gen._classes.keys():
             correct_input = True
+        elif station is None:
+            pass
         else:
             station = simpledialog.askstring(title="User Input",
                                              prompt="Please Enter A Valid Input Station Name:")
@@ -67,8 +76,21 @@ if __name__ == "__main__":
         protocol_file = save_file()
         with open(protocol_file, 'w') as location:
             location.write(protocol)
-        upload_protocol()
-        subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
+        #upload_protocol(protocol_file)
+    calibrate()
+
+
+def upload_protocol(protocol_file):
+    client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+    scp_client = SCPClient(client.get_transport())
+    scp_client.put(protocol_file, '/var/lib/jupyter/notebooks')
+    scp_client.close()
+
+
+if __name__ == "__main__":
+    local_app = create_app()
+    task_runner.start_scheduler(local_app)
+    create_protocol()
     local_app.run(host='127.0.0.1', port=5001, debug=False)
 
 

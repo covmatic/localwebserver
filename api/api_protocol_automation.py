@@ -23,6 +23,9 @@ PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
 PCR_results_path = 'C:/PCR_BioRad/json_results/'
 
 
+BARCODE_EXT = None
+
+
 # Define endpoint methods
 # noinspection PyMethodMayBeStatic
 class AutomationAPI(Resource):
@@ -171,6 +174,9 @@ class CheckFunction(Resource):
             #     output = "initializing"
 
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
+            nonlocal BARCODE_EXT
+            if BARCODE_EXT is None and output["external"]:
+                BARCODE_EXT = simpledialog.askstring(title="Barcode", prompt="Input barcode of exiting rack")
             return {"status": False, "res": "Status: {}, Stage è: {}".format(output["status"], output["stage"])}, 200
 
 
@@ -208,6 +214,11 @@ class ResumeFunction(Resource):
         #             title="User Input", prompt="Please Input Barcode of Entering Rack:"):
         #         pass
         #     CheckFunction.last_barcode = None
+        nonlocal BARCODE_EXT
+        if BARCODE_EXT is not None:
+            while simpledialog.askstring(title="Barcode", prompt="Input barcode of entering rack") != BARCODE_EXT:
+                pass
+            BARCODE_EXT = None
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
         return {"status": False, "res": "Resumed"}, 200
 

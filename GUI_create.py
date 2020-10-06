@@ -9,10 +9,6 @@ from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG
 import webbrowser
 import requests
 import time
-from PIL import Image,ImageTk
-
-
-
 
 
 def save_file():
@@ -64,9 +60,9 @@ def create_protocol(butt):
         protocol_file = save_file()
         with open(protocol_file, 'w') as location:
             location.write(protocol)
-        # upload_protocol(protocol_file)
+        upload_protocol(protocol_file)
     # calibrate()
-    webbrowser.open('http://google.com') # enter webserver address
+    webbrowser.open('https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
     # rdone = False
     # while not rdone:
     #     while True:
@@ -77,7 +73,7 @@ def create_protocol(butt):
     #         else:
     #             break
     #     output = rv.json()
-    #     if output["status"] == "Done":
+    #     if output["status"] == "Finished":
     #         butt.config(state="enabled")
     #         rdone = True
 
@@ -92,18 +88,19 @@ def upload_protocol(protocol_file):
 def launchgui():
     root = Tk()
     root.title('Local Machine Server')
-    root.iconbitmap('c:/Users/wassi/Documents/GitHub/localWebServer/Covmatic_Icon.ico')
-    CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white')
-    CalButton.grid(row=0,column=0)
+    root.iconbitmap('C:/Users/inse9/OneDrive/Documenti/GitHub/localWebServer/localWebServer/Covmatic_Icon.ico')
+    root.geometry('400x50')
+    CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
+    CalButton.grid(row=0, column=0)
     ProtButton = Button(root, text='Start New Run', command=lambda: create_protocol(ProtButton), fg='black',
-                        bg='white')
-    ProtButton.grid(row=1,column=0)
+                        bg='white', width=60)
+    ProtButton.grid(row=1, column=0)
     root.mainloop()
 
 
 if __name__ == "__main__":
-    cmd = subprocess.Popen('cmd.exe /K cd C:/Users/wassi/Desktop/localwebserver')
-    subprocess.Popen('cmd.exe /K py app.py')
+    # cmd = subprocess.Popen('cmd.exe /K cd C:/Users/wassi/Desktop/localwebserver')
+    subprocess.Popen('cmd.exe /K py ./app.py')
     launchgui()
 
 """ Copyright (c) 2020 Covmatic.

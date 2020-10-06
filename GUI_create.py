@@ -93,10 +93,11 @@ def launchgui():
     root = Tk()
     root.title('Local Machine Server')
     root.iconbitmap('c:/Users/wassi/Documents/GitHub/localWebServer/Covmatic_Icon.ico')
-    CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white')
+    root.geometry('400x50')
+    CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
     CalButton.grid(row=0,column=0)
     ProtButton = Button(root, text='Start New Run', command=lambda: create_protocol(ProtButton), fg='black',
-                        bg='white')
+                        bg='white', width=60)
     ProtButton.grid(row=1,column=0)
     root.mainloop()
 

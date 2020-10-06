@@ -187,7 +187,7 @@ class PauseFunction(Resource):
             ROOT.withdraw()
             CheckFunction.last_barcode = simpledialog.askstring(title="User Input",
                                                                 prompt="Please Input Barcode of Exiting Rack:")
-        #requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
+        requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
         return {"status": False, "res": "Pausa"}, 200
 
 
@@ -200,15 +200,14 @@ class ResumeFunction(Resource):
         except requests.exceptions.ConnectionError:
             return "There has been an error in execution, please verify and try again", 400
         output = rv.json()
-        external = True
-        if external:
+        if output["external"]:
             ROOT = tk.Tk()
             ROOT.withdraw()
             while CheckFunction.last_barcode != simpledialog.askstring(
                     title="User Input", prompt="Please Input Barcode of Entering Rack:"):
                 pass
             CheckFunction.last_barcode = None
-        # requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
+        requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
         return {"status": False, "res": "Resumed"}, 200
 
 

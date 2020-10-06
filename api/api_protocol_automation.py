@@ -24,6 +24,15 @@ PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
 PCR_results_path = 'C:/PCR_BioRad/json_results/'
 
 
+def gui_user_input(f, *args, **kwargs):
+    root = tk.Tk()
+    root.withdraw()
+    root.call('wm', 'attributes', '.', '-topmost', True)
+    s = f(*args, **kwargs)
+    root.destroy()
+    return s
+
+
 class SingletonMeta(type):
     def __new__(meta, name, bases, classdict):
         def new(cls, code: Optional[str] = None):
@@ -199,7 +208,7 @@ class CheckFunction(Resource):
 
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
             if BarcodeSingleton() is None and output["external"]:
-                BarcodeSingleton(simpledialog.askstring(title="Barcode", prompt="Input barcode of exiting rack"))
+                BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
             return {"status": False, "res": "Status: {}, Stage è: {}".format(output["status"], output["stage"])}, 200
 
 
@@ -238,7 +247,7 @@ class ResumeFunction(Resource):
         #         pass
         #     CheckFunction.last_barcode = None
         if BarcodeSingleton() is not None:
-            while simpledialog.askstring(title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
+            while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
                 pass
             BarcodeSingleton.reset()
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")

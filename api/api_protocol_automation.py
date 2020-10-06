@@ -182,7 +182,7 @@ class PauseFunction(Resource):
         #     rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
         # except requests.exceptions.ConnectionError:
         #     return "There has been an error in execution, please verify and try again", 400
-        output = rv.json()
+        # output = rv.json()
         # if CheckFunction.last_barcode is None and output["external"]:
         #     ROOT = tk.Tk()
         #     ROOT.withdraw()

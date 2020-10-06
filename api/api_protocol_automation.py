@@ -12,10 +12,11 @@ import os
 from shutil import copy2
 import json
 import time
-from typing import Optional
+from typing import Optional, Any
 # from services.task_runner import create_ssh_client
 # from scp import SCPClient
 from services.task_runner import OT2_TARGET_IP_ADDRESS
+import threading
 
 # from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 
@@ -47,7 +48,7 @@ class SingletonMeta(type):
         super(SingletonMeta, cls).__init__(name, bases, classdict)
         cls._inst = None
     
-    def reset(cls, code: Optional[str] = None):
+    def reset(cls, code: Optional[Any] = None):
         del cls._inst
         cls._inst = None
         if code is not None:
@@ -56,6 +57,10 @@ class SingletonMeta(type):
 
 
 class BarcodeSingleton(str, metaclass=SingletonMeta):
+    pass
+
+
+class CheckFlag(int, metaclass=SingletonMeta):
     pass
 
 
@@ -138,8 +143,6 @@ class AutomationAPI_MVP(Resource):
 
 
 class CheckFunction(Resource):
-    last_barcode = None
-
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
@@ -207,8 +210,11 @@ class CheckFunction(Resource):
             #     output = "initializing"
 
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
-            if BarcodeSingleton() is None and output["external"]:
+            if not CheckFlag() and BarcodeSingleton() is None and output["external"]:
+                # This check is OK because requests only come delayed from each other. It is NOT THREAD SAFE, though
+                CheckFlag.reset(True)
                 BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
+                CheckFlag.reset(False)
             return {"status": False, "res": "Status: {}, Stage è: {}".format(output["status"], output["stage"])}, 200
 
 
@@ -246,12 +252,17 @@ class ResumeFunction(Resource):
         #             title="User Input", prompt="Please Input Barcode of Entering Rack:"):
         #         pass
         #     CheckFunction.last_barcode = None
-        if BarcodeSingleton() is not None:
+        if BarcodeSingleton() is not None and not CheckFlag():
+            CheckFlag.reset(True)
             while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
                 pass
             BarcodeSingleton.reset()
+            CheckFlag.reset(False)
+        if CheckFlag():
+            return {"status": False, "res": "Resume already open"}, 422
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
         return {"status": False, "res": "Resumed"}, 200
+        
 
 
 """ Copyright (c) 2020 Covmatic.

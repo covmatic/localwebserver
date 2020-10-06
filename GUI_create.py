@@ -10,6 +10,7 @@ import webbrowser
 import requests
 import time
 import app
+import os, signal
 
 
 def save_file():
@@ -34,7 +35,7 @@ def calibrate():
 def check(butt):
     lastbarcode = None
     time.sleep(60)
-    done = false
+    done = False
     while not done:
         time.sleep(5)
         while True:
@@ -42,8 +43,8 @@ def check(butt):
                 rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
             except requests.exceptions.ConnectionError:
                 time.sleep(0.5)
-        else:
-            break
+            else:
+                break
         output = rv.json()
         if output["status"] == "Finished":
             butt.config(state="enabled")
@@ -51,12 +52,12 @@ def check(butt):
             break
         elif output["status"] == 'Paused':
             if output['external'] and lastbarcode is None:
-                CheckFunction.last_barcode = simpledialog.askstring(title="User Input",
+                last_barcode = simpledialog.askstring(title="User Input",
                                                             prompt="Please Input Barcode of Exiting Rack:")
             requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
         elif output["external"] and output['status'] != 'Pasued':
             while last_barcode != simpledialog.askstring(
-                title="User Input", prompt="Please Input Barcode of Entering Rack:"):
+                 title="User Input", prompt="Please Input Barcode of Entering Rack:"):
                 pass
             last_barcode = None
             requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
@@ -109,18 +110,23 @@ def upload_protocol(protocol_file):
     scp_client.close()
 
 
+def shutdown():
+    requests.get("http://127.0.0.1:5001/shutdown")
+    os.kill(os.getpid(), signal.SIGINT)
+
+
 def launchgui(F):
     root = Tk()
     root.title('Local Machine Server')
-    root.iconbitmap('C:/Users/inse9/OneDrive/Documenti/GitHub/localWebServer/localWebServer/Covmatic_Icon.ico')
-    root.geometry('400x50')
+    #root.iconbitmap('C:/Users/inse9/OneDrive/Documenti/GitHub/localWebServer/localWebServer/Covmatic_Icon.ico')
+    root.geometry('400x75')
     CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
     CalButton.grid(row=0, column=0)
     ProtButton = Button(root, text='Start New Run', command=lambda: create_protocol(ProtButton), fg='black',
                         bg='white', width=60)
     ProtButton.grid(row=1, column=0)
-    KillButton = Button(root, text='Stop Server', command=lambda: F.terminate, fg='black',
-                        bg='white', width=60)
+    KillButton = Button(root, text='Stop Server and Quit', command=shutdown, fg='white',
+                        bg='red', width=60)
     KillButton.grid(row=2, column=0)
     root.mainloop()
 

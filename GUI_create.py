@@ -9,7 +9,7 @@ from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG
 import webbrowser
 import requests
 import time
-from PIL import Image,ImageTk
+
 
 
 

@@ -38,7 +38,7 @@ def gui_user_input(f, *args, **kwargs):
 
 class SingletonMeta(type):
     def __new__(meta, name, bases, classdict):
-        def new(cls, code: Optional[str] = None):
+        def new(cls, code: Optional[Any] = None):
             if cls._inst is None:
                 cls._inst = None if code is None else super(getattr(os.sys.modules[__name__], name), cls).__new__(cls, code)
             return cls._inst

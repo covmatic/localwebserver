@@ -12,6 +12,7 @@ import os
 from shutil import copy2
 import json
 import time
+from typing import Optional
 # from services.task_runner import create_ssh_client
 # from scp import SCPClient
 from services.task_runner import OT2_TARGET_IP_ADDRESS
@@ -23,7 +24,30 @@ PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
 PCR_results_path = 'C:/PCR_BioRad/json_results/'
 
 
-BARCODE_EXT = None
+class SingletonMeta(type):
+    def __new__(meta, name, bases, classdict):
+        def new(cls, code: Optional[str] = None):
+            if cls._inst is None:
+                cls._inst = None if code is None else super(getattr(os.sys.modules[__name__], name), cls).__new__(cls, code)
+            return cls._inst
+        
+        classdict["__new__"] = classdict.get("__new__", new)
+        return super(SingletonMeta, meta).__new__(meta, name, bases, classdict)
+    
+    def __init__(cls, name, bases, classdict):
+        super(SingletonMeta, cls).__init__(name, bases, classdict)
+        cls._inst = None
+    
+    def reset(cls, code: Optional[str] = None):
+        del cls._inst
+        cls._inst = None
+        if code is not None:
+            cls._inst = cls(code)
+        return cls._inst
+
+
+class BarcodeSingleton(str, metaclass=SingletonMeta):
+    pass
 
 
 # Define endpoint methods
@@ -174,9 +198,8 @@ class CheckFunction(Resource):
             #     output = "initializing"
 
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
-            nonlocal BARCODE_EXT
-            if BARCODE_EXT is None and output["external"]:
-                BARCODE_EXT = simpledialog.askstring(title="Barcode", prompt="Input barcode of exiting rack")
+            if BarcodeSingleton() is None and output["external"]:
+                BarcodeSingleton(simpledialog.askstring(title="Barcode", prompt="Input barcode of exiting rack"))
             return {"status": False, "res": "Status: {}, Stage è: {}".format(output["status"], output["stage"])}, 200
 
 
@@ -214,11 +237,10 @@ class ResumeFunction(Resource):
         #             title="User Input", prompt="Please Input Barcode of Entering Rack:"):
         #         pass
         #     CheckFunction.last_barcode = None
-        nonlocal BARCODE_EXT
-        if BARCODE_EXT is not None:
-            while simpledialog.askstring(title="Barcode", prompt="Input barcode of entering rack") != BARCODE_EXT:
+        if BarcodeSingleton() is not None:
+            while simpledialog.askstring(title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
                 pass
-            BARCODE_EXT = None
+            BarcodeSingleton.reset()
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
         return {"status": False, "res": "Resumed"}, 200
 

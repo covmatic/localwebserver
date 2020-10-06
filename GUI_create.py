@@ -9,6 +9,7 @@ from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG
 import webbrowser
 import requests
 import time
+import app
 
 
 def save_file():
@@ -100,8 +101,8 @@ def launchgui():
 
 if __name__ == "__main__":
     # cmd = subprocess.Popen('cmd.exe /K cd C:/Users/wassi/Desktop/localwebserver')
-    subprocess.Popen('cmd.exe /K py ./app.py')
-    launchgui()
+    F = subprocess.Popen('cmd.exe /K py ./app.py')
+    launchgui(F)
 
 """ Copyright (c) 2020 Covmatic.
 

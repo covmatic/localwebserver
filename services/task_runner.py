@@ -65,8 +65,6 @@ def start_scheduler(app_ctx):
 @scheduler.job(interval=timedelta(seconds=5))
 def check_new_tasks():
     # print("Checking new tasks")
-    # FIXME: CHECK IF THE GLOBAL local_filepath works!!
-    global local_filepath
     protocol = Protocol.query.filter_by(status="queued").first()
     if protocol is not None:
         protocol.set_running()

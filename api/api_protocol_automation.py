@@ -147,6 +147,7 @@ class CheckFunction(Resource):
                 else:
                     break
             output = rv.json()
+            print(rv)
             # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
             # scp_client = SCPClient(client.get_transport())
             # logging_file = 'completion_log'
@@ -177,16 +178,16 @@ class CheckFunction(Resource):
 class PauseFunction(Resource):
 
     def get(self):
-        try:
-            rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-        except requests.exceptions.ConnectionError:
-            return "There has been an error in execution, please verify and try again", 400
+        # try:
+        #     rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+        # except requests.exceptions.ConnectionError:
+        #     return "There has been an error in execution, please verify and try again", 400
         output = rv.json()
-        if CheckFunction.last_barcode is None and output["external"]:
-            ROOT = tk.Tk()
-            ROOT.withdraw()
-            CheckFunction.last_barcode = simpledialog.askstring(title="User Input",
-                                                                prompt="Please Input Barcode of Exiting Rack:")
+        # if CheckFunction.last_barcode is None and output["external"]:
+        #     ROOT = tk.Tk()
+        #     ROOT.withdraw()
+        #     CheckFunction.last_barcode = simpledialog.askstring(title="User Input",
+        #                                                         prompt="Please Input Barcode of Exiting Rack:")
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
         return {"status": False, "res": "Pausa"}, 200
 
@@ -195,18 +196,18 @@ class PauseFunction(Resource):
 class ResumeFunction(Resource):
 
     def get(self):
-        try:
-            rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-        except requests.exceptions.ConnectionError:
-            return "There has been an error in execution, please verify and try again", 400
-        output = rv.json()
-        if output["external"]:
-            ROOT = tk.Tk()
-            ROOT.withdraw()
-            while CheckFunction.last_barcode != simpledialog.askstring(
-                    title="User Input", prompt="Please Input Barcode of Entering Rack:"):
-                pass
-            CheckFunction.last_barcode = None
+        # try:
+        #     rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+        # except requests.exceptions.ConnectionError:
+        #     return "There has been an error in execution, please verify and try again", 400
+        # output = rv.json()
+        # if output["external"]:
+        #     ROOT = tk.Tk()
+        #     ROOT.withdraw()
+        #     while CheckFunction.last_barcode != simpledialog.askstring(
+        #             title="User Input", prompt="Please Input Barcode of Entering Rack:"):
+        #         pass
+        #     CheckFunction.last_barcode = None
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
         return {"status": False, "res": "Resumed"}, 200
 

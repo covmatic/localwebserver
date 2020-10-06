@@ -29,6 +29,8 @@ def gui_user_input(f, *args, **kwargs):
     root = tk.Tk()
     root.withdraw()
     root.call('wm', 'attributes', '.', '-topmost', True)
+    root.lift()
+    root.attributes('-topmost', True)
     s = f(*args, **kwargs)
     root.destroy()
     return s

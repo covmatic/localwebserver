@@ -30,8 +30,8 @@ OT2_PROTOCOL2V2_FILE = 'protocol_A_part2.py'  # it should be for the BP Genomics
 OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 # OT-2-IP is the name of environment variable in order to fix the IPs of the robot
-# OT2_TARGET_IP_ADDRESS = environ['OT-2-IP']
-OT2_TARGET_IP_ADDRESS = '10.213.55.216'  # Only for debugging
+OT2_TARGET_IP_ADDRESS = environ['OT-2-IP']
+# OT2_TARGET_IP_ADDRESS = '10.213.55.216'  # Only for debugging
 OT2_ROBOT_PASSWORD = 'opentrons'  # Opentrons password of the ssh key
 TASK_QUEUE_POLLING_INTERVAL = 5
 # TASK_RUNNING = False

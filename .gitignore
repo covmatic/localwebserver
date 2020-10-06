@@ -141,3 +141,4 @@ dmypy.json
 /*.json
 
 /external_execution.py
+.idea

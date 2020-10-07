@@ -9,7 +9,6 @@ from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG
 import webbrowser
 import requests
 import time
-import app
 import os
 import signal
 
@@ -31,37 +30,6 @@ def calibrate():
         subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
     else:
         tk.messagebox.showinfo('Check', 'You confirm that the machine has already been calibrated')
-
-
-def check(butt):
-    lastbarcode = None
-    time.sleep(60)
-    done = False
-    while not done:
-        time.sleep(5)
-        while True:
-            try:
-                rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-            except requests.exceptions.ConnectionError:
-                time.sleep(0.5)
-            else:
-                break
-        output = rv.json()
-        if output["status"] == "Finished":
-            butt.config(state="enabled")
-            done = True
-            break
-        elif output["status"] == 'Paused':
-            if output['external'] and lastbarcode is None:
-                last_barcode = simpledialog.askstring(title="User Input",
-                                                            prompt="Please Input Barcode of Exiting Rack:")
-            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
-        elif output["external"] and output['status'] != 'Pasued':
-            while last_barcode != simpledialog.askstring(
-                 title="User Input", prompt="Please Input Barcode of Entering Rack:"):
-                pass
-            last_barcode = None
-            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
 
 
 def create_protocol(butt):
@@ -94,7 +62,7 @@ def create_protocol(butt):
 def upload_protocol(protocol_file):
     client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
     scp_client = SCPClient(client.get_transport())
-    scp_client.put(protocol_file, '/var/lib/jupyter/notebooks')
+    scp_client.put(protocol_file, '/var/lib/jupyter/notebooks/protocol.py')
     scp_client.close()
 
 
@@ -103,7 +71,7 @@ def shutdown():
     os.kill(os.getpid(), signal.SIGINT)
 
 
-def launchgui(F):
+def launchgui():
     root = Tk()
     root.title('Local Machine Server')
     root.iconbitmap('./Covmatic_Icon.ico')
@@ -120,8 +88,8 @@ def launchgui(F):
 
 
 if __name__ == "__main__":
-    F = subprocess.Popen('cmd.exe /K py ./app.py')
-    launchgui(F)
+    subprocess.Popen('cmd.exe /K py ./app.py')
+    launchgui()
 
 """ Copyright (c) 2020 Covmatic.
 

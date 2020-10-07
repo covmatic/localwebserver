@@ -18,16 +18,7 @@ OT2_SSH_KEY = './ot2_ssh_key'
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # Protocol namefiles
 # TODO: Put the names in a json file and read the filenames
-OT2_PROTOCOLC_FILE = 'station_c.py'  # For stations in general keep protocol name constant.
-OT2_PROTOCOLBP1_FILE = 'protocol_B_part1.py'
-OT2_PROTOCOLBP2_FILE = 'protocol_B_part2.py'
-OT2_PROTOCOLBP3_FILE = 'protocol_B_part3.py'
-# FIXME: Decide how to differentiate the 2 lines of station A i.e: P300 or P1000
-OT2_PROTOCOL1V1_FILE = 'protocol_A_part1.py'  # Pre-incubation Protocol for station A Purebase P1000S
-OT2_PROTOCOL1V2_FILE = 'protocol_A_part1.py'  # Pre-incubation Protocol for station A Purebase P1000S
-OT2_PROTOCOL2V1_FILE = 'protocol_A_part2.py'
-OT2_PROTOCOL2V2_FILE = 'protocol_A_part2.py'  # it should be for the BP Genomics
-OT2_TEMP_PROTOCOL_FILE = 'set_temp.py'
+OT2_PROTOCOL_NAME = 'protocol.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 # OT-2-IP is the name of environment variable in order to fix the IPs of the robot
 OT2_TARGET_IP_ADDRESS = environ['OT-2-IP']
@@ -74,72 +65,26 @@ def check_new_tasks():
             station = protocol.station
             action = protocol.action
             if station == 1:  # station A     V1 = Purebase P1000S    V2 = Purebase P300S
-                if action == "Pre-IncubationV1":  # Purebase P1000S
+                if action == "stationA":  # Purebase P1000S
                     print("Performing Pre-Incubation Protocol V1")  # For Debugging
                     ####################################################################################
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL1V1_FILE))
+                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_NAME))
                     channel.send('exit \n')
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))
                     # SCP Client takes a paramiko transport as an argument
-                    local_filepath = ssh_scp()
-                elif action == "Post-IncubationV1":
-                    print("Performing Post-Incubation Protocol V1")  # For Debugging
-                    ####################################################################################
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL2V1_FILE))
-                    channel.send('exit \n')
-                    code = channel.recv_exit_status()
-                    print("I got the code: {}".format(code))
-                    local_filepath = ssh_scp()
-                elif action == "Pre-IncubationV2":
-                    print("Performing Pre-Incubation Protocol V2")  # For Debugging
-                    ####################################################################################
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL1V2_FILE))
-                    channel.send('exit \n')
-                    code = channel.recv_exit_status()
-                    print("I got the code: {}".format(code))
-                    local_filepath = ssh_scp()
-                elif action == "Post-IncubationV2":
-                    print("Performing Post-Incubation Protocol V2")  # For Debugging
-                    ####################################################################################
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL2V2_FILE))
-                    channel.send('exit \n')
-                    code = channel.recv_exit_status()
-                    print("I got the code: {}".format(code))
                     local_filepath = ssh_scp()
                 else:
                     print("Action not defined")
             elif station == 2:  # station B
                 print("Performing Protocol")  # For Debugging
                 ###################################################################################
-                if action == "Pre-Deepwell-Check":
+                if action == "stationB":
                     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                     channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP1_FILE))
-                    channel.send('exit \n')
-                    code = channel.recv_exit_status()
-                    print("I got the code: {}".format(code))
-                    local_filepath = ssh_scp()
-                elif action == 'Pre-Incubation':
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP2_FILE))
-                    channel.send('exit \n')
-                    code = channel.recv_exit_status()
-                    print("I got the code: {}".format(code))
-                    local_filepath = ssh_scp()
-                elif action == 'Post-Incubation':
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-                    channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLBP3_FILE))
+                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_NAME))
                     channel.send('exit \n')
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))
@@ -151,7 +96,7 @@ def check_new_tasks():
                 ####################################################################################
                 client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
                 channel = client.invoke_shell()
-                channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOLC_FILE))
+                channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_NAME))
                 channel.send('exit \n')
                 code = channel.recv_exit_status()
                 print("I got the code: {}".format(code))

@@ -76,10 +76,10 @@ def launchgui():
     root.title('Local Machine Server')
     root.iconbitmap('./Covmatic_Icon.ico')
     root.geometry('400x75')
-    CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
+    CalButton = Button(root, text='Calibrate Opentrons Machine', command=calibrate, fg='black', bg='white', width=60)
     CalButton.grid(row=0, column=0)
-    ProtButton = Button(root, text='Start New Run', command=lambda: create_protocol(ProtButton), fg='black',
-                        bg='white', width=60)
+    ProtButton = Button(root, text='Upload New Opentrons Protocol',
+                        command=lambda: create_protocol(ProtButton), fg='black', bg='white', width=60)
     ProtButton.grid(row=1, column=0)
     KillButton = Button(root, text='Stop Server and Quit', command=shutdown, fg='white',
                         bg='red', width=60)

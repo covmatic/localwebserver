@@ -5,7 +5,7 @@ import subprocess
 import tkinter.filedialog
 from tkinter import *
 from services import task_runner, protocol_gen
-from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH,OT2_TARGET_IP_ADDRESS
+from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD
 import webbrowser
 import requests
 import time

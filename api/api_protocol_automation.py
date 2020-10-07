@@ -217,7 +217,14 @@ class CheckFunction(Resource):
                 CheckFlag.reset(True)
                 BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
                 CheckFlag.reset(False)
-            return {"status": False, "res": "Status: {}, Stage è: {}".format(output["status"], output["stage"])}, 200
+            return {
+                       "status": False,
+                       "res": "Status: {}\nStage\n: {}{}".format(
+                           output["status"],
+                           output["stage"],
+                           "\n\n{}".format(output["msg"]) if output["msg"] else ""
+                       )
+                   }, 200
 
 
 # FUNZIONE DI PAUSA

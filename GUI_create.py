@@ -10,7 +10,8 @@ import webbrowser
 import requests
 import time
 import app
-import os, signal
+import os
+import signal
 
 
 def save_file():
@@ -27,7 +28,7 @@ def calibrate():
     MsgBox = tk.messagebox.askquestion('Calibration', 'Do You want to calibrate this machine?',
                                        icon='warning')
     if MsgBox == 'yes':
-        subprocess.call('C:/Users/wassi/AppData/Local/Programs/Opentrons/Opentrons.exe')
+        subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
     else:
         tk.messagebox.showinfo('Check', 'You confirm that the machine has already been calibrated')
 
@@ -88,19 +89,6 @@ def create_protocol(butt):
             location.write(protocol)
         upload_protocol(protocol_file)
     webbrowser.open('https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
-    # rdone = False
-    # while not rdone:
-    #     while True:
-    #         try:
-    #             rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-    #         except requests.exceptions.ConnectionError:
-    #             time.sleep(0.5)
-    #         else:
-    #             break
-    #     output = rv.json()
-    #     if output["status"] == "Finished":
-    #         butt.config(state="enabled")
-    #         rdone = True
 
 
 def upload_protocol(protocol_file):
@@ -118,7 +106,7 @@ def shutdown():
 def launchgui(F):
     root = Tk()
     root.title('Local Machine Server')
-    #root.iconbitmap('C:/Users/inse9/OneDrive/Documenti/GitHub/localWebServer/localWebServer/Covmatic_Icon.ico')
+    root.iconbitmap('./Covmatic_Icon.ico')
     root.geometry('400x75')
     CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
     CalButton.grid(row=0, column=0)
@@ -132,7 +120,6 @@ def launchgui(F):
 
 
 if __name__ == "__main__":
-    # cmd = subprocess.Popen('cmd.exe /K cd C:/Users/wassi/Desktop/localwebserver')
     F = subprocess.Popen('cmd.exe /K py ./app.py')
     launchgui(F)
 

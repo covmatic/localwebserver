@@ -16,7 +16,7 @@ from typing import Optional, Any
 # from services.task_runner import create_ssh_client
 # from scp import SCPClient
 from services.task_runner import OT2_TARGET_IP_ADDRESS
-import threading
+
 
 # from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 
@@ -86,40 +86,8 @@ class AutomationAPI(Resource):
                 runs_list.append(s.serialize())
         return runs_list, 200
 
-    # def post(self):
-    #     parser = reqparse.RequestParser()
-    #     parser.add_argument('process_uuid', type=str, help='process uuid', required=True)
-    #     parser.add_argument('protocol_id', type=int, help='the ID of the specific protocol used', required=True)
-    #     parser.add_argument('supervisor_id', type=str, help='personal ID of the supervisor', required=False)
-    #     parser.add_argument('operator_id', type=str, help='personal ID of the operator', required=False)
-    #     parser.add_argument('container_in', type=str, help='barcode of the input container', required=True)
-    #     parser.add_argument('container_out', type=str, help='barcode of the output container', required=True)
-    #     args = parser.parse_args()
-    #     try:
-    #         queued_protocols = Protocol.query.filter_by(status='queued').all()
-    #         running_protocols = Protocol.query.filter_by(status='running').all()
-    #         if not (queued_protocols or running_protocols):
-    #             protocol = Protocol(
-    #                 process_uuid=args['process_uuid'],
-    #                 protocol_id=args['protocol_id'],
-    #                 container_in=args['container_in'],
-    #                 container_out=args['container_out'],
-    #                 operator_id=args['operator_id'],
-    #                 supervisor_id=args['supervisor_id']
-    #             )
-    #             session.add(protocol)
-    #             session.commit()
-    #             res = {"status": protocol.status, "id": protocol.id, "process_uuid": protocol.process_uuid}
-    #             return res, 201
-    #         else:
-    #             res = {"status": "failed", "process_uuid": args['process_uuid'],
-    #                    "message": "There's a task already queued or in progress. Please try again later"}
-    #             return res, 403
-    #     except Exception as e:
-    #         res = {"status": "failed", "process_uuid": args['process_uuid'], "message": str(e)}
-    #         return res, 500
 
-
+# noinspection PyMethodMayBeStatic
 class AutomationAPI_MVP(Resource):
 
     def get(self, station, action):
@@ -144,6 +112,7 @@ class AutomationAPI_MVP(Resource):
             return res, 500
 
 
+# noinspection PyMethodMayBeStatic
 class CheckFunction(Resource):
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
@@ -189,27 +158,6 @@ class CheckFunction(Resource):
                     break
             output = rv.json()
             print(rv)
-            # client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-            # scp_client = SCPClient(client.get_transport())
-            # logging_file = 'completion_log'
-            # scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=logging_file)
-            # scp_client.close()
-            # # Searching all logfile results file
-            # result_file = glob.glob('./' + logging_file)
-            # # Sorting the logs
-            # result_file.sort(key=os.path.getctime)
-            # if result_file:
-            #     with open('./' + logging_file, 'r') as r:
-            #         status = json.load(r)
-            #         print("Pippo è")
-            #         print(status)
-            #     if status["stages"][-1]["message"] == "Progress":
-            #         print(status)
-            #         output = status["stages"][-1]["stage_name"]
-            #     else:
-            #         output = "Starting Protocol"
-            # else:
-            #     output = "initializing"
 
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
             if not CheckFlag() and BarcodeSingleton() is None and output["external"]:
@@ -228,39 +176,19 @@ class CheckFunction(Resource):
 
 
 # FUNZIONE DI PAUSA
+# noinspection PyMethodMayBeStatic
 class PauseFunction(Resource):
 
     def get(self):
-        # try:
-        #     rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-        # except requests.exceptions.ConnectionError:
-        #     return "There has been an error in execution, please verify and try again", 400
-        # output = rv.json()
-        # if CheckFunction.last_barcode is None and output["external"]:
-        #     ROOT = tk.Tk()
-        #     ROOT.withdraw()
-        #     CheckFunction.last_barcode = simpledialog.askstring(title="User Input",
-        #                                                         prompt="Please Input Barcode of Exiting Rack:")
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
         return {"status": False, "res": "Pausa"}, 200
 
 
 # FUNZIONE DI RESUME
+# noinspection PyMethodMayBeStatic
 class ResumeFunction(Resource):
 
     def get(self):
-        # try:
-        #     rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-        # except requests.exceptions.ConnectionError:
-        #     return "There has been an error in execution, please verify and try again", 400
-        # output = rv.json()
-        # if output["external"]:
-        #     ROOT = tk.Tk()
-        #     ROOT.withdraw()
-        #     while CheckFunction.last_barcode != simpledialog.askstring(
-        #             title="User Input", prompt="Please Input Barcode of Entering Rack:"):
-        #         pass
-        #     CheckFunction.last_barcode = None
         if BarcodeSingleton() is not None and not CheckFlag():
             CheckFlag.reset(True)
             while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
@@ -272,7 +200,6 @@ class ResumeFunction(Resource):
         requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
         return {"status": False, "res": "Resumed"}, 200
         
-
 
 """ Copyright (c) 2020 Covmatic.
 

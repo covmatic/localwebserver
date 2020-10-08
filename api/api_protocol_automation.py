@@ -195,13 +195,19 @@ class PauseFunction(Resource):
 # FUNZIONE DI RESUME
 # noinspection PyMethodMayBeStatic
 class ResumeFunction(Resource):
+    @staticmethod
+    def _resume():
+        return requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
+    
     @locked
     def get(self):
         if BarcodeSingleton() is not None:
             while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
                 pass
+            self._resume()
             BarcodeSingleton.reset()
-        requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
+        else:
+            self._resume()
         return {"status": False, "res": "Resumed"}, 200
         
 

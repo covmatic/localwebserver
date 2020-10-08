@@ -210,7 +210,7 @@ def launchgui():
 
 if __name__ == "__main__":
     try:
-        subprocess.Popen('python ./app.py')
+        subprocess.Popen('{} ./app.py'.format(os.sys.executable))
         time.sleep(1.0)
     # subprocess.Popen('cmd.exe /K py ./app.py')
         launchgui()

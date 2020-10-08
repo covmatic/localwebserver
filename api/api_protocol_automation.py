@@ -68,13 +68,15 @@ class CheckFlag:
     lock = threading.Lock()
 
 
-def locked(foo):
-    @wraps(foo)
-    def _foo(*args, **kwargs):
-        with CheckFlag.lock:
-            r = foo(*args, **kwargs)
-        return r
-    return _foo
+def locked(lock):
+    def _locked(foo):
+        @wraps(foo)
+        def _foo(*args, **kwargs):
+            with lock:
+                r = foo(*args, **kwargs)
+            return r
+        return _foo
+    return _locked
 
 
 # Define endpoint methods
@@ -125,7 +127,6 @@ class AutomationAPI_MVP(Resource):
 
 # noinspection PyMethodMayBeStatic
 class CheckFunction(Resource):
-    @locked
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
@@ -171,9 +172,11 @@ class CheckFunction(Resource):
             output = rv.json()
             print(rv)
 
+            with CheckFlag.lock:
+                if BarcodeSingleton() is None and output["external"]:
+                    BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
+            
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
-            if BarcodeSingleton() is None and output["external"]:
-                BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
             return {
                        "status": False,
                        "res": "Status: {}\nStage: {}{}".format(
@@ -199,7 +202,7 @@ class ResumeFunction(Resource):
     def _resume():
         return requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
     
-    @locked
+    @locked(CheckFlag.lock)
     def get(self):
         if BarcodeSingleton() is not None:
             while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():

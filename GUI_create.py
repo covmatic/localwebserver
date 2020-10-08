@@ -37,11 +37,11 @@ class ToggleButton(Frame):
         if self.btn['text'] == "Lights are OFF":
             self.btn.configure(text="Lights are ON", bg='green')
             payload = {'on': True}
-            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":31950/robot/lights", params=payload)
+            requests.post("http://" + OT2_TARGET_IP_ADDRESS + ":31950/robot/lights", json=payload).json()
         else:
             self.btn.configure(text="Lights are OFF", bg='red')
             payload = {'on': False}
-            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ':31950/robot/lights', params=payload)
+            requests.post("http://" + OT2_TARGET_IP_ADDRESS + ':31950/robot/lights', json=payload).json()
 
 
 def save_file():
@@ -63,35 +63,35 @@ def calibrate():
         tk.messagebox.showinfo('Check', 'You confirm that the machine has already been calibrated')
 
 
-def check(butt):
-    lastbarcode = None
-    time.sleep(60)
-    done = False
-    while not done:
-        time.sleep(5)
-        while True:
-            try:
-                rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-            except requests.exceptions.ConnectionError:
-                time.sleep(0.5)
-            else:
-                break
-        output = rv.json()
-        if output["status"] == "Finished":
-            butt.config(state="enabled")
-            done = True
-            break
-        elif output["status"] == 'Paused':
-            if output['external'] and lastbarcode is None:
-                last_barcode = simpledialog.askstring(title="User Input",
-                                                      prompt="Please Input Barcode of Exiting Rack:")
-            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
-        elif output["external"] and output['status'] != 'Pasued':
-            while last_barcode != simpledialog.askstring(
-                    title="User Input", prompt="Please Input Barcode of Entering Rack:"):
-                pass
-            last_barcode = None
-            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
+# def check(butt):
+#     lastbarcode = None
+#     time.sleep(60)
+#     done = False
+#     while not done:
+#         time.sleep(5)
+#         while True:
+#             try:
+#                 rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+#             except requests.exceptions.ConnectionError:
+#                 time.sleep(0.5)
+#             else:
+#                 break
+#         output = rv.json()
+#         if output["status"] == "Finished":
+#             butt.config(state="enabled")
+#             done = True
+#             break
+#         elif output["status"] == 'Paused':
+#             if output['external'] and lastbarcode is None:
+#                 last_barcode = simpledialog.askstring(title="User Input",
+#                                                       prompt="Please Input Barcode of Exiting Rack:")
+#             requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
+#         elif output["external"] and output['status'] != 'Pasued':
+#             while last_barcode != simpledialog.askstring(
+#                     title="User Input", prompt="Please Input Barcode of Entering Rack:"):
+#                 pass
+#             last_barcode = None
+#             requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
 
 
 # It enters also the parameter of the language
@@ -100,6 +100,7 @@ def create_protocol(butt, language):
     # ROOT = tk.Tk()
     # ROOT.withdraw()
 
+    # Fuffa di Fede
     # bubu = tk.Tk()
     # variable = tk.StringVar(bubu)
     # variable.set(OptionList[0])
@@ -158,7 +159,7 @@ def shutdown():
 
 
 def takepicture():
-    requests.post(OT2_TARGET_IP_ADDRESS + ":31950/camera/picture")
+    requests.post("http://" + OT2_TARGET_IP_ADDRESS + ":31950/camera/picture")
 
 
 def launchgui():
@@ -199,9 +200,12 @@ def launchgui():
 
 
 if __name__ == "__main__":
-    subprocess.Popen('python ./app.py')
+    try:
+        subprocess.Popen('python ./app.py')
     # subprocess.Popen('cmd.exe /K py ./app.py')
-    launchgui()
+        launchgui()
+    except Exception as e:
+        print(e)
 
 """ Copyright (c) 2020 Covmatic.
 

@@ -17,7 +17,6 @@ OT2_SSH_KEY = './ot2_ssh_key'
 # Path of the protocols inside the Robots
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # Protocol namefiles
-# TODO: Put the names in a json file and read the filenames
 OT2_PROTOCOL_NAME = 'protocol.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 # OT-2-IP is the name of environment variable in order to fix the IPs of the robot

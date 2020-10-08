@@ -16,6 +16,7 @@ from typing import Optional, Any
 # from services.task_runner import create_ssh_client
 # from scp import SCPClient
 from services.task_runner import OT2_TARGET_IP_ADDRESS
+import threading
 
 
 # from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
@@ -62,8 +63,8 @@ class BarcodeSingleton(str, metaclass=SingletonMeta):
     pass
 
 
-class CheckFlag(int, metaclass=SingletonMeta):
-    pass
+class CheckFlag:
+    lock = threading.Lock()
 
 
 # Define endpoint methods
@@ -115,64 +116,62 @@ class AutomationAPI_MVP(Resource):
 # noinspection PyMethodMayBeStatic
 class CheckFunction(Resource):
     def get(self):
-        queued_protocols = Protocol.query.filter_by(status='queued').all()
-        running_protocols = Protocol.query.filter_by(status='running').all()
-        protocol1 = Protocol.query.filter_by(status="running").first()
-        if not (queued_protocols or running_protocols):
-            # FIXME: Check this
-            last_protocol = Protocol.query.order_by(Protocol.creation_date.desc()).first()
-            last_status = last_protocol.status
-            print(last_status)
-            if last_status == "failed":
-                # last_protocol.set_running()
-                session.remove()
-                # session.add(last_protocol)
-                session.commit()
-                return "There has been an error in execution, please verify and try again", 400
+        with CheckFlag.lock:
+            queued_protocols = Protocol.query.filter_by(status='queued').all()
+            running_protocols = Protocol.query.filter_by(status='running').all()
+            protocol1 = Protocol.query.filter_by(status="running").first()
+            if not (queued_protocols or running_protocols):
+                # FIXME: Check this
+                last_protocol = Protocol.query.order_by(Protocol.creation_date.desc()).first()
+                last_status = last_protocol.status
+                print(last_status)
+                if last_status == "failed":
+                    # last_protocol.set_running()
+                    session.remove()
+                    # session.add(last_protocol)
+                    session.commit()
+                    return "There has been an error in execution, please verify and try again", 400
+                else:
+                    # Searching all PCR results file
+                    PCR_result_file = glob.glob(PCR_results_path + PCR_result_file_scheme)
+                    # Sorting the PCR's results
+                    PCR_result_file.sort(key=os.path.getctime)
+                    # Check if the results are available
+                    if not PCR_result_file:
+                        print('there are no results available')
+                        return {"status": True, "res": ":)"}, 200
+                    else:
+                        # Opening the the last created and encoded with utf-8-sig
+                        with open(str(PCR_result_file[-1]), 'r', encoding='utf-8-sig') as result:
+                            read = json.load(result)
+                        # Make the backup of the PCR results
+                        copy2(PCR_result_file[-1], './')
+                        # Delete the last file in order to don't create confusion
+                        os.remove(PCR_result_file[-1])
+                        return {"status": True, "res": read}, 200
+                    # return {"status": True, "res": ":)"}, 200
             else:
-                # Searching all PCR results file
-                PCR_result_file = glob.glob(PCR_results_path + PCR_result_file_scheme)
-                # Sorting the PCR's results
-                PCR_result_file.sort(key=os.path.getctime)
-                # Check if the results are available
-                if not PCR_result_file:
-                    print('there are no results available')
-                    return {"status": True, "res": ":)"}, 200
-                else:
-                    # Opening the the last created and encoded with utf-8-sig
-                    with open(str(PCR_result_file[-1]), 'r', encoding='utf-8-sig') as result:
-                        read = json.load(result)
-                    # Make the backup of the PCR results
-                    copy2(PCR_result_file[-1], './')
-                    # Delete the last file in order to don't create confusion
-                    os.remove(PCR_result_file[-1])
-                    return {"status": True, "res": read}, 200
-                # return {"status": True, "res": ":)"}, 200
-        else:
-            while True:
-                try:
-                    rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-                except requests.exceptions.ConnectionError:
-                    time.sleep(0.5)
-                else:
-                    break
-            output = rv.json()
-            print(rv)
-
-            # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
-            if not CheckFlag() and BarcodeSingleton() is None and output["external"]:
-                # This check is OK because requests only come delayed from each other. It is NOT THREAD SAFE, though
-                CheckFlag.reset(True)
-                BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
-                CheckFlag.reset(False)
-            return {
-                       "status": False,
-                       "res": "Status: {}\nStage: {}{}".format(
-                           output["status"],
-                           output["stage"],
-                           "\n\n{}".format(output["msg"]) if output["msg"] else ""
-                       )
-                   }, 200
+                while True:
+                    try:
+                        rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+                    except requests.exceptions.ConnectionError:
+                        time.sleep(0.5)
+                    else:
+                        break
+                output = rv.json()
+                print(rv)
+    
+                # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
+                if BarcodeSingleton() is None and output["external"]:
+                    BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
+                return {
+                           "status": False,
+                           "res": "Status: {}\nStage: {}{}".format(
+                               output["status"],
+                               output["stage"],
+                               "\n\n{}".format(output["msg"]) if output["msg"] else ""
+                           )
+                       }, 200
 
 
 # FUNZIONE DI PAUSA
@@ -187,18 +186,14 @@ class PauseFunction(Resource):
 # FUNZIONE DI RESUME
 # noinspection PyMethodMayBeStatic
 class ResumeFunction(Resource):
-
     def get(self):
-        if BarcodeSingleton() is not None and not CheckFlag():
-            CheckFlag.reset(True)
-            while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
-                pass
-            BarcodeSingleton.reset()
-            CheckFlag.reset(False)
-        if CheckFlag():
-            return {"status": False, "res": "Resume already open"}, 422
-        requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
-        return {"status": False, "res": "Resumed"}, 200
+        with CheckFlag.lock:
+            if BarcodeSingleton() is not None:
+                while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
+                    pass
+                BarcodeSingleton.reset()
+            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
+            return {"status": False, "res": "Resumed"}, 200
         
 
 """ Copyright (c) 2020 Covmatic.

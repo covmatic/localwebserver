@@ -28,7 +28,7 @@ class ToggleButton(Frame):
     def __init__(self, master=None, **kwargs):
         Frame.__init__(self, master, **kwargs)
 
-        self.btn = Button(self, text="Lights are OFF", command=self.clicked,bg='red')
+        self.btn = Button(self, text="Lights are OFF", command=self.clicked, bg='red')
         self.btn.grid(column=6, row=4)
         self.lbl = Label(self, text="  Toggle lights: ", bg="white")
         self.lbl.grid(column=5, row=4)
@@ -94,7 +94,8 @@ def check(butt):
             requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
 
 
-def create_protocol(butt):
+# It enters also the parameter of the language
+def create_protocol(butt, language):
     # butt.config(state="disabled")
     # ROOT = tk.Tk()
     # ROOT.withdraw()
@@ -113,7 +114,7 @@ def create_protocol(butt):
     samples = simpledialog.askinteger(title="User Input",
                                       prompt="Please Input Number of Samples:")
     if station != 'PCR':
-        protocol = protocol_gen.protocol_gen(station, num_samples=samples)
+        protocol = protocol_gen.protocol_gen(station, num_samples=samples, language=language.get())
         protocol_file = save_file()
         with open(protocol_file, 'w') as location:
             location.write(protocol)
@@ -158,8 +159,18 @@ def launchgui():
     root.configure(bg='white')
     CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
     CalButton.grid(row=0, column=0)
-    ProtButton = Button(root, text='Start New Run', command=lambda: create_protocol(ProtButton), fg='black',
-                        bg='white', width=60)
+
+    # Adding the switch for the language
+    frame = tk.Frame(root)
+    language_switch = tk.StringVar(value="ENG")
+    lang_frame = frame.grid(row=1, column=1, columnspan=1)
+    eng_language = tk.Radiobutton(lang_frame, text="English", variable=language_switch, value="ENG")
+    eng_language.grid(row=1, column=1, sticky=tk.W)
+    ita_language = tk.Radiobutton(lang_frame, text="Italiano", variable=language_switch, value="ITA")
+    ita_language.grid(row=1, column=1, sticky=tk.E)
+
+    ProtButton = Button(root, text='Start New Run', command=lambda: create_protocol(
+        ProtButton, language=language_switch), fg='black', bg='white', width=60)
     ProtButton.grid(row=1, column=0)
     KillButton = Button(root, text='Stop Server and Quit', command=shutdown, fg='white',
                         bg='red', width=60)

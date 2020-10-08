@@ -1,20 +1,18 @@
-from datetime import datetime
-from flask import request
-from scp import SCPClient
-import tkinter as tk
-import tkinter.filedialog
-from tkinter import simpledialog
-from tkinter import messagebox
+# from datetime import datetime
+# from scp import SCPClient
+# import tkinter as tk
+# import tkinter.filedialog
+# from tkinter import simpledialog
+# from tkinter import messagebox
 from api import api
 from database import init_db
-from flask import Flask, app
+from flask import Flask, app, request
 from flask_cors import CORS
 from services import task_runner, protocol_gen
-from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
+# from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 from views import bp_automation
-from flask import request
-import time
-import subprocess
+# import time
+# import subprocess
 
 
 def create_app():

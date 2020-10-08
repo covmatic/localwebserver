@@ -167,7 +167,7 @@ class CheckFunction(Resource):
                 CheckFlag.reset(False)
             return {
                        "status": False,
-                       "res": "Status: {}\nStage\n: {}{}".format(
+                       "res": "Status: {}\nStage: {}{}".format(
                            output["status"],
                            output["stage"],
                            "\n\n{}".format(output["msg"]) if output["msg"] else ""

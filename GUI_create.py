@@ -10,8 +10,18 @@ import webbrowser
 import requests
 import time
 import app
-import os, signal
+import os
+import signal
 from PIL import ImageTk, Image
+
+
+OPENTRONS_APP = 'C:/Program Files/Opentrons/Opentrons.exe'
+# OPENTRONS_APP = 'C:/Users/wassi/AppData/Local/Programs/Opentrons/Opentrons.exe'
+
+# TODO: Add the List menù to the MAIN GUI.
+# FIXME: DON'T ASK THE NUM OF SAMPLES FOR THE PCR
+# Option List for the stations used
+OptionList = ["A", "B", "C", "PCR"]
 
 
 class ToggleButton(Frame):
@@ -48,7 +58,7 @@ def calibrate():
     MsgBox = tk.messagebox.askquestion('Calibration', 'Do You want to calibrate this machine?',
                                        icon='warning')
     if MsgBox == 'yes':
-        subprocess.call('C:/Users/wassi/AppData/Local/Programs/Opentrons/Opentrons.exe')
+        subprocess.call(OPENTRONS_APP)
     else:
         tk.messagebox.showinfo('Check', 'You confirm that the machine has already been calibrated')
 
@@ -140,7 +150,7 @@ def takepicture():
     requests.post("http://127.0.0.1:31950/camera/picture")
 
 
-def launchgui(F):
+def launchgui():
     root = Tk()
     root.title('Local Machine Server')
     root.iconbitmap('./Covmatic_Icon.ico')
@@ -154,9 +164,8 @@ def launchgui(F):
     KillButton = Button(root, text='Stop Server and Quit', command=shutdown, fg='white',
                         bg='red', width=60)
     KillButton.grid(row=2, column=0)
-    #PictureButton = Button(root, text='Capture a picture', command=takepicture, fg='black',
-                          # bg='purple', width=60)
-    #PictureButton.grid(row=2, column=0)
+    # PictureButton = Button(root, text='Capture a picture', command=takepicture, fg='black', bg='purple', width=60)
+    # PictureButton.grid(row=2, column=0)
     logo = Image.open("./Covmatic_Logo.png")
     width, hight = logo.size
     logo = logo.resize([round(width / 10), round(hight / 10)])
@@ -169,9 +178,8 @@ def launchgui(F):
 
 
 if __name__ == "__main__":
-    # cmd = subprocess.Popen('cmd.exe /K cd C:/Users/wassi/Desktop/localwebserver')
-    F = subprocess.Popen('cmd.exe /K py ./app.py')
-    launchgui(F)
+    subprocess.Popen('cmd.exe /K py ./app.py')
+    launchgui()
 
 """ Copyright (c) 2020 Covmatic.
 

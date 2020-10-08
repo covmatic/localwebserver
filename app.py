@@ -31,14 +31,17 @@ def create_app():
     app.register_blueprint(bp_automation)
     return app
 
+
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
 
+
 if __name__ == "__main__":
     local_app = create_app()
+
     @local_app.route('/shutdown', methods=['GET'])
     def shutdown():
         shutdown_server()

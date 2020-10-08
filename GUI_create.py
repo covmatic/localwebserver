@@ -35,13 +35,13 @@ class ToggleButton(Frame):
 
     def clicked(self):
         if self.btn['text'] == "Lights are OFF":
-            self.btn.configure(text="Lights are ON",bg='green')
+            self.btn.configure(text="Lights are ON", bg='green')
             payload = {'on': True}
-            requests.get('http://127.0.0.1:31950/robot/lights', params=payload)
+            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":31950/robot/lights", params=payload)
         else:
-            self.btn.configure(text="Lights are OFF",bg='red')
+            self.btn.configure(text="Lights are OFF", bg='red')
             payload = {'on': False}
-            requests.get('http://127.0.0.1:31950/robot/lights', params=payload)
+            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ':31950/robot/lights', params=payload)
 
 
 def save_file():
@@ -188,8 +188,8 @@ def launchgui():
     # PictureButton = Button(root, text='Capture a picture', command=takepicture, fg='black', bg='purple', width=60)
     # PictureButton.grid(row=2, column=0)
     logo = Image.open("./Covmatic_Logo.png")
-    width, hight = logo.size
-    logo = logo.resize([round(width / 10), round(hight / 10)])
+    width, height = logo.size
+    logo = logo.resize([round(width / 10), round(height / 10)])
     CovmaticLogo = ImageTk.PhotoImage(logo)
     covlabel = Label(image=CovmaticLogo)
     covlabel.grid(row=2, column=1, columnspan=1)
@@ -199,7 +199,8 @@ def launchgui():
 
 
 if __name__ == "__main__":
-    subprocess.Popen('cmd.exe /K py ./app.py')
+    subprocess.Popen('python ./app.py')
+    # subprocess.Popen('cmd.exe /K py ./app.py')
     launchgui()
 
 """ Copyright (c) 2020 Covmatic.

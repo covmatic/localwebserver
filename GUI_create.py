@@ -37,11 +37,17 @@ class ToggleButton(Frame):
         if self.btn['text'] == "Lights are OFF":
             self.btn.configure(text="Lights are ON", bg='green')
             payload = {'on': True}
-            requests.post("http://" + OT2_TARGET_IP_ADDRESS + ":31950/robot/lights", json=payload).json()
+            try:
+                requests.post("http://" + OT2_TARGET_IP_ADDRESS + ":31950/robot/lights", json=payload).json()
+            except ConnectionError:
+                pass
         else:
             self.btn.configure(text="Lights are OFF", bg='red')
             payload = {'on': False}
-            requests.post("http://" + OT2_TARGET_IP_ADDRESS + ':31950/robot/lights', json=payload).json()
+            try:
+                requests.post("http://" + OT2_TARGET_IP_ADDRESS + ':31950/robot/lights', json=payload).json()
+            except ConnectionError:
+                pass
 
 
 def save_file():
@@ -159,7 +165,10 @@ def shutdown():
 
 
 def takepicture():
-    requests.post("http://" + OT2_TARGET_IP_ADDRESS + ":31950/camera/picture")
+    try:
+        requests.post("http://" + OT2_TARGET_IP_ADDRESS + ":31950/camera/picture")
+    except ConnectionError:
+        pass
 
 
 def launchgui():
@@ -202,6 +211,7 @@ def launchgui():
 if __name__ == "__main__":
     try:
         subprocess.Popen('python ./app.py')
+        time.sleep(1.0)
     # subprocess.Popen('cmd.exe /K py ./app.py')
         launchgui()
     except Exception as e:

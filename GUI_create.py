@@ -5,12 +5,33 @@ import subprocess
 import tkinter.filedialog
 from tkinter import *
 from services import task_runner, protocol_gen
-from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD
+from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH, OT2_TARGET_IP_ADDRESS
 import webbrowser
 import requests
 import time
-import os
-import signal
+import app
+import os, signal
+from PIL import ImageTk, Image
+
+
+class ToggleButton(Frame):
+    def __init__(self, master=None, **kwargs):
+        Frame.__init__(self, master, **kwargs)
+
+        self.btn = Button(self, text="Lights are OFF", command=self.clicked,bg='red')
+        self.btn.grid(column=6, row=4)
+        self.lbl = Label(self, text="  Toggle lights: ", bg="white")
+        self.lbl.grid(column=5, row=4)
+
+    def clicked(self):
+        if self.btn['text'] == "Lights are OFF":
+            self.btn.configure(text="Lights are ON",bg='green')
+            payload = {'on': True}
+            requests.get('http://127.0.0.1:31950/robot/lights', params=payload)
+        else:
+            self.btn.configure(text="Lights are OFF",bg='red')
+            payload = {'on': False}
+            requests.get('http://127.0.0.1:31950/robot/lights', params=payload)
 
 
 def save_file():
@@ -27,9 +48,40 @@ def calibrate():
     MsgBox = tk.messagebox.askquestion('Calibration', 'Do You want to calibrate this machine?',
                                        icon='warning')
     if MsgBox == 'yes':
-        subprocess.call('C:/Program Files/Opentrons/Opentrons.exe')
+        subprocess.call('C:/Users/wassi/AppData/Local/Programs/Opentrons/Opentrons.exe')
     else:
         tk.messagebox.showinfo('Check', 'You confirm that the machine has already been calibrated')
+
+
+def check(butt):
+    lastbarcode = None
+    time.sleep(60)
+    done = False
+    while not done:
+        time.sleep(5)
+        while True:
+            try:
+                rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+            except requests.exceptions.ConnectionError:
+                time.sleep(0.5)
+            else:
+                break
+        output = rv.json()
+        if output["status"] == "Finished":
+            butt.config(state="enabled")
+            done = True
+            break
+        elif output["status"] == 'Paused':
+            if output['external'] and lastbarcode is None:
+                last_barcode = simpledialog.askstring(title="User Input",
+                                                      prompt="Please Input Barcode of Exiting Rack:")
+            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
+        elif output["external"] and output['status'] != 'Pasued':
+            while last_barcode != simpledialog.askstring(
+                    title="User Input", prompt="Please Input Barcode of Entering Rack:"):
+                pass
+            last_barcode = None
+            requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
 
 
 def create_protocol(butt):
@@ -57,6 +109,19 @@ def create_protocol(butt):
             location.write(protocol)
         upload_protocol(protocol_file)
     webbrowser.open('https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
+    # rdone = False
+    # while not rdone:
+    #     while True:
+    #         try:
+    #             rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+    #         except requests.exceptions.ConnectionError:
+    #             time.sleep(0.5)
+    #         else:
+    #             break
+    #     output = rv.json()
+    #     if output["status"] == "Finished":
+    #         butt.config(state="enabled")
+    #         rdone = True
 
 
 def upload_protocol(protocol_file):
@@ -71,25 +136,42 @@ def shutdown():
     os.kill(os.getpid(), signal.SIGINT)
 
 
-def launchgui():
+def takepicture():
+    requests.post("http://127.0.0.1:31950/camera/picture")
+
+
+def launchgui(F):
     root = Tk()
     root.title('Local Machine Server')
     root.iconbitmap('./Covmatic_Icon.ico')
-    root.geometry('400x75')
-    CalButton = Button(root, text='Calibrate Opentrons Machine', command=calibrate, fg='black', bg='white', width=60)
+    root.geometry('600x80')
+    root.configure(bg='white')
+    CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
     CalButton.grid(row=0, column=0)
-    ProtButton = Button(root, text='Upload New Opentrons Protocol',
-                        command=lambda: create_protocol(ProtButton), fg='black', bg='white', width=60)
+    ProtButton = Button(root, text='Start New Run', command=lambda: create_protocol(ProtButton), fg='black',
+                        bg='white', width=60)
     ProtButton.grid(row=1, column=0)
     KillButton = Button(root, text='Stop Server and Quit', command=shutdown, fg='white',
                         bg='red', width=60)
     KillButton.grid(row=2, column=0)
+    #PictureButton = Button(root, text='Capture a picture', command=takepicture, fg='black',
+                          # bg='purple', width=60)
+    #PictureButton.grid(row=2, column=0)
+    logo = Image.open("./Covmatic_Logo.png")
+    width, hight = logo.size
+    logo = logo.resize([round(width / 10), round(hight / 10)])
+    CovmaticLogo = ImageTk.PhotoImage(logo)
+    covlabel = Label(image=CovmaticLogo)
+    covlabel.grid(row=2, column=1, columnspan=1)
+    button = ToggleButton(root)
+    button.grid(row=0, column=1)
     root.mainloop()
 
 
 if __name__ == "__main__":
-    subprocess.Popen('cmd.exe /K py ./app.py')
-    launchgui()
+    # cmd = subprocess.Popen('cmd.exe /K cd C:/Users/wassi/Desktop/localwebserver')
+    F = subprocess.Popen('cmd.exe /K py ./app.py')
+    launchgui(F)
 
 """ Copyright (c) 2020 Covmatic.
 

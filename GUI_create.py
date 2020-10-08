@@ -99,6 +99,13 @@ def create_protocol(butt, language):
     # butt.config(state="disabled")
     # ROOT = tk.Tk()
     # ROOT.withdraw()
+
+    # bubu = tk.Tk()
+    # variable = tk.StringVar(bubu)
+    # variable.set(OptionList[0])
+    # opt = tk.OptionMenu(bubu, variable, *OptionList)
+    # opt.config(width=90, font=("Helvetica", 12))
+
     # the input dialog
     correct_input = False
     station = simpledialog.askstring(title="User Input",
@@ -111,9 +118,12 @@ def create_protocol(butt, language):
         else:
             station = simpledialog.askstring(title="User Input",
                                              prompt="Please Enter A Valid Input Station Name:")
-    samples = simpledialog.askinteger(title="User Input",
-                                      prompt="Please Input Number of Samples:")
+
+    # samples = simpledialog.askinteger(title="User Input",
+    #                                   prompt="Please Input Number of Samples:")
     if station != 'PCR':
+        samples = simpledialog.askinteger(title="User Input",
+                                          prompt="Please Input Number of Samples:")
         protocol = protocol_gen.protocol_gen(station, num_samples=samples, language=language.get())
         protocol_file = save_file()
         with open(protocol_file, 'w') as location:

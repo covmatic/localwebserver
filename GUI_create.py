@@ -148,7 +148,7 @@ def shutdown():
 
 
 def takepicture():
-    requests.post("http://127.0.0.1:31950/camera/picture")
+    requests.post(OT2_TARGET_IP_ADDRESS + ":31950/camera/picture")
 
 
 def launchgui():

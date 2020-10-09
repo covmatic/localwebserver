@@ -17,9 +17,9 @@ from PIL import ImageTk, Image
 
 OPENTRONS_APP = 'C:/Program Files/Opentrons/Opentrons.exe'
 # OPENTRONS_APP = 'C:/Users/wassi/AppData/Local/Programs/Opentrons/Opentrons.exe'
+WEB_INTERFACE = 'https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations'
 
 # TODO: Add the List menù to the MAIN GUI.
-# FIXME: DON'T ASK THE NUM OF SAMPLES FOR THE PCR
 # Option List for the stations used
 OptionList = ["A", "B", "C", "PCR"]
 
@@ -117,13 +117,11 @@ def create_protocol(butt, language):
                     with open(protocol_file, 'w') as location:
                         location.write(protocol)
                         upload_protocol(protocol_file)
-                webbrowser.open(
-                        'https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
+                webbrowser.open(WEB_INTERFACE)  # enter webserver address
             except ValueError:
                 tk.messagebox.showinfo('Check', 'Please Input sample Number as Integer to Proceed')
         else:
-            webbrowser.open(
-            'https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
+            webbrowser.open(WEB_INTERFACE)  # enter webserver address
 
     # the input dialog
     ap = tk.Tk()
@@ -149,10 +147,11 @@ def create_protocol(butt, language):
     quitButton = Button(ap, text='Abort', command=ap.destroy, fg='white',
                         bg='red', width=20)
     quitButton.grid(row=1, column=1)
-    OldButton = Button(ap, text='Proceed With Old Protocol', command=lambda:
-    webbrowser.open('https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations'), fg='white',
+    OldButton = Button(ap, text='Proceed With Old Protocol',
+                       command=lambda: webbrowser.open(WEB_INTERFACE), fg='white',
                         bg='blue', width=20)
     OldButton.grid(row=2, column=1)
+
 
 def upload_protocol(protocol_file):
     client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)

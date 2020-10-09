@@ -24,6 +24,8 @@ WEB_INTERFACE = 'https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stati
 OptionList = ["A", "B", "C", "PCR"]
 
 ####################################### Classes #######################################################################
+
+
 class ToggleButton(Frame):
     def __init__(self, master=None, **kwargs):
         Frame.__init__(self, master, **kwargs)
@@ -49,7 +51,9 @@ class ToggleButton(Frame):
             except ConnectionError:
                 pass
 
-####################################### Functions #######################################################################
+###################################### Functions #######################################################################
+
+
 def save_file():
     file = tk.filedialog.asksaveasfilename(title="Save Protocol", defaultextension=".py",
                                            filetypes=(("python scripts", "*.py"), ("all files", "*.*")))
@@ -103,23 +107,27 @@ def calibrate():
 # It enters also the parameter of the language
 def create_protocol(butt, language):
 
-    def ok(frame,sta,sa):
+    def ok(frame, sta, sa):
         station = str(sta.get())
         if station != 'PCR':
             try:
                 samples = int(sa.get())
                 frame.destroy()
                 protocol = protocol_gen.protocol_gen(station, num_samples=samples, language=language.get())
-                protocol_file = tkinter.filedialog.asksaveasfile()
+                protocol_file = tkinter.filedialog.asksaveasfilename(
+                    title="Save Protocol", defaultextension=".py",
+                    filetypes=(("python scripts", "*.py"), ("all files", "*.*")))
                 if protocol_file is None:
                     return "break"
                 else:
                     with open(protocol_file, 'w') as location:
                         location.write(protocol)
-                        upload_protocol(protocol_file)
+                    upload_protocol(protocol_file)
                 webbrowser.open(WEB_INTERFACE)  # enter webserver address
             except ValueError:
                 tk.messagebox.showinfo('Check', 'Please Input sample Number as Integer to Proceed')
+            except FileNotFoundError:
+                pass
         else:
             webbrowser.open(WEB_INTERFACE)  # enter webserver address
 
@@ -127,29 +135,28 @@ def create_protocol(butt, language):
     ap = tk.Tk()
     ap.geometry('380x110')
     ap.iconbitmap('./Covmatic_Icon.ico')
-    prompt = Label(ap,text='Please choose the desired station ')
-    prompt.grid(column=0,row=0)
+    prompt = Label(ap, text='Please choose the desired station ')
+    prompt.grid(column=0, row=0)
     station = tk.StringVar(ap)
     station.set(OptionList[0])
     menu = tk.OptionMenu(ap, station, *OptionList)
     menu.config(width=20, font=('Helvetica', 12))
-    menu.grid(column=0,row=1)
-    prompt1= Label(ap,text='Please number of samples to process ')
-    prompt1.grid(column=0,row=2)
+    menu.grid(column=0, row=1)
+    prompt1= Label(ap, text='Please number of samples to process ')
+    prompt1.grid(column=0, row=2)
     samples = tk.IntVar
     samples= tk.Entry(ap)
     samples.grid(column=0, row=3)
-    space= Label(ap,text=' ')
-    space.grid(row=4,column=0)
-    StartButton = Button(ap, text='Save Protocol and Proceed', command=lambda: ok(ap,station,samples), fg='white',
-                        bg='green', width=20)
+    space = Label(ap, text=' ')
+    space.grid(row=4, column=0)
+    StartButton = Button(ap, text='Save Protocol and Proceed',
+                         command=lambda: ok(ap,station,samples), fg='white', bg='green', width=20)
     StartButton.grid(row=0, column=1)
     quitButton = Button(ap, text='Abort', command=ap.destroy, fg='white',
                         bg='red', width=20)
     quitButton.grid(row=1, column=1)
     OldButton = Button(ap, text='Proceed With Old Protocol',
-                       command=lambda: webbrowser.open(WEB_INTERFACE), fg='white',
-                        bg='blue', width=20)
+                       command=lambda: webbrowser.open(WEB_INTERFACE), fg='white', bg='blue', width=20)
     OldButton.grid(row=2, column=1)
 
 

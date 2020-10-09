@@ -4,7 +4,7 @@ import requests
 import tkinter as tk
 from flask_restful import Resource
 from flask_restful import reqparse
-from functools import wraps
+from functools import wraps, partial, update_wrapper
 from models.protocols import Protocol
 from tkinter import simpledialog
 # from sqlalchemy import or_, desc
@@ -18,6 +18,7 @@ from typing import Optional, Any
 # from scp import SCPClient
 from services.task_runner import OT2_TARGET_IP_ADDRESS
 import threading
+import signal
 
 
 # from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
@@ -79,6 +80,42 @@ def locked(lock):
     return _locked
 
 
+class Timeout:
+    class Break(Exception):
+        pass
+    
+    @staticmethod
+    def handler(signum, frame):
+        raise Timeout.Break("Timeout expired")
+    
+    signal = signal.SIGALRM
+        
+    def __new__(cls, t, foo=None):
+        if foo is None:
+            return partial(cls, t)
+        self = super(Timeout, cls).__new__(cls)
+        update_wrapper(self, foo)
+        return self
+        
+    def __init__(self, t, foo):
+        self._t = t
+        self._foo = foo
+    
+    def __call__(self, *args, **kwargs):
+        signal.alarm(self._t)
+        try:
+            r = self._foo(*args, **kwargs)
+        except Timeout.Break:
+            r = {}, 504
+        else:
+            signal.alarm(0)
+        return r
+
+
+signal.signal(Timeout.signal, Timeout.handler)
+timeout = Timeout
+
+
 # Define endpoint methods
 # noinspection PyMethodMayBeStatic
 class AutomationAPI(Resource):
@@ -127,6 +164,7 @@ class AutomationAPI_MVP(Resource):
 
 # noinspection PyMethodMayBeStatic
 class CheckFunction(Resource):
+    @timeout(4)
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()

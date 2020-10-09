@@ -81,6 +81,8 @@ def locked(lock):
 
 
 class Timeout:
+    lock = threading.Lock()
+    
     class Break(Exception):
         pass
 
@@ -105,14 +107,15 @@ class Timeout:
         return _foo
     
     def __call__(self, *args, **kwargs):
-        timer = threading.Timer(self._t, signal.raise_signal, args=(self.signal(),))
-        timer.start()
-        try:
-            r = self._foo(*args, **kwargs)
-        except Timeout.Break:
-            r = {}, 504
-        else:
-            timer.cancel()
+        with self.lock:
+            timer = threading.Timer(self._t, signal.raise_signal, args=(self.signal(),))
+            timer.start()
+            try:
+                r = self._foo(*args, **kwargs)
+            except Timeout.Break:
+                r = {}, 504
+            else:
+                timer.cancel()
         return r
 
 

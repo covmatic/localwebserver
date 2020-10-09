@@ -23,7 +23,7 @@ OPENTRONS_APP = 'C:/Program Files/Opentrons/Opentrons.exe'
 # Option List for the stations used
 OptionList = ["A", "B", "C", "PCR"]
 
-
+####################################### Classes #######################################################################
 class ToggleButton(Frame):
     def __init__(self, master=None, **kwargs):
         Frame.__init__(self, master, **kwargs)
@@ -49,7 +49,7 @@ class ToggleButton(Frame):
             except ConnectionError:
                 pass
 
-
+####################################### Functions #######################################################################
 def save_file():
     file = tk.filedialog.asksaveasfilename(title="Save Protocol", defaultextension=".py",
                                            filetypes=(("python scripts", "*.py"), ("all files", "*.*")))
@@ -102,55 +102,57 @@ def calibrate():
 
 # It enters also the parameter of the language
 def create_protocol(butt, language):
-    # butt.config(state="disabled")
-    # ROOT = tk.Tk()
-    # ROOT.withdraw()
 
-    # Fuffa di Fede
-    # bubu = tk.Tk()
-    # variable = tk.StringVar(bubu)
-    # variable.set(OptionList[0])
-    # opt = tk.OptionMenu(bubu, variable, *OptionList)
-    # opt.config(width=90, font=("Helvetica", 12))
+    def ok(frame,sta,sa):
+        station = str(sta.get())
+        if station != 'PCR':
+            try:
+                samples = int(sa.get())
+                frame.destroy()
+                protocol = protocol_gen.protocol_gen(station, num_samples=samples, language=language.get())
+                protocol_file = tkinter.filedialog.asksaveasfile()
+                if protocol_file is None:
+                    return "break"
+                else:
+                    with open(protocol_file, 'w') as location:
+                        location.write(protocol)
+                        upload_protocol(protocol_file)
+                webbrowser.open(
+                        'https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
+            except ValueError:
+                tk.messagebox.showinfo('Check', 'Please Input sample Number as Integer to Proceed')
+        else:
+            webbrowser.open(
+            'https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
 
     # the input dialog
-    correct_input = False
-    station = simpledialog.askstring(title="User Input",
-                                     prompt="Please Input Station Name:")
-    while not correct_input:
-        if station in protocol_gen._classes.keys():
-            correct_input = True
-        elif station is None:
-            pass
-        else:
-            station = simpledialog.askstring(title="User Input",
-                                             prompt="Please Enter A Valid Input Station Name:")
-
-    # samples = simpledialog.askinteger(title="User Input",
-    #                                   prompt="Please Input Number of Samples:")
-    if station != 'PCR':
-        samples = simpledialog.askinteger(title="User Input",
-                                          prompt="Please Input Number of Samples:")
-        protocol = protocol_gen.protocol_gen(station, num_samples=samples, language=language.get())
-        protocol_file = save_file()
-        with open(protocol_file, 'w') as location:
-            location.write(protocol)
-        upload_protocol(protocol_file)
-    webbrowser.open('https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations')  # enter webserver address
-    # rdone = False
-    # while not rdone:
-    #     while True:
-    #         try:
-    #             rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
-    #         except requests.exceptions.ConnectionError:
-    #             time.sleep(0.5)
-    #         else:
-    #             break
-    #     output = rv.json()
-    #     if output["status"] == "Finished":
-    #         butt.config(state="enabled")
-    #         rdone = True
-
+    ap = tk.Tk()
+    ap.geometry('380x110')
+    ap.iconbitmap('./Covmatic_Icon.ico')
+    prompt = Label(ap,text='Please choose the desired station ')
+    prompt.grid(column=0,row=0)
+    station = tk.StringVar(ap)
+    station.set(OptionList[0])
+    menu = tk.OptionMenu(ap, station, *OptionList)
+    menu.config(width=20, font=('Helvetica', 12))
+    menu.grid(column=0,row=1)
+    prompt1= Label(ap,text='Please number of samples to process ')
+    prompt1.grid(column=0,row=2)
+    samples = tk.IntVar
+    samples= tk.Entry(ap)
+    samples.grid(column=0, row=3)
+    space= Label(ap,text=' ')
+    space.grid(row=4,column=0)
+    StartButton = Button(ap, text='Save Protocol and Proceed', command=lambda: ok(ap,station,samples), fg='white',
+                        bg='green', width=20)
+    StartButton.grid(row=0, column=1)
+    quitButton = Button(ap, text='Abort', command=ap.destroy, fg='white',
+                        bg='red', width=20)
+    quitButton.grid(row=1, column=1)
+    OldButton = Button(ap, text='Proceed With Old Protocol', command=lambda:
+    webbrowser.open('https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations'), fg='white',
+                        bg='blue', width=20)
+    OldButton.grid(row=2, column=1)
 
 def upload_protocol(protocol_file):
     client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)

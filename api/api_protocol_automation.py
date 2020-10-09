@@ -80,49 +80,6 @@ def locked(lock):
     return _locked
 
 
-class Timeout:
-    lock = threading.Lock()
-    
-    class Break(Exception):
-        pass
-
-    @staticmethod
-    def handler(signum, frame):
-        raise Timeout.Break("Timeout expired")
-    
-    @staticmethod
-    def signal():
-        return signal.SIGALARM if hasattr(signal, "SIGALARM") else signal.SIGABRT
-
-    def __new__(cls, t, foo=None):
-        if foo is None:
-            return partial(cls, t)
-        self = super(Timeout, cls).__new__(cls)
-        self._t = t
-        self._foo = foo
-        
-        @wraps(foo)
-        def _foo(*args, **kwargs):
-            return self(*args, **kwargs)
-        return _foo
-    
-    def __call__(self, *args, **kwargs):
-        with self.lock:
-            timer = threading.Timer(self._t, signal.raise_signal, args=(self.signal(),))
-            timer.start()
-            try:
-                r = self._foo(*args, **kwargs)
-            except Timeout.Break:
-                r = {}, 504
-            else:
-                timer.cancel()
-        return r
-
-
-signal.signal(Timeout.signal(), Timeout.handler)
-timeout = Timeout
-
-
 # Define endpoint methods
 # noinspection PyMethodMayBeStatic
 class AutomationAPI(Resource):
@@ -171,7 +128,16 @@ class AutomationAPI_MVP(Resource):
 
 # noinspection PyMethodMayBeStatic
 class CheckFunction(Resource):
-    @timeout(4)
+    bak_lock = threading.Lock()
+    _bak = {}
+    
+    @classmethod
+    @locked(bak_lock)
+    def bak(cls, value=None):
+        if value is not None:
+            cls._bak = value
+        return cls._bak
+    
     def get(self):
         queued_protocols = Protocol.query.filter_by(status='queued').all()
         running_protocols = Protocol.query.filter_by(status='running').all()
@@ -208,14 +174,16 @@ class CheckFunction(Resource):
                 # return {"status": True, "res": ":)"}, 200
         else:
             with CheckFlag.lock:
-                output = {}
                 try:
                     rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
                 except requests.exceptions.ConnectionError:
-                    pass
+                    print("connection error")
                 else:
                     print(rv)
-                    output = rv.json()
+                    if rv.status_code == 200:
+                        CheckFunction.bak(rv.json())
+                finally:
+                    output = CheckFunction.bak()
                 if BarcodeSingleton() is None and output.get("external", False):
                     BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
             
@@ -251,6 +219,7 @@ class ResumeFunction(Resource):
             while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
                 pass
             self._resume()
+            time.sleep(1)
             BarcodeSingleton.reset()
         else:
             self._resume()

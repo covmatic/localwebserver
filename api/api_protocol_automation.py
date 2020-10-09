@@ -83,13 +83,15 @@ def locked(lock):
 class Timeout:
     class Break(Exception):
         pass
-    
+
     @staticmethod
     def handler(signum, frame):
         raise Timeout.Break("Timeout expired")
     
-    signal = signal.SIGALRM
-        
+    @staticmethod
+    def signal():
+        return signal.SIGALARM if hasattr(signal, "SIGALARM") else signal.SIGABRT
+
     def __new__(cls, t, foo=None):
         if foo is None:
             return partial(cls, t)
@@ -102,17 +104,18 @@ class Timeout:
         self._foo = foo
     
     def __call__(self, *args, **kwargs):
-        signal.alarm(self._t)
+        timer = threading.Timer(self._t, signal.raise_signal, args=(self.signal(),))
+        timer.start()
         try:
             r = self._foo(*args, **kwargs)
         except Timeout.Break:
             r = {}, 504
         else:
-            signal.alarm(0)
+            timer.cancel()
         return r
 
 
-signal.signal(Timeout.signal, Timeout.handler)
+signal.signal(Timeout.signal(), Timeout.handler)
 timeout = Timeout
 
 

@@ -96,12 +96,13 @@ class Timeout:
         if foo is None:
             return partial(cls, t)
         self = super(Timeout, cls).__new__(cls)
-        update_wrapper(self, foo)
-        return self
-        
-    def __init__(self, t, foo):
         self._t = t
         self._foo = foo
+        
+        @wraps(foo)
+        def _foo(*args, **kwargs):
+            return self(*args, **kwargs)
+        return _foo
     
     def __call__(self, *args, **kwargs):
         timer = threading.Timer(self._t, signal.raise_signal, args=(self.signal(),))

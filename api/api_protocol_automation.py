@@ -162,27 +162,25 @@ class CheckFunction(Resource):
                     return {"status": True, "res": read}, 200
                 # return {"status": True, "res": ":)"}, 200
         else:
-            while True:
+            with CheckFlag.lock:
+                output = {}
                 try:
                     rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
                 except requests.exceptions.ConnectionError:
-                    time.sleep(0.5)
+                    pass
                 else:
-                    break
-            output = rv.json()
-            print(rv)
-
-            with CheckFlag.lock:
-                if BarcodeSingleton() is None and output["external"]:
+                    print(rv)
+                    output = rv.json()
+                if BarcodeSingleton() is None and output.get("external", False):
                     BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
             
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
             return {
                        "status": False,
                        "res": "Status: {}\nStage: {}{}".format(
-                           output["status"],
-                           output["stage"],
-                           "\n\n{}".format(output["msg"]) if output["msg"] else ""
+                           output.get("status", None),
+                           output.get("stage", None),
+                           "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
                        )
                    }, 200
 

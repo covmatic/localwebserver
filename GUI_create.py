@@ -133,7 +133,7 @@ def create_protocol(butt, language):
 
     # the input dialog
     ap = tk.Tk()
-    ap.geometry('380x110')
+    # ap.geometry('380x110')
     try:
         ap.iconbitmap('./Covmatic_Icon.ico')
     except Exception:
@@ -189,7 +189,7 @@ def launchgui():
         root.iconbitmap('./Covmatic_Icon.ico')
     except Exception:
         pass
-    root.geometry('600x80')
+    # root.geometry('600x80')
     root.configure(bg='white')
     CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)
     CalButton.grid(row=0, column=0)

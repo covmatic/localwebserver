@@ -29,6 +29,9 @@ TASK_QUEUE_POLLING_INTERVAL = 5
 app = object()
 scheduler = Timeloop()
 
+def print_info():
+    print("Target Opentrons IP: {}".format(OT2_TARGET_IP_ADDRESS))
+    
 
 def create_ssh_client(usr, key_file, pwd):
     client = pk.SSHClient()  # Create an object SSH client

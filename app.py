@@ -38,8 +38,11 @@ def shutdown_server():
 
 
 if __name__ == "__main__":
-    local_app = create_app()
+    
+    task_runner.print_info()
 
+    local_app = create_app()
+    
     @local_app.route('/shutdown', methods=['GET'])
     def shutdown():
         shutdown_server()

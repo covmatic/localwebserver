@@ -129,7 +129,8 @@ def create_protocol(butt, language):
                 webbrowser.open(WEB_INTERFACE)  # enter webserver address
             except ValueError:
                 tk.messagebox.showinfo('Check', 'Please Input sample Number as Integer to Proceed')
-            except FileNotFoundError:
+            except FileNotFoundError as err:
+                print('Error: file not found! {}'.format(err))
                 pass
         else:
             webbrowser.open(WEB_INTERFACE)  # enter webserver address

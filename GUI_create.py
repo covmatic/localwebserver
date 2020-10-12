@@ -134,7 +134,10 @@ def create_protocol(butt, language):
     # the input dialog
     ap = tk.Tk()
     ap.geometry('380x110')
-    ap.iconbitmap('./Covmatic_Icon.ico')
+    try:
+        ap.iconbitmap('./Covmatic_Icon.ico')
+    except Exception:
+	    pass
     prompt = Label(ap, text='Please choose the desired station ')
     prompt.grid(column=0, row=0)
     station = tk.StringVar(ap)
@@ -182,7 +185,10 @@ def takepicture():
 def launchgui():
     root = Tk()
     root.title('Local Machine Server')
-    root.iconbitmap('./Covmatic_Icon.ico')
+    try:
+        root.iconbitmap('./Covmatic_Icon.ico')
+    except Exception:
+        pass
     root.geometry('600x80')
     root.configure(bg='white')
     CalButton = Button(root, text='Calibrate Machine', command=calibrate, fg='black', bg='white', width=60)

@@ -120,9 +120,12 @@ def create_protocol(butt, language):
                 if protocol_file is None:
                     return "break"
                 else:
+                    print('Writing new protocol to {}'.format(protocol_file))
                     with open(protocol_file, 'w') as location:
                         location.write(protocol)
+                    print('Uploading protocol to robot...')
                     upload_protocol(protocol_file)
+                    print('Done.')
                 webbrowser.open(WEB_INTERFACE)  # enter webserver address
             except ValueError:
                 tk.messagebox.showinfo('Check', 'Please Input sample Number as Integer to Proceed')
@@ -164,8 +167,10 @@ def create_protocol(butt, language):
 
 
 def upload_protocol(protocol_file):
+    print('Opening ssh connection')
     client = task_runner.create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
     scp_client = SCPClient(client.get_transport())
+    print('Uploading protocol file: {}'.format(protocol_file))
     scp_client.put(protocol_file, '/var/lib/jupyter/notebooks/protocol.py')
     scp_client.close()
 

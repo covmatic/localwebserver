@@ -109,10 +109,12 @@ def create_protocol(butt, language):
 
     def ok(frame, sta, sa):
         station = str(sta.get())
+        print("Current station: {}".format(station))
         if station != 'PCR':
             try:
                 samples = int(sa.get())
                 frame.destroy()
+                print("Generating protocol for {} samples".format(samples))
                 protocol = protocol_gen.protocol_gen(station, num_samples=samples, language=language.get())
                 protocol_file = tkinter.filedialog.asksaveasfilename(
                     title="Save Protocol", defaultextension=".py",

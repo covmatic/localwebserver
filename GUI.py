@@ -4,6 +4,8 @@ from PIL import ImageTk, Image
 import subprocess
 import os
 import webbrowser
+import requests
+from typing import Tuple
 
 
 _ot_2_ip: str = os.environ.get("OT2IP", "")
@@ -48,9 +50,9 @@ class ButtonsFrameMeta(type):
                     kwargs["text"] = text
                 if command:
                     kwargs["command"] = getattr(self, command, None)
+                super(c, self).__init__(parent, *args, **kwargs)
                 if _init is not None:
                     _init(self, parent, *args, **kwargs)
-                super(c, self).__init__(parent, *args, **kwargs)
                 
             c.__init__ = init
             return c
@@ -79,6 +81,43 @@ class RobotButtonFrame(ButtonFrameBase):
 
 class IPLabel(tk.Label, metaclass=RobotButtonFrame.button):
     text = _ot_2_ip
+
+
+class LightsButton(metaclass=RobotButtonFrame.button):
+    text = "Robot Lights"
+    endpoint = ":31950/robot/lights"
+    
+    @property
+    def url(self) -> str:
+        return "http://{}{}".format(_ot_2_ip, self.endpoint)
+    
+    @property
+    def state(self) -> bool:
+        try:
+            state = requests.get(self.url).json().get("on", False)
+        except requests.exceptions.ConnectionError:
+            state = False
+        return state
+    
+    @state.setter
+    def state(self, value: bool):
+        try:
+            requests.post(self.url, json={'on': value})
+        except requests.exceptions.ConnectionError:
+            pass
+        self.update()
+    
+    def command(self):
+        self.state = not self.state
+    
+    def update(self):
+        s = self.state
+        self.configure(bg=self._bg[s], activebackground=self._activebackground[s])
+    
+    def __init__(self, parent, bg: Tuple[str, str] = ('#9a9ba0', '#dedfe5'), activebackground: Tuple[str, str] = ('#c5c6cc', '#ffffff'), *args, **kwargs):
+        self._bg = bg
+        self._activebackground = activebackground
+        self.update()
 
 
 class AppButtonFrame(ButtonFrameBase):

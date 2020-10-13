@@ -3,6 +3,7 @@ from tkinter import messagebox
 from PIL import ImageTk, Image
 import subprocess
 import os
+import webbrowser
 
 
 _icon_file: str = os.environ.get("ICON_FILE", "./Covmatic_Icon.jpg")
@@ -85,6 +86,13 @@ class OpentronsButton(tk.Button, metaclass=ButtonsFrame.ButtonMeta):
                 self._subprocess = subprocess.Popen(app_file)
         else:
             tk.messagebox.showwarning("Opentrons APP not found", "Opentrons APP not found at {}\nPlease set the correct path in the environment variable:\n\nOPENTRONS_APP".format(app_file))
+
+
+class StartRunButton(tk.Button, metaclass=ButtonsFrame.ButtonMeta):
+    text: str = "Start a New Run"
+    
+    def command(self, app_url: str = _web_app):
+        webbrowser.open(app_url)
 
 
 if __name__ == "__main__":

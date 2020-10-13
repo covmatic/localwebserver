@@ -33,13 +33,6 @@ class OpentronsButton(SubprocessButton, metaclass=AppButtonFrame.button):
     @property
     def _subprocess_args(self) -> List[str]:
         return [self._app_file]
-        
-
-class StartRunButton(metaclass=AppButtonFrame.button):
-    text: str = "Start a New Run"
-    
-    def command(self, app_url: str = _web_app):
-        webbrowser.open(app_url)
 
 
 class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
@@ -61,3 +54,10 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
     @property
     def _subprocess_args(self) -> List[str]:
         return [self._python, self._script]
+        
+
+class StartRunButton(metaclass=AppButtonFrame.button):
+    text: str = "Start a New Run"
+    
+    def command(self, app_url: str = _web_app):
+        webbrowser.open(app_url)

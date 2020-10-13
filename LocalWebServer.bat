@@ -1,1 +1,1 @@
-python GUI_create.py
+python -m gui

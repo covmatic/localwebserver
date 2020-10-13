@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 from timeloop import Timeloop
 # from utils import secure_load_opentrons_module
 import paramiko as pk
-from scp import SCPClient
+from scp import SCPClient, SCPException
 import json
 # import time
 import subprocess
@@ -42,10 +42,17 @@ def create_ssh_client(usr, key_file, pwd):
 
 def ssh_scp():
     client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-    scp_client = SCPClient(client.get_transport())
     name_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
-    scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=name_filepath)
-    scp_client.close()
+    
+    try:
+        scp_client = SCPClient(client.get_transport())
+        scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=name_filepath)
+    except SCPException as e:
+        print("Error retrieving remote logfile")
+        print("{}".format(e))
+    finally:
+        scp_client.close()
+        
     return name_filepath
 
 

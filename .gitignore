@@ -142,3 +142,5 @@ dmypy.json
 
 /external_execution.py
 .idea/
+
+*.jpg

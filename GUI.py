@@ -5,7 +5,7 @@ import subprocess
 import os
 import webbrowser
 import requests
-from typing import Tuple
+from typing import Tuple, List
 
 
 _ot_2_ip: str = os.environ.get("OT2IP", "")
@@ -35,8 +35,8 @@ class Covmatic(tk.Frame):
         self._app_buttons = AppButtonFrame(self)
         
         self._ip_label.grid(row=0)
-        self._robot_buttons.grid(row=1, column=0)
-        self._app_buttons.grid(row=1, column=1)
+        self._robot_buttons.grid(row=1, column=0, sticky=tk.N)
+        self._app_buttons.grid(row=1, column=1, sticky=tk.N)
 
 
 class ButtonsFrameMeta(type):
@@ -77,11 +77,26 @@ class ButtonFrameBase(tk.Frame, metaclass=ButtonsFrameMeta):
             self._buttons[i].grid(row=i, sticky=tk.N+tk.S+tk.E+tk.W)
 
 
+class ColorChangingButton(tk.Button):
+    def __init__(self, parent, bg: Tuple[str, str] = ('#9a9ba0', '#dedfe5'), activebackground: Tuple[str, str] = ('#c5c6cc', '#ffffff'), *args, **kwargs):
+        super(ColorChangingButton, self).__init__(parent, *args, **kwargs)
+        self._bg = bg
+        self._activebackground = activebackground
+        self.update()
+    
+    def update(self):
+        s = self.state
+        self.configure(bg=self._bg[s], activebackground=self._activebackground[s])
+    
+    def command(self):
+        self.state = not self.state
+
+
 class RobotButtonFrame(ButtonFrameBase):
     pass
 
 
-class LightsButton(metaclass=RobotButtonFrame.button):
+class LightsButton(ColorChangingButton, metaclass=RobotButtonFrame.button):
     text = "Robot Lights"
     endpoint = ":31950/robot/lights"
     
@@ -104,18 +119,6 @@ class LightsButton(metaclass=RobotButtonFrame.button):
         except requests.exceptions.ConnectionError:
             pass
         self.update()
-    
-    def command(self):
-        self.state = not self.state
-    
-    def update(self):
-        s = self.state
-        self.configure(bg=self._bg[s], activebackground=self._activebackground[s])
-    
-    def __init__(self, parent, bg: Tuple[str, str] = ('#9a9ba0', '#dedfe5'), activebackground: Tuple[str, str] = ('#c5c6cc', '#ffffff'), *args, **kwargs):
-        self._bg = bg
-        self._activebackground = activebackground
-        self.update()
 
 
 class HomeButton(metaclass=RobotButtonFrame.button):
@@ -137,18 +140,18 @@ class AppButtonFrame(ButtonFrameBase):
     pass
 
 
-class OpentronsButton(metaclass=AppButtonFrame.button):
-    text: str = "Launch Opentrons APP"
-    
+class SubprocessButton(tk.Button):
     def __init__(self, parent, kill_app: bool = _kill_app, *args, **kwargs):
+        super(SubprocessButton, self).__init__(parent, *args, **kwargs)
         self._kill_app = kill_app
         self._subprocess = None
     
     def __del__(self):
-        if self._kill_app and self.subprocess_running():
+        if self._kill_app and self.state:
             self._subprocess.kill()
     
-    def subprocess_running(self) -> bool:
+    @property
+    def state(self) -> bool:
         if self._subprocess is not None:
             self._subprocess.poll()
             if self._subprocess.returncode is None:
@@ -157,21 +160,93 @@ class OpentronsButton(metaclass=AppButtonFrame.button):
                 self._subprocess = None
         return False
     
-    def command(self, app_file: str = _opentrons_app):
-        if os.path.exists(app_file) and os.path.isfile(app_file):
-            if self.subprocess_running():
-                    tk.messagebox.showwarning("Opentrons APP running", "Another instance of the Opentrons APP has already been launched")
+    @state.setter
+    def state(self, value: bool):
+        if self.state != value:
+            if self.state:
+                self._subprocess.kill()
+                self._subprocess = None
             else:
-                self._subprocess = subprocess.Popen(app_file)
+                self.execute()
+    
+    def check_app(self) -> bool:
+        return True
+    
+    def command(self):
+        self.state = not self.state
+    
+    def execute(self):
+        if self.check_app():
+            if self.state:
+                    tk.messagebox.showwarning(*self._already_running)
+            else:
+                self._subprocess = subprocess.Popen(self._subprocess_args)
         else:
-            tk.messagebox.showwarning("Opentrons APP not found", "Opentrons APP not found at {}\nPlease set the correct path in the environment variable:\n\nOPENTRONS_APP".format(app_file))
+            tk.messagebox.showwarning(*self._check_fail)
+    
+    _already_running: str = ""
+    _check_fail: Tuple[str, str] = "", ""
+    _subprocess_args: List[str] = []
 
+
+class OnOffSubprocessButton(ColorChangingButton, SubprocessButton):
+    @SubprocessButton.state.setter
+    def state(self, value: bool):
+        SubprocessButton.state.fset(self, value)
+        self.update()
+
+
+class OpentronsButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
+    text: str = "Opentrons APP"
+    endpoint = ":5001/api/check"
+    
+    @property
+    def url(self) -> str:
+        return "http://127.0.0.1{}".format(self.endpoint)
+    
+    def __init__(self, parent, app_file: str = _opentrons_app, *args, **kwargs):
+        self._app_file = app_file 
+    
+    def check_app(self) -> bool:
+        return os.path.exists(self._app_file) and os.path.isfile(self._app_file)
+    
+    _already_running: str = "Opentrons APP running", "Another instance of the Opentrons APP has already been launched"
+    
+    @property
+    def _check_fail(self) -> Tuple[str, str]:
+        return "Opentrons APP not found", "Opentrons APP not found at {}\nPlease set the correct path in the environment variable:\n\nOPENTRONS_APP".format(self._app_file)
+    
+    @property
+    def _subprocess_args(self) -> List[str]:
+        return [self._app_file]
+        
 
 class StartRunButton(metaclass=AppButtonFrame.button):
     text: str = "Start a New Run"
     
     def command(self, app_url: str = _web_app):
         webbrowser.open(app_url)
+
+
+class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
+    text: str = "Local Web Server"
+    
+    def __init__(self, parent, python_exe: str = os.sys.executable, python_script: str = "./app.py", *args, **kwargs):
+        self._python = python_exe
+        self._script = python_script
+    
+    def check_app(self) -> bool:
+        return os.path.exists(self._python) and os.path.isfile(self._python) and os.path.exists(self._script) and os.path.isfile(self._script)
+    
+    _already_running: str = "LocalWebServer running", "Another instance of the LocalWebServer has already been launched"\
+    
+    @property
+    def _check_fail(self) -> Tuple[str, str]:
+        return "LocalWebServer not found", "LocalWebServer files not found (one or more):\n\n{}\n{}".format(self._python, self._script)\
+    
+    @property
+    def _subprocess_args(self) -> List[str]:
+        return [self._python, self._script]
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ def run(ctx):
 _classes = {
     "A": ("system9.a.technogenetics", "StationATechnogenetics24"),
     "B": ("system9.b.technogenetics", "StationBTechnogenetics"),
-    "C": ("system9.c.c", "StationC"),
+    "C": ("system9.c.technogenetics", "StationCTechnogenetics"),
     "PCR": None
 }
 

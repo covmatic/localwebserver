@@ -6,6 +6,7 @@ import os
 import webbrowser
 
 
+_ot_2_ip: str = os.environ.get("OT2IP", "")
 _icon_file: str = os.environ.get("ICON_FILE", "./Covmatic_Icon.jpg")
 _icon_url: str = os.environ.get("ICON_URL", "https://covmatic.org/wp-content/uploads/2020/10/cropped-Favicon-180x180.jpg")
 _opentrons_app: str = os.environ.get("OPENTRONS_APP", "C:/Program Files/Opentrons/Opentrons.exe")
@@ -27,38 +28,64 @@ class Covmatic(tk.Frame):
         *args, **kwargs
     ):
         super(Covmatic, self).__init__(parent, *args, **kwargs)
-        self._buttons_frame = ButtonsFrame(self)
-        self._buttons_frame.grid()
-
-
-class ButtonsFrame(tk.Frame):
-    class ButtonMeta(type):
-        instances = []
+        self._robot_buttons = RobotButtonFrame(self)
+        self._app_buttons = AppButtonFrame(self)
         
+        self._robot_buttons.grid(row=0, column=0)
+        self._app_buttons.grid(row=0, column=1)
+
+
+class ButtonsFrameMeta(type):
+    class ButtonMeta(type):
         def __new__(cls, name, bases, classdict):
-            c = super(ButtonsFrame.ButtonMeta, cls).__new__(cls, name, bases, classdict)
-            cls.instances.append(c)
+            c = super(ButtonsFrameMeta.ButtonMeta, cls).__new__(cls, name, bases, classdict)
             
-            text = getattr(c, "text", getattr(c, "__name__", str(c)))
+            text = getattr(c, "text", None)
             _init = classdict.get("__init__", None)
             
             def init(self, parent, text: str = text, command: str = "command", *args, **kwargs):
+                if text:
+                    kwargs["text"] = text
+                if command:
+                    kwargs["command"] = getattr(self, command, None)
                 if _init is not None:
-                    _init(self, parent, text=text, command="command", *args, **kwargs)
-                super(c, self).__init__(parent, text=text, command=getattr(self, command, None) if command else None, *args, **kwargs)
+                    _init(self, parent, *args, **kwargs)
+                super(c, self).__init__(parent, *args, **kwargs)
                 
             c.__init__ = init
             return c
     
+    def __init__(cls, name, bases, classdict):
+        super(ButtonsFrameMeta, cls).__init__(name, bases, classdict)
+        cls.buttons = []
+    
+    def button(cls, name, bases, classdict):
+        cls.buttons.append(cls.ButtonMeta(name, bases or (tk.Button,), classdict))
+        return cls.buttons[-1]
+
+
+class ButtonFrameBase(tk.Frame, metaclass=ButtonsFrameMeta):
     def __init__(self, parent, *args, **kwargs):
-        super(ButtonsFrame, self).__init__(parent, *args, **kwargs)
+        super(ButtonFrameBase, self).__init__(parent, *args, **kwargs)
         self._buttons = []
-        for i, B in enumerate(ButtonsFrame.ButtonMeta.instances):
+        for i, B in enumerate(type(self).buttons):
             self._buttons.append(B(self))
             self._buttons[i].grid(row=i, sticky=tk.N+tk.S+tk.E+tk.W)
 
 
-class OpentronsButton(tk.Button, metaclass=ButtonsFrame.ButtonMeta):
+class RobotButtonFrame(ButtonFrameBase):
+    pass
+
+
+class IPLabel(tk.Label, metaclass=RobotButtonFrame.button):
+    text = _ot_2_ip
+
+
+class AppButtonFrame(ButtonFrameBase):
+    pass
+
+
+class OpentronsButton(metaclass=AppButtonFrame.button):
     text: str = "Launch Opentrons APP"
     
     def __init__(self, parent, kill_app: bool = _kill_app, *args, **kwargs):
@@ -88,7 +115,7 @@ class OpentronsButton(tk.Button, metaclass=ButtonsFrame.ButtonMeta):
             tk.messagebox.showwarning("Opentrons APP not found", "Opentrons APP not found at {}\nPlease set the correct path in the environment variable:\n\nOPENTRONS_APP".format(app_file))
 
 
-class StartRunButton(tk.Button, metaclass=ButtonsFrame.ButtonMeta):
+class StartRunButton(metaclass=AppButtonFrame.button):
     text: str = "Start a New Run"
     
     def command(self, app_url: str = _web_app):
@@ -100,7 +127,12 @@ if __name__ == "__main__":
     root.title('Covmatic GUI')
     set_ico(root)
     
-    covmatic = Covmatic(root)
-    covmatic.grid()
+    if _ot_2_ip:
+        covmatic = Covmatic(root)
+        covmatic.grid()
+    else:
+        root.withdraw()
+        tk.messagebox.showwarning("Robot IP", "Robot IP address not set.\nPlease set the environment variable:\n\nOT2IP")
+        root.destroy()
     
     root.mainloop()

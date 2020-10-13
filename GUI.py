@@ -30,11 +30,13 @@ class Covmatic(tk.Frame):
         *args, **kwargs
     ):
         super(Covmatic, self).__init__(parent, *args, **kwargs)
+        self._ip_label = tk.Label(text=_ot_2_ip)
         self._robot_buttons = RobotButtonFrame(self)
         self._app_buttons = AppButtonFrame(self)
         
-        self._robot_buttons.grid(row=0, column=0)
-        self._app_buttons.grid(row=0, column=1)
+        self._ip_label.grid(row=0)
+        self._robot_buttons.grid(row=1, column=0)
+        self._app_buttons.grid(row=1, column=1)
 
 
 class ButtonsFrameMeta(type):
@@ -79,10 +81,6 @@ class RobotButtonFrame(ButtonFrameBase):
     pass
 
 
-class IPLabel(tk.Label, metaclass=RobotButtonFrame.button):
-    text = _ot_2_ip
-
-
 class LightsButton(metaclass=RobotButtonFrame.button):
     text = "Robot Lights"
     endpoint = ":31950/robot/lights"
@@ -118,6 +116,21 @@ class LightsButton(metaclass=RobotButtonFrame.button):
         self._bg = bg
         self._activebackground = activebackground
         self.update()
+
+
+class HomeButton(metaclass=RobotButtonFrame.button):
+    text = "Home"
+    endpoint = ":31950/robot/home"
+    
+    @property
+    def url(self) -> str:
+        return "http://{}{}".format(_ot_2_ip, self.endpoint)
+    
+    def command(self):
+        try:
+            requests.post(self.url, json={'target': 'robot'})
+        except requests.exceptions.ConnectionError:
+            pass
 
 
 class AppButtonFrame(ButtonFrameBase):

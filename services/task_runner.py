@@ -20,7 +20,7 @@ OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 OT2_PROTOCOL_NAME = 'protocol.py'
 OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
 # OT-2-IP is the name of environment variable in order to fix the IPs of the robot
-OT2_TARGET_IP_ADDRESS = environ['OT-2-IP']
+OT2_TARGET_IP_ADDRESS = environ['OT2IP']
 # OT2_TARGET_IP_ADDRESS = '10.213.55.216'  # Only for debugging
 OT2_ROBOT_PASSWORD = 'opentrons'  # Opentrons password of the ssh key
 TASK_QUEUE_POLLING_INTERVAL = 5

@@ -2,6 +2,7 @@ from .button_frames import ButtonFrameBase
 from .buttons import ColorChangingButton
 from . import _ot_2_ip
 import requests
+import json
 
 
 class RobotButtonFrame(ButtonFrameBase):
@@ -19,9 +20,14 @@ class LightsButton(ColorChangingButton, metaclass=RobotButtonFrame.button):
     @property
     def state(self) -> bool:
         try:
-            state = requests.get(self.url).json().get("on", False)
+            response = requests.get(self.url)
         except requests.exceptions.ConnectionError:
             state = False
+        else:
+            try:
+                state = response.json().get("on", False)
+            except json.decoder.JSONDecodeError:
+                state = False
         return state
     
     @state.setter

@@ -40,7 +40,7 @@ class ProtocolDefinition(tk.Frame):
         return protocol_gen.protocol_gen(
             self._stationmenu._buttons[0].var.get(),
             num_samples=self.ns.get(),
-            langugage=self._right._buttons[2].var.get(),
+            language=self._right._buttons[2].var.get(),
         )
 
 

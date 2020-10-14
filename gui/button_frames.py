@@ -37,3 +37,15 @@ class ButtonFrameBase(tk.Frame, metaclass=ButtonsFrameMeta):
         for i, B in enumerate(type(self).buttons):
             self._buttons.append(B(self))
             self._buttons[i].grid(row=i, sticky=tk.N+tk.S+tk.E+tk.W)
+
+
+class ClassProperty(object):
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, inst, cls=None):
+        return self.fget.__get__(inst, cls or type(inst))()
+
+
+def classproperty(foo):
+    return ClassProperty(foo if isinstance(foo, (classmethod, staticmethod)) else classmethod(foo))

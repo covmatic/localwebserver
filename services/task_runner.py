@@ -8,12 +8,18 @@ from scp import SCPClient, SCPException
 import json
 # import time
 import subprocess
+import os
 from os import environ
+
 
 # PCR API name and path
 PCR_API_NAME = 'BioRad.Example_Application.exe'
 PCR_PATH = 'C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.4/'
-OT2_SSH_KEY = './ot2_ssh_key'
+
+OT2_SSH_KEY = environ.get("OT2_SSH_KEY", './ot2_ssh_key')
+if not os.path.exists(OT2_SSH_KEY):
+    raise FileNotFoundError("Cannot find SSH key file '{}'".format(OT2_SSH_KEY))
+    
 # Path of the protocols inside the Robots
 OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
 # Protocol namefiles
@@ -22,15 +28,45 @@ OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.jso
 # OT-2-IP is the name of environment variable in order to fix the IPs of the robot
 OT2_TARGET_IP_ADDRESS = environ['OT2IP']
 # OT2_TARGET_IP_ADDRESS = '10.213.55.216'  # Only for debugging
-OT2_ROBOT_PASSWORD = 'opentrons'  # Opentrons password of the ssh key
+OT2_ROBOT_PASSWORD = environ["OT2_PWD"]  # Opentrons password of the ssh key
 TASK_QUEUE_POLLING_INTERVAL = 5
 # TASK_RUNNING = False
 
 app = object()
 scheduler = Timeloop()
 
+
 def print_info():
     print("Target Opentrons IP: {}".format(OT2_TARGET_IP_ADDRESS))
+
+
+class SSHClient(pk.SSHClient):
+    class SCPClientContext(SCPClient):
+        def __enter__(self):
+            return self
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.close()
+            return exc_val is None
+        
+    def __init__(self, usr: str = "root", ip_addr: str = OT2_TARGET_IP_ADDRESS, key_file: str = OT2_SSH_KEY, pwd: str = OT2_ROBOT_PASSWORD):
+        super(SSHClient, self).__init__()
+        self._usr = usr
+        self._ip_addr = ip_addr
+        self._key_file = key_file
+        self._pwd = pwd
+        self.set_missing_host_key_policy(pk.AutoAddPolicy())  # It is needed to add the device policy
+    
+    def __enter__(self):
+        self.connect(self._ip_addr, username=self._usr, key_filename=self._key_file, password=self._pwd)
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):  
+        self.close()
+        return exc_val is None
+    
+    def scp_client(self) -> SCPClientContext:
+        return self.SCPClientContext(self.get_transport())
     
 
 def create_ssh_client(usr, key_file, pwd):

@@ -11,9 +11,11 @@ class SubprocessButton(tk.Button):
         self._kill_app = kill_app
         self._subprocess = None
     
-    def __del__(self):
+    def destroy(self):
         if self._kill_app and self.state:
             self._subprocess.kill()
+            self._subprocess = None
+        super(SubprocessButton, self).destroy()
     
     @property
     def state(self) -> bool:

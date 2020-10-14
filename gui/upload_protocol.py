@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog
 from .button_frames import ButtonFrameBase
-from . import _station, _remote_protocol_file, _local_protocol_file, set_ico, _message_lang
+from . import _station, _remote_protocol_file, _local_protocol_file, set_ico, _message_lang, warningbox
 from services import protocol_gen
 from services.task_runner import SSHClient
 from functools import partial
@@ -30,6 +30,8 @@ class ProtocolDefinition(tk.Frame):
         self._right.grid(row=0, column=1, sticky=tk.N)
     
     def generate(self) -> str:
+        if self.ns.get() <= 0:
+            raise ValueError("Number of samples should be positive\nGot: {}".format(self.ns.get()))
         return protocol_gen.protocol_gen(
             self._stationmenu._buttons[0].var.get(),
             num_samples=self.ns.get(),
@@ -84,9 +86,11 @@ class SaveButton(metaclass=ProtocolDefinitionRight.button):
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
     
+    @warningbox
     def command(self):
+        s = self.parent.parent.generate()
         with tk.filedialog.asksaveasfile(title="Save Protocol", defaultextension=".py", filetypes=(("python scripts", "*.py"),)) as f:
-            f.write(self.parent.parent.generate())
+            f.write(s)
 
 
 class UploadButton(metaclass=ProtocolDefinitionRight.button):
@@ -95,6 +99,7 @@ class UploadButton(metaclass=ProtocolDefinitionRight.button):
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
     
+    @warningbox
     def command(self):
         if not os.path.exists(os.path.dirname(_local_protocol_file)):
             os.makedirs(os.path.dirname(_local_protocol_file))

@@ -1,3 +1,6 @@
+import tkinter as tk
+import tkinter.messagebox
+from functools import wraps
 from PIL import ImageTk, Image
 import requests
 import os
@@ -23,3 +26,13 @@ def set_ico(parent, url: str = _icon_url, file: str = _icon_file):
     if os.path.exists(file) and os.path.isfile(file):
         icon = ImageTk.PhotoImage(Image.open(file))
         parent.tk.call('wm', 'iconphoto', parent._w, icon)
+
+
+def warningbox(foo):
+    @wraps(foo)
+    def foo_(*args, **kwargs):
+        try:
+            return foo(*args, **kwargs)
+        except Exception as e:
+            tk.messagebox.showwarning(type(e).__name__, str(e))
+    return foo_

@@ -1,4 +1,5 @@
 import tkinter as tk
+from .buttons import _palette, ColorChangingButton
 
 
 class ButtonsFrameMeta(type):
@@ -14,6 +15,9 @@ class ButtonsFrameMeta(type):
                     kwargs["text"] = text
                 if command:
                     kwargs["command"] = getattr(self, command, None)
+                if not issubclass(c, ColorChangingButton):
+                    for k, v in _palette["on"].items():
+                        kwargs[k] = kwargs.get(k, v)
                 super(c, self).__init__(parent, *args, **kwargs)
                 if _init is not None:
                     _init(self, parent, *args, **kwargs)

@@ -1,5 +1,5 @@
 from .button_frames import ButtonFrameBase
-from .buttons import OnOffSubprocessButton, SubprocessButton
+from .buttons import OnOffSubprocessButton, ColorChangingSubprocessButton
 from . import _web_app, _opentrons_app
 import os
 import webbrowser
@@ -10,7 +10,7 @@ class AppButtonFrame(ButtonFrameBase):
     pass
 
 
-class OpentronsButton(SubprocessButton, metaclass=AppButtonFrame.button):
+class OpentronsButton(ColorChangingSubprocessButton, metaclass=AppButtonFrame.button):
     text: str = "Opentrons APP"
     endpoint = ":5001/api/check"
     

@@ -4,6 +4,7 @@ from .buttons import ColorChangingButton, ColorChangingTimerButton
 from . import _ot_2_ip, set_ico
 from .upload_protocol import ProtocolDefinition
 from services.task_runner import SSHClient
+import webbrowser
 import requests
 import json
 import os
@@ -142,3 +143,15 @@ class UploadButton(ColorChangingTimerButton, metaclass=RobotButtonFrame.button):
     def destroy(self):
         self.state = False
         super(UploadButton, self).destroy()
+
+
+class JupyterButton(metaclass=RobotButtonFrame.button):
+    text = "Jupyter"
+    endpoint = ":48888"
+    
+    @property
+    def url(self) -> str:
+        return "http://{}{}".format(_ot_2_ip, self.endpoint)
+    
+    def command(self):
+        webbrowser.open(self.url)

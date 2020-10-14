@@ -11,6 +11,7 @@ _web_app: str = os.environ.get("WEB_APP_URL", "https://ec2-15-161-32-20.eu-south
 _station: str = os.environ.get("STATION_NAME", "A")
 _remote_protocol_file: str = os.environ.get("PROTOCOL_REMOTE", "/var/lib/jupyter/notebooks/protocol.py")
 _local_protocol_file: str = os.environ.get("PROTOCOL_LOCAL", "./.protocol.py")
+_message_lang: str = os.environ.get("PROTOCOL_LANG", "ENG")
 _kill_app: bool = True
 
 

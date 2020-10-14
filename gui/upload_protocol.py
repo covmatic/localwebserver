@@ -1,11 +1,12 @@
 import tkinter as tk
 import tkinter.filedialog
 from .button_frames import ButtonFrameBase
-from . import _station, _remote_protocol_file, _local_protocol_file, set_ico
+from . import _station, _remote_protocol_file, _local_protocol_file, set_ico, _message_lang
 from services import protocol_gen
 from services.task_runner import SSHClient
 from functools import partial
 import os
+from typing import List
 
 
 class ProtocolDefinition(tk.Frame):
@@ -29,7 +30,11 @@ class ProtocolDefinition(tk.Frame):
         self._right.grid(row=0, column=1, sticky=tk.N)
     
     def generate(self) -> str:
-        return protocol_gen.protocol_gen(self._stationmenu._buttons[0].var.get(), num_samples=self.ns.get())
+        return protocol_gen.protocol_gen(
+            self._stationmenu._buttons[0].var.get(),
+            num_samples=self.ns.get(),
+            langugage=self._right._buttons[2].var.get(),
+        )
 
 
 class ProtocolDefinitionLeft(ButtonFrameBase):
@@ -42,8 +47,9 @@ class ProtocolDefinitionRight(ButtonFrameBase):
         self.parent = parent
 
 
-class StationsMenu(tk.Menubutton, metaclass=ProtocolDefinitionLeft.button):
-    text: str = "Station"
+class MenuButton(tk.Menubutton):
+    opts = []
+    dflt = ""
     
     def __init__(self, parent, *args, **kwargs):
         self.var = tk.StringVar()
@@ -52,15 +58,24 @@ class StationsMenu(tk.Menubutton, metaclass=ProtocolDefinitionLeft.button):
         kwargs["indicatoron"] = kwargs.get("indicatoron", False)
         kwargs["textvariable"] = self.var
         kwargs["text"] = kwargs.get("text", self.text)
-        kwargs["width"] = kwargs.get("width", max(19, max(map(len, protocol_gen._classes.keys()))))
-        super(StationsMenu, self).__init__(parent, *args, **kwargs)
+        super(MenuButton, self).__init__(parent, *args, **kwargs)
         self.menu = tk.Menu(self, tearoff=False)
         self.configure(menu=self.menu)
         
-        for c in protocol_gen._classes.keys():
+        for c in self.opts:
             self.menu.add_command(label=c, command=partial(self.var.set, c))
-            if c == _station:
+            if c == self.dflt:
                 self.var.set(c)
+
+
+class StationsMenu(MenuButton, metaclass=ProtocolDefinitionLeft.button):
+    text: str = "Station"
+    opts = protocol_gen._classes.keys()
+    dflt = _station
+    
+    def __init__(self, parent, *args, **kwargs):
+        kwargs["width"] = kwargs.get("width", max(19, max(map(len, protocol_gen._classes.keys()))))
+        super(StationsMenu, self).__init__(parent, *args, **kwargs)
 
 
 class SaveButton(metaclass=ProtocolDefinitionRight.button):
@@ -89,6 +104,12 @@ class UploadButton(metaclass=ProtocolDefinitionRight.button):
             client.exec_command("mkdir -p {}".format(os.path.dirname(_remote_protocol_file)))
             with client.scp_client() as scp_client:
                 scp_client.put(_local_protocol_file, _remote_protocol_file)
+
+
+class LangMenu(MenuButton, metaclass=ProtocolDefinitionRight.button):
+    text: str = "Language"
+    opts: List[str] = sorted(["ENG", "ITA"])
+    dflt: str = _message_lang
 
 
 if __name__ == "__main__":

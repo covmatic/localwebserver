@@ -1,21 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
-from PIL import ImageTk, Image
 from .robot_buttons import RobotButtonFrame
 from .app_buttons import AppButtonFrame
-from . import _icon_url, _icon_file, _ot_2_ip
-import requests
-import os
-
-
-def set_ico(parent, url: str = _icon_url, file: str = _icon_file):
-    if not os.path.exists(file):
-        response = requests.get(url)
-        with open(file, 'wb') as f:
-            f.write(response.content)
-    if os.path.exists(file) and os.path.isfile(file):
-        icon = ImageTk.PhotoImage(Image.open(file))
-        parent.tk.call('wm', 'iconphoto', root._w, icon)
+from . import set_ico, _ot_2_ip
     
 
 class Covmatic(tk.Frame):

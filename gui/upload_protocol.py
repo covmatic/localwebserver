@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog
 from .button_frames import ButtonFrameBase
-from . import _station, _remote_protocol_file, _local_protocol_file
+from . import _station, _remote_protocol_file, _local_protocol_file, set_ico
 from services import protocol_gen
 from services.task_runner import SSHClient
 from functools import partial
@@ -93,6 +93,8 @@ class UploadButton(metaclass=ProtocolDefinitionRight.button):
 
 if __name__ == "__main__":
     root = tk.Tk()
+    set_ico(root)
+    root.title('Upload Protocol')
     win = ProtocolDefinition(root)
     win.grid()
     root.mainloop()

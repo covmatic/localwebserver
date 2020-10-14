@@ -1,7 +1,7 @@
 import tkinter as tk
 from .button_frames import ButtonFrameBase, classproperty
 from .buttons import ColorChangingButton, ColorChangingTimerButton
-from . import _ot_2_ip
+from . import _ot_2_ip, set_ico
 from .upload_protocol import ProtocolDefinition
 from services.task_runner import SSHClient
 import requests
@@ -133,6 +133,8 @@ class UploadButton(ColorChangingTimerButton, metaclass=RobotButtonFrame.button):
                 if hasattr(self, "_win_root") and self._win_root.winfo_exists():
                     self._win_root.destroy()
                 self._win_root = tk.Toplevel()
+                set_ico(self._win_root)
+                self._win_root.title('Upload Protocol')
                 self._win = ProtocolDefinition(self._win_root)
                 self._win.grid()
         self.update()

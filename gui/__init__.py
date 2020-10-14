@@ -1,3 +1,5 @@
+from PIL import ImageTk, Image
+import requests
 import os
 
 
@@ -10,3 +12,13 @@ _station: str = os.environ.get("STATION_NAME", "A")
 _remote_protocol_file: str = os.environ.get("PROTOCOL_REMOTE", "/var/lib/jupyter/notebooks/protocol.py")
 _local_protocol_file: str = os.environ.get("PROTOCOL_LOCAL", "./.protocol.py")
 _kill_app: bool = True
+
+
+def set_ico(parent, url: str = _icon_url, file: str = _icon_file):
+    if not os.path.exists(file):
+        response = requests.get(url)
+        with open(file, 'wb') as f:
+            f.write(response.content)
+    if os.path.exists(file) and os.path.isfile(file):
+        icon = ImageTk.PhotoImage(Image.open(file))
+        parent.tk.call('wm', 'iconphoto', parent._w, icon)

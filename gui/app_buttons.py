@@ -56,8 +56,8 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
         return [self._python, self._script]
         
 
-class StartRunButton(metaclass=AppButtonFrame.button):
-    text: str = "Start a New Run"
+class WebAppButton(metaclass=AppButtonFrame.button):
+    text: str = "Web App"
     
     def command(self, app_url: str = _web_app):
         webbrowser.open(app_url)

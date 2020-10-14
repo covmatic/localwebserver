@@ -1,6 +1,8 @@
+import tkinter as tk
 from .button_frames import ButtonFrameBase, classproperty
-from .buttons import ColorChangingButton
+from .buttons import ColorChangingButton, ColorChangingTimerButton
 from . import _ot_2_ip
+from .upload_protocol import ProtocolDefinition
 from services.task_runner import SSHClient
 import requests
 import json
@@ -113,3 +115,28 @@ class HomeButton(metaclass=RobotButtonFrame.button):
             requests.post(self.url, json={'target': 'robot'})
         except requests.exceptions.ConnectionError:
             pass
+
+
+class UploadButton(ColorChangingTimerButton, metaclass=RobotButtonFrame.button):
+    text = "Upload Protocol"
+    
+    @property
+    def state(self) -> bool:
+        return hasattr(self, "_win") and self._win is not None and self._win.winfo_exists()
+    
+    @state.setter
+    def state(self, value: bool):
+        if self.state != value:
+            if self.state:
+                self._win_root.destroy()
+            else:
+                if hasattr(self, "_win_root") and self._win_root.winfo_exists():
+                    self._win_root.destroy()
+                self._win_root = tk.Toplevel()
+                self._win = ProtocolDefinition(self._win_root)
+                self._win.grid()
+        self.update()
+    
+    def destroy(self):
+        self.state = False
+        super(UploadButton, self).destroy()

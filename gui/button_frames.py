@@ -16,7 +16,7 @@ class ButtonsFrameMeta(type):
                 if command:
                     kwargs["command"] = getattr(self, command, None)
                 if not issubclass(c, ColorChangingButton):
-                    for k, v in _palette["on"].items():
+                    for k, v in _palette["off"].items():
                         kwargs[k] = kwargs.get(k, v)
                 super(c, self).__init__(parent, *args, **kwargs)
                 if _init is not None:

@@ -106,9 +106,9 @@ class OnOffSubprocessButton(ColorChangingButton, SubprocessButton):
         self.update()
 
 
-class ColorChangingSubprocessButton(ColorChangingButton, SubprocessButton):
+class ColorChangingTimerButton(ColorChangingButton):
     def __init__(self, parent, interval: float = 1, *args, **kwargs):
-        super(ColorChangingSubprocessButton, self).__init__(parent, *args, **kwargs)
+        super(ColorChangingTimerButton, self).__init__(parent, *args, **kwargs)
         self._interval = interval
         self._thread = None
         self.update_thread()
@@ -120,13 +120,15 @@ class ColorChangingSubprocessButton(ColorChangingButton, SubprocessButton):
     def update_thread(self):
         self._thread = threading.Timer(self._interval, self._update_thread)
         self._thread.start()
-        
-    def command(self):
-        self.execute()
-        self.update()
     
     def destroy(self):
         if self._thread is not None:
             self._thread.cancel()
             self._thread = None
-        super(ColorChangingSubprocessButton, self).destroy()
+        super(ColorChangingTimerButton, self).destroy()
+
+
+class ColorChangingSubprocessButton(ColorChangingTimerButton, SubprocessButton):
+    def command(self):
+        self.execute()
+        self.update()

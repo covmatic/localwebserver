@@ -144,3 +144,4 @@ dmypy.json
 .idea/
 
 *.jpg
+.protocol.py

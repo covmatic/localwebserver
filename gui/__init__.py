@@ -6,4 +6,7 @@ _icon_file: str = os.environ.get("ICON_FILE", "./Covmatic_Icon.jpg")
 _icon_url: str = os.environ.get("ICON_URL", "https://covmatic.org/wp-content/uploads/2020/10/cropped-Favicon-180x180.jpg")
 _opentrons_app: str = os.environ.get("OPENTRONS_APP", "C:/Program Files/Opentrons/Opentrons.exe")
 _web_app: str = os.environ.get("WEB_APP_URL", "https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations")
+_station: str = os.environ.get("STATION_NAME", "A")
+_remote_protocol_file: str = os.environ.get("PROTOCOL_REMOTE", "/var/lib/jupyter/notebooks/protocol.py")
+_local_protocol_file: str = os.environ.get("PROTOCOL_LOCAL", "./.protocol.py")
 _kill_app: bool = True

@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog
 from .button_frames import ButtonFrameBase
-from . import _station, _remote_protocol_file, _local_protocol_file, set_ico, get_logo, _message_lang, warningbox
+from . import _station, _remote_protocol_file, _local_protocol_file, set_ico, get_logo, _message_lang, warningbox, _ot_2_ip
 from services import protocol_gen
 from services.task_runner import SSHClient
 from functools import partial
@@ -14,7 +14,9 @@ class ProtocolDefinition(tk.Frame):
         super(ProtocolDefinition, self).__init__(parent, *args, **kwargs)
         self._logo_photo = get_logo(resize=0.1)
         self._logo = tk.Label(self, image=self._logo_photo)
+        self._ip_label = tk.Label(self, text=_ot_2_ip)
         self._logo.grid(row=0, columnspan=2)
+        self._ip_label.grid(row=1, columnspan=2)
         
         self._left = tk.Frame(self)
         self._empty_label = tk.Label(self._left, text=" ")
@@ -29,10 +31,10 @@ class ProtocolDefinition(tk.Frame):
         self.ns = tk.IntVar()
         self._numsamples = tk.Entry(self._left, textvariable=self.ns)
         self._numsamples.grid()
-        self._left.grid(row=1, column=0, sticky=tk.S)
+        self._left.grid(row=2, column=0, sticky=tk.S)
         
         self._right = ProtocolDefinitionRight(self)
-        self._right.grid(row=1, column=1, sticky=tk.S)
+        self._right.grid(row=2, column=1, sticky=tk.S)
     
     def generate(self) -> str:
         if self.ns.get() <= 0:

@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 from .robot_buttons import RobotButtonFrame
 from .app_buttons import AppButtonFrame
 from . import set_ico, get_logo, _ot_2_ip
@@ -25,17 +24,12 @@ class Covmatic(tk.Frame):
         self._app_buttons.grid(row=3, column=1, sticky=tk.N)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     root = tk.Tk()
     root.title('Covmatic GUI')
     set_ico(root)
     
-    if _ot_2_ip:
-        covmatic = Covmatic(root)
-        covmatic.grid()
-    else:
-        root.withdraw()
-        tk.messagebox.showwarning("Robot IP", "Robot IP address not set.\nPlease set the environment variable:\n\nOT2IP")
-        root.destroy()
+    covmatic = Covmatic(root)
+    covmatic.grid()
     
     root.mainloop()

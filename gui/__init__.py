@@ -2,6 +2,8 @@ import tkinter as tk
 import tkinter.messagebox
 from functools import wraps
 from PIL import ImageTk, Image
+from services.task_runner import SSHClient
+import socket
 import requests
 import json
 import os
@@ -62,3 +64,17 @@ def warningbox(foo):
         except Exception as e:
             tk.messagebox.showwarning(type(e).__name__, str(e))
     return foo_
+
+
+def try_ssh(timeout: float = 1) -> bool:
+    try:
+        with SSHClient(connect_kwargs=dict(timeout=timeout)):
+            return True
+    except socket.timeout:
+        return False
+
+
+if not _ot_2_ip:
+    raise ValueError("Robot IP address not set.\nPlease set the environment variable:\nOT2IP")
+if not try_ssh():
+    raise TimeoutError("Cannot connect to {}".format(_ot_2_ip))

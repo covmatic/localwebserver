@@ -49,16 +49,17 @@ class SSHClient(pk.SSHClient):
             self.close()
             return exc_val is None
         
-    def __init__(self, usr: str = "root", ip_addr: str = OT2_TARGET_IP_ADDRESS, key_file: str = OT2_SSH_KEY, pwd: str = OT2_ROBOT_PASSWORD):
+    def __init__(self, usr: str = "root", ip_addr: str = OT2_TARGET_IP_ADDRESS, key_file: str = OT2_SSH_KEY, pwd: str = OT2_ROBOT_PASSWORD, connect_kwargs: dict = {}):
         super(SSHClient, self).__init__()
         self._usr = usr
         self._ip_addr = ip_addr
         self._key_file = key_file
         self._pwd = pwd
         self.set_missing_host_key_policy(pk.AutoAddPolicy())  # It is needed to add the device policy
+        self._connect_kwargs = connect_kwargs
     
     def __enter__(self):
-        self.connect(self._ip_addr, username=self._usr, key_filename=self._key_file, password=self._pwd)
+        self.connect(self._ip_addr, username=self._usr, key_filename=self._key_file, password=self._pwd, **self._connect_kwargs)
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):  

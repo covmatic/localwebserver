@@ -142,3 +142,8 @@ dmypy.json
 
 /external_execution.py
 .idea/
+
+*.jpg
+*.png
+*.ico
+.tmp_protocol.py

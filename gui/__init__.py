@@ -3,20 +3,30 @@ import tkinter.messagebox
 from functools import wraps
 from PIL import ImageTk, Image
 import requests
+import json
 import os
 
 
-_ot_2_ip: str = os.environ.get("OT2IP", "")
-_icon_file: str = os.environ.get("ICON_FILE", "./Covmatic_Icon.jpg")
-_icon_url: str = os.environ.get("ICON_URL", "https://covmatic.org/wp-content/uploads/2020/10/cropped-Favicon-180x180.jpg")
-_logo_file: str = os.environ.get("LOGO_FILE", "./Covmatic_Logo.png")
-_logo_url: str = os.environ.get("LOGO_URL", "https://covmatic.org/wp-content/uploads/2020/06/logo-1.png")
-_opentrons_app: str = os.environ.get("OPENTRONS_APP", "C:/Program Files/Opentrons/Opentrons.exe")
-_web_app: str = os.environ.get("WEB_APP_URL", "https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations")
-_station: str = os.environ.get("STATION_NAME", "A")
-_remote_protocol_file: str = os.environ.get("PROTOCOL_REMOTE", "/var/lib/jupyter/notebooks/protocol.py")
-_local_protocol_file: str = os.environ.get("PROTOCOL_LOCAL", "./.protocol.py")
-_message_lang: str = os.environ.get("PROTOCOL_LANG", "ENG")
+_env_defaults = {} 
+with open(os.path.join(os.path.dirname(__file__), "env_defaults.json"), "r") as f:
+    _env_defaults = json.load(f)
+
+
+def environ_get(key: str):
+    return os.environ.get(key, _env_defaults.get(key, None))
+
+
+_ot_2_ip: str = environ_get("OT2IP")
+_icon_file: str = environ_get("ICON_FILE")
+_icon_url: str = environ_get("ICON_URL")
+_logo_file: str = environ_get("LOGO_FILE")
+_logo_url: str = environ_get("LOGO_URL")
+_opentrons_app: str = environ_get("OPENTRONS_APP")
+_web_app: str = environ_get("WEB_APP_URL")
+_station: str = environ_get("STATION_NAME")
+_remote_protocol_file: str = environ_get("PROTOCOL_REMOTE")
+_local_protocol_file: str = environ_get("PROTOCOL_LOCAL")
+_message_lang: str = environ_get("PROTOCOL_LANG")
 _kill_app: bool = True
 
 

@@ -1,0 +1,13 @@
+{
+  "OT2IP": "",
+  "ICON_FILE": "./Covmatic_Icon.jpg",
+  "ICON_URL": "https://covmatic.org/wp-content/uploads/2020/10/cropped-Favicon-180x180.jpg",
+  "LOGO_FILE": "./Covmatic_Logo.png",
+  "LOGO_URL": "https://covmatic.org/wp-content/uploads/2020/06/logo-1.png",
+  "OPENTRONS_APP": "C:/Program Files/Opentrons/Opentrons.exe",
+  "WEB_APP_URL": "https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations",
+  "STATION_NAME": "A",
+  "PROTOCOL_REMOTE": "/var/lib/jupyter/notebooks/protocol.py",
+  "PROTOCOL_LOCAL": "./.protocol.py",
+  "PROTOCOL_LANG": "ENG"
+}

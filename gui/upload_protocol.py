@@ -1,9 +1,10 @@
 import tkinter as tk
 import tkinter.filedialog
 from .button_frames import ButtonFrameBase
-from . import _station, _remote_protocol_file, _local_protocol_file, set_ico, get_logo, _message_lang, warningbox, _ot_2_ip
+from .images import set_ico, get_logo
+from .utils import warningbox, SSHClient
+from .args import Args
 from services import protocol_gen
-from services.task_runner import SSHClient
 from functools import partial
 import os
 from typing import List
@@ -14,7 +15,7 @@ class ProtocolDefinition(tk.Frame):
         super(ProtocolDefinition, self).__init__(parent, *args, **kwargs)
         self._logo_photo = get_logo(resize=0.1)
         self._logo = tk.Label(self, image=self._logo_photo)
-        self._ip_label = tk.Label(self, text=_ot_2_ip)
+        self._ip_label = tk.Label(self, text=Args().ip)
         self._logo.grid(row=0, columnspan=2)
         self._ip_label.grid(row=1, columnspan=2)
         
@@ -80,7 +81,7 @@ class MenuButton(tk.Menubutton):
 class StationsMenu(MenuButton, metaclass=ProtocolDefinitionLeft.button):
     text: str = "Station"
     opts = protocol_gen._classes.keys()
-    dflt = _station
+    dflt = Args().station
     
     def __init__(self, parent, *args, **kwargs):
         kwargs["width"] = kwargs.get("width", max(19, max(map(len, protocol_gen._classes.keys()))))
@@ -108,20 +109,20 @@ class UploadButton(metaclass=ProtocolDefinitionRight.button):
     
     @warningbox
     def command(self):
-        if not os.path.exists(os.path.dirname(_local_protocol_file)):
-            os.makedirs(os.path.dirname(_local_protocol_file))
-        with open(_local_protocol_file, "w") as f:
+        if not os.path.exists(os.path.dirname(Args().protocol_local)):
+            os.makedirs(os.path.dirname(Args().protocol_local))
+        with open(Args().protocol_local, "w") as f:
             f.write(self.parent.parent.generate())
         with SSHClient() as client:
-            client.exec_command("mkdir -p {}".format(os.path.dirname(_remote_protocol_file)))
+            client.exec_command("mkdir -p {}".format(os.path.dirname(Args().protocol_remote)))
             with client.scp_client() as scp_client:
-                scp_client.put(_local_protocol_file, _remote_protocol_file)
+                scp_client.put(Args().protocol_local, Args().protocol_remote)
 
 
 class LangMenu(MenuButton, metaclass=ProtocolDefinitionRight.button):
     text: str = "Language"
     opts: List[str] = sorted(["ENG", "ITA"])
-    dflt: str = _message_lang
+    dflt: str = Args().lang
 
 
 if __name__ == "__main__":

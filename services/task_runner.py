@@ -10,34 +10,24 @@ import json
 import subprocess
 import os
 from os import environ
+from gui.args import Args
 
 
 # PCR API name and path
-PCR_API_NAME = 'BioRad.Example_Application.exe'
-PCR_PATH = 'C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.4/'
+if not Args().__dict__:
+    Args.parse("Task runner.")
+if not os.path.exists(Args().ssh_key):
+    raise FileNotFoundError("Cannot find SSH key file '{}'".format(Args().ssh_key))
 
-OT2_SSH_KEY = environ.get("OT2_SSH_KEY", './ot2_ssh_key')
-if not os.path.exists(OT2_SSH_KEY):
-    raise FileNotFoundError("Cannot find SSH key file '{}'".format(OT2_SSH_KEY))
-    
-# Path of the protocols inside the Robots
-OT2_PROTOCOL_PATH = '/var/lib/jupyter/notebooks'
-# Protocol namefiles
-OT2_PROTOCOL_NAME = 'protocol.py'
-OT2_REMOTE_LOG_FILEPATH = '/var/lib/jupyter/notebooks/outputs/completion_log.json'
-# OT-2-IP is the name of environment variable in order to fix the IPs of the robot
-OT2_TARGET_IP_ADDRESS = environ['OT2IP']
-# OT2_TARGET_IP_ADDRESS = '10.213.55.216'  # Only for debugging
-OT2_ROBOT_PASSWORD = environ["OT2_PWD"]  # Opentrons password of the ssh key
+
 TASK_QUEUE_POLLING_INTERVAL = 5
 # TASK_RUNNING = False
-
 app = object()
 scheduler = Timeloop()
 
 
 def print_info():
-    print("Target Opentrons IP: {}".format(OT2_TARGET_IP_ADDRESS))
+    print("Target Opentrons IP: {}".format(Args().ip))
 
 
 class SSHClient(pk.SSHClient):
@@ -49,7 +39,7 @@ class SSHClient(pk.SSHClient):
             self.close()
             return exc_val is None
         
-    def __init__(self, usr: str = "root", ip_addr: str = OT2_TARGET_IP_ADDRESS, key_file: str = OT2_SSH_KEY, pwd: str = OT2_ROBOT_PASSWORD, connect_kwargs: dict = {}):
+    def __init__(self, usr: str = Args().user, ip_addr: str = Args().ip, key_file: str = Args().ssh_key, pwd: str = Args().pwd, connect_kwargs: dict = {}):
         super(SSHClient, self).__init__()
         self._usr = usr
         self._ip_addr = ip_addr
@@ -73,23 +63,23 @@ class SSHClient(pk.SSHClient):
 def create_ssh_client(usr, key_file, pwd):
     client = pk.SSHClient()  # Create an object SSH client
     client.set_missing_host_key_policy(pk.AutoAddPolicy())  # It is needed to add the device policy
-    client.connect(OT2_TARGET_IP_ADDRESS, username=usr, key_filename=key_file, password=pwd)
+    client.connect(Args().ip, username=usr, key_filename=key_file, password=pwd)
     return client
 
 
 def ssh_scp():
-    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-    name_filepath = "./log_{}.json".format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
+    client = create_ssh_client(usr=Args().user, key_file=Args().ssh_key, pwd=Args().pwd)
+    name_filepath = Args().log_local.format(datetime.now().strftime("%m-%d-%Y_%H_%M_%S"))
     
     try:
         scp_client = SCPClient(client.get_transport())
-        scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=name_filepath)
+        scp_client.get(remote_path=Args().log_remote, local_path=name_filepath)
     except SCPException as e:
         print("Error retrieving remote logfile")
         print("{}".format(e))
     finally:
         scp_client.close()
-        
+    
     return name_filepath
 
 
@@ -114,9 +104,9 @@ def check_new_tasks():
                 if action == "stationA":  # Purebase P1000S
                     print("Performing Pre-Incubation Protocol V1")  # For Debugging
                     ####################################################################################
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                    client = create_ssh_client(usr=Args().user, key_file=Args().ssh_key, pwd=Args().pwd)
                     channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_NAME))
+                    channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
                     channel.send('exit \n')
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))
@@ -128,9 +118,9 @@ def check_new_tasks():
                 print("Performing Protocol")  # For Debugging
                 ###################################################################################
                 if action == "stationB":
-                    client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                    client = create_ssh_client(usr=Args().user, key_file=Args().ssh_key, pwd=Args().pwd)
                     channel = client.invoke_shell()
-                    channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_NAME))
+                    channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
                     channel.send('exit \n')
                     code = channel.recv_exit_status()
                     print("I got the code: {}".format(code))
@@ -140,16 +130,16 @@ def check_new_tasks():
             elif station == 3:  # station C
                 print("Performing Protocol")  # for Debugging
                 ####################################################################################
-                client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
+                client = create_ssh_client(usr=Args().user, key_file=Args().ssh_key, pwd=Args().pwd)
                 channel = client.invoke_shell()
-                channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_PROTOCOL_NAME))
+                channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
                 channel.send('exit \n')
                 code = channel.recv_exit_status()
                 print("I got the code: {}".format(code))
                 local_filepath = ssh_scp()
             elif station == 4:  # PCR
                 if action == "PCR":
-                    subprocess.call(PCR_PATH + PCR_API_NAME)
+                    subprocess.call(Args().pcr_app)
                 else:
                     print("Action not defined")
             else:

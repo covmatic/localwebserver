@@ -16,16 +16,16 @@ import time
 from typing import Optional, Any
 # from services.task_runner import create_ssh_client
 # from scp import SCPClient
-from services.task_runner import OT2_TARGET_IP_ADDRESS
+from gui.args import Args
 import threading
 import signal
+from .utils import SingletonMeta
 
 
 # from services.task_runner import OT2_SSH_KEY, OT2_ROBOT_PASSWORD, OT2_REMOTE_LOG_FILEPATH
 
-
-PCR_result_file_scheme = '????????_Data_??-??-????_??-??-??_Result.json'
-PCR_results_path = 'C:/PCR_BioRad/json_results/'
+if not Args().__dict__:
+    Args.parse("API protocol automation.")
 
 
 def gui_user_input(f, *args, **kwargs):
@@ -37,28 +37,6 @@ def gui_user_input(f, *args, **kwargs):
     s = f(*args, **kwargs)
     root.destroy()
     return s
-
-
-class SingletonMeta(type):
-    def __new__(meta, name, bases, classdict):
-        def new(cls, code: Optional[Any] = None):
-            if cls._inst is None:
-                cls._inst = None if code is None else super(getattr(os.sys.modules[__name__], name), cls).__new__(cls, code)
-            return cls._inst
-        
-        classdict["__new__"] = classdict.get("__new__", new)
-        return super(SingletonMeta, meta).__new__(meta, name, bases, classdict)
-    
-    def __init__(cls, name, bases, classdict):
-        super(SingletonMeta, cls).__init__(name, bases, classdict)
-        cls._inst = None
-    
-    def reset(cls, code: Optional[Any] = None):
-        del cls._inst
-        cls._inst = None
-        if code is not None:
-            cls._inst = cls(code)
-        return cls._inst
 
 
 class BarcodeSingleton(str, metaclass=SingletonMeta):
@@ -155,7 +133,7 @@ class CheckFunction(Resource):
                 return "There has been an error in execution, please verify and try again", 400
             else:
                 # Searching all PCR results file
-                PCR_result_file = glob.glob(PCR_results_path + PCR_result_file_scheme)
+                PCR_result_file = glob.glob(Args().pcr_results)
                 # Sorting the PCR's results
                 PCR_result_file.sort(key=os.path.getctime)
                 # Check if the results are available
@@ -175,7 +153,7 @@ class CheckFunction(Resource):
         else:
             with CheckFlag.lock:
                 try:
-                    rv = requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/log")
+                    rv = requests.get("http://{}:8080/log".format(Args().ip))
                 except requests.exceptions.ConnectionError:
                     print("connection error")
                 else:
@@ -184,8 +162,8 @@ class CheckFunction(Resource):
                         CheckFunction.bak(rv.json())
                 finally:
                     output = CheckFunction.bak()
-                if BarcodeSingleton() is None and output.get("external", False):
-                    BarcodeSingleton(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
+                if not BarcodeSingleton() and output.get("external", False):
+                    BarcodeSingleton.reset(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
             
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
             return {
@@ -202,7 +180,7 @@ class CheckFunction(Resource):
 # noinspection PyMethodMayBeStatic
 class PauseFunction(Resource):
     def get(self):
-        requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/pause")
+        requests.get("http://{}:8080/pause".format(Args().ip))
         return {"status": False, "res": "Pausa"}, 200
 
 
@@ -211,11 +189,11 @@ class PauseFunction(Resource):
 class ResumeFunction(Resource):
     @staticmethod
     def _resume():
-        return requests.get("http://" + OT2_TARGET_IP_ADDRESS + ":8080/resume")
+        return requests.get("http://{}:8080/resume".format(Args().ip))
     
     @locked(CheckFlag.lock)
     def get(self):
-        if BarcodeSingleton() is not None:
+        if BarcodeSingleton():
             while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
                 pass
             self._resume()

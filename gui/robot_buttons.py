@@ -1,9 +1,10 @@
 import tkinter as tk
 from .button_frames import ButtonFrameBase, classproperty
 from .buttons import ColorChangingButton, ColorChangingTimerButton
-from . import _ot_2_ip, set_ico
+from .images import set_ico
+from .args import Args
 from .upload_protocol import ProtocolDefinition
-from services.task_runner import SSHClient
+from .utils import SSHClient
 import webbrowser
 import requests
 import json
@@ -79,7 +80,7 @@ class LightsButton(ColorChangingButton, metaclass=RobotButtonFrame.button):
     
     @property
     def url(self) -> str:
-        return "http://{}{}".format(_ot_2_ip, self.endpoint)
+        return "http://{}{}".format(Args().ip, self.endpoint)
     
     @property
     def state(self) -> bool:
@@ -109,7 +110,7 @@ class HomeButton(metaclass=RobotButtonFrame.button):
     
     @property
     def url(self) -> str:
-        return "http://{}{}".format(_ot_2_ip, self.endpoint)
+        return "http://{}{}".format(Args().ip, self.endpoint)
     
     def command(self):
         try:
@@ -151,7 +152,7 @@ class JupyterButton(metaclass=RobotButtonFrame.button):
     
     @property
     def url(self) -> str:
-        return "http://{}{}".format(_ot_2_ip, self.endpoint)
+        return "http://{}{}".format(Args().ip, self.endpoint)
     
     def command(self):
         webbrowser.open(self.url)

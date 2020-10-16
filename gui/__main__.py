@@ -1,8 +1,22 @@
+"""Launch the GUI for the local machine."""
+from .args import Args
+
+
+Args.parse(__doc__)
+
+
 import tkinter as tk
+from .utils import try_ssh
+
+
+if not try_ssh():
+    raise RuntimeError("Cannot connect to {}".format(Args().ip))
+
+
 from .robot_buttons import RobotButtonFrame
 from .app_buttons import AppButtonFrame
-from . import set_ico, get_logo, _ot_2_ip
-    
+from .images import set_ico, get_logo
+
 
 class Covmatic(tk.Frame):
     def __init__(self,
@@ -10,7 +24,7 @@ class Covmatic(tk.Frame):
         *args, **kwargs
     ):
         super(Covmatic, self).__init__(parent, *args, **kwargs)
-        self._ip_label = tk.Label(self, text=_ot_2_ip)
+        self._ip_label = tk.Label(self, text=Args().ip)
         self._empty_label = tk.Label(self, text=" ")
         self._logo_photo = get_logo(resize=0.1)
         self._logo = tk.Label(self, image=self._logo_photo)
@@ -24,12 +38,11 @@ class Covmatic(tk.Frame):
         self._app_buttons.grid(row=3, column=1, sticky=tk.N)
 
 
-if __name__ == "__main__": 
-    root = tk.Tk()
-    root.title('Covmatic GUI')
-    set_ico(root)
-    
-    covmatic = Covmatic(root)
-    covmatic.grid()
-    
-    root.mainloop()
+root = tk.Tk()
+root.title('Covmatic GUI')
+set_ico(root)
+
+covmatic = Covmatic(root)
+covmatic.grid()
+
+root.mainloop()

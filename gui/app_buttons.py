@@ -1,6 +1,6 @@
 from .button_frames import ButtonFrameBase
 from .buttons import OnOffSubprocessButton, ColorChangingSubprocessButton
-from . import _web_app, _opentrons_app
+from .args import Args
 import os
 import webbrowser
 from typing import Tuple, List
@@ -18,8 +18,8 @@ class OpentronsButton(ColorChangingSubprocessButton, metaclass=AppButtonFrame.bu
     def url(self) -> str:
         return "http://127.0.0.1{}".format(self.endpoint)
     
-    def __init__(self, parent, app_file: str = _opentrons_app, *args, **kwargs):
-        self._app_file = app_file 
+    def __init__(self, parent, app_file: str = Args().app, *args, **kwargs):
+        self._app_file = app_file
     
     def check_app(self) -> bool:
         return os.path.exists(self._app_file) and os.path.isfile(self._app_file)
@@ -59,5 +59,5 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
 class WebAppButton(metaclass=AppButtonFrame.button):
     text: str = "Web App"
     
-    def command(self, app_url: str = _web_app):
+    def command(self, app_url: str = Args().web_app):
         webbrowser.open(app_url)

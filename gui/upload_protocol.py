@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.filedialog
+import tkinter.messagebox
 from .button_frames import ButtonFrameBase
 from .images import set_ico, get_logo
 from .utils import warningbox, SSHClient
@@ -8,6 +9,7 @@ from services import protocol_gen
 from functools import partial
 import os
 from typing import List
+from api.utils import SingletonMeta
 
 
 class ProtocolDefinition(tk.Frame):
@@ -88,35 +90,59 @@ class StationsMenu(MenuButton, metaclass=ProtocolDefinitionLeft.button):
         super(StationsMenu, self).__init__(parent, *args, **kwargs)
 
 
+class NumSamples(int, metaclass=SingletonMeta):
+    pass
+
+
 class SaveButton(metaclass=ProtocolDefinitionRight.button):
     text = "Save"
     
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
     
+    @property
+    def ns(self) -> int:
+        return self.parent.parent.ns.get()
+    
     @warningbox
     def command(self):
         s = self.parent.parent.generate()
-        with tk.filedialog.asksaveasfile(title="Save Protocol", defaultextension=".py", filetypes=(("python scripts", "*.py"),)) as f:
+        Args().protocol_local = tk.filedialog.asksaveasfilename(title="Save Protocol", defaultextension=".py", filetypes=(("python scripts", "*.py"),))
+        with open(Args().protocol_local, "w") as f:
             f.write(s)
+            NumSamples.reset(self.ns)
 
 
 class UploadButton(metaclass=ProtocolDefinitionRight.button):
+    last_n = None
     text = "Upload"
     
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
     
+    @property
+    def ns(self) -> int:
+        return self.parent.parent.ns.get()
+    
     @warningbox
     def command(self):
+        s = self.parent.parent.generate()
         if not os.path.exists(os.path.dirname(Args().protocol_local)):
             os.makedirs(os.path.dirname(Args().protocol_local))
-        with open(Args().protocol_local, "w") as f:
-            f.write(self.parent.parent.generate())
+        generate = not os.path.exists(Args().protocol_local) or NumSamples() != self.ns
+        if generate:
+            with open(Args().protocol_local, "w") as f:
+                f.write(s)
+            NumSamples.reset(self.ns)
         with SSHClient() as client:
             client.exec_command("mkdir -p {}".format(os.path.dirname(Args().protocol_remote)))
             with client.scp_client() as scp_client:
                 scp_client.put(Args().protocol_local, Args().protocol_remote)
+            tk.messagebox.showinfo("Uploaded", (
+                "Generated new protocol:\n{}\n\nUploaded to\n{}"
+                if generate else
+                "Loaded protocol from disk:\n{}\n\nUploaded to\n{}"
+            ).format(Args().protocol_local, Args().protocol_remote))
 
 
 class LangMenu(MenuButton, metaclass=ProtocolDefinitionRight.button):

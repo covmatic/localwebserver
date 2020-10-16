@@ -15,6 +15,7 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('-K', '--ssh-key', metavar='file', type=str, default="./ot2_ssh_key", help="SSH key file path")
         parser.add_argument('-P', '--pwd', metavar='pwd', type=str, default="", help="the SSH key passphrase")
         parser.add_argument('-U', '--user', metavar='name', type=str, default="root", help="the SSH username")
+        parser.add_argument('--barcode-port', metavar='port', type=int, default=5002, help="the barcode server port")
         parser.add_argument('--pcr-app', metavar="path", type=str, default="C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.4/BioRad.Example_Application.exe", help="the PCR app filepath")
         parser.add_argument('--pcr-results', metavar="path", type=str, default="C:/PCR_BioRad/json_results/????????_Data_??-??-????_??-??-??_Result.json", help="the PCR results filepath (scheme)")
         parser.add_argument('--web-app', metavar='url', type=str, default="https://ec2-15-161-32-20.eu-south-1.compute.amazonaws.com/stations", help="the Web App URL")

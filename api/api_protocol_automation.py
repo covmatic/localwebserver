@@ -162,8 +162,9 @@ class CheckFunction(Resource):
                         CheckFunction.bak(rv.json())
                 finally:
                     output = CheckFunction.bak()
-                if not BarcodeSingleton() and output.get("external", False):
-                    BarcodeSingleton.reset(gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of exiting rack"))
+                if output.get("external", False):
+                    while not BarcodeSingleton():
+                        BarcodeSingleton.reset(requests.get("http://127.0.0.1:{}/exit".format(Args().barcode_port)).content.decode('ascii'))
             
             # RITORNA LO STATO E LO STAGE AL WEBINTERFACE
             return {
@@ -194,11 +195,12 @@ class ResumeFunction(Resource):
     @locked(CheckFlag.lock)
     def get(self):
         if BarcodeSingleton():
-            while gui_user_input(simpledialog.askstring, title="Barcode", prompt="Input barcode of entering rack") != BarcodeSingleton():
+            while requests.get("http://127.0.0.1:{}/enter".format(Args().barcode_port)).content.decode('ascii') != BarcodeSingleton():
                 pass
             self._resume()
-            time.sleep(1)
-            BarcodeSingleton.reset()
+            t = threading.Timer(1, BarcodeSingleton.reset)
+            t.start()
+            t.join()
         else:
             self._resume()
         return {"status": False, "res": "Resumed"}, 200

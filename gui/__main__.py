@@ -43,7 +43,7 @@ class Covmatic(tk.Frame):
     
     def destroy(self):
         super(Covmatic, self).destroy()
-        self._barcode_server.join()
+        # self._barcode_server.join()
 
 
 root = tk.Tk()

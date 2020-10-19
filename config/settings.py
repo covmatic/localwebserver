@@ -16,7 +16,7 @@ class ProductionConfig(BaseConfig):
 
 
 class TestConfig(BaseConfig):
-    SQLALCHEMY_DATABASE_URI = "sqlite:///store\\app.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///store/app.db"
     FLASK_ENV = "test"
     # OpenTrons protocol modules
     OT2_MODULES_PATH = r"C:\Development\Charity\LocalWebServer\opentrons_modules"

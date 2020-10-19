@@ -31,7 +31,7 @@ class UpdateSystem(ColorChangingButton, metaclass=RobotButtonFrame.button):
     
     @classproperty
     def text(self) -> str:
-        return "System9 v{}".format(self.current_version())
+        return "System9 {}".format(self.current_version())
     
     @staticmethod
     def local_path(file: str):

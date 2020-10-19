@@ -39,7 +39,7 @@ class UpdateSystem(ColorChangingButton, metaclass=RobotButtonFrame.button):
     
     @classmethod
     def remote_path(cls, file: str):
-        return os.path.join(cls.remote_dir, file)
+        return "/".join((cls.remote_dir, file))
     
     @classmethod
     def paths(cls, file: str):

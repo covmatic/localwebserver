@@ -115,10 +115,12 @@ class SaveButton(metaclass=ProtocolDefinitionRight.button):
     @warningbox
     def command(self):
         s = self.parent.parent.generate()
-        Args().protocol_local = tk.filedialog.asksaveasfilename(title="Save Protocol", defaultextension=".py", filetypes=(("python scripts", "*.py"),))
-        with open(Args().protocol_local, "w") as f:
-            f.write(s)
-            NumSamples.reset(self.ns)
+        fname = tk.filedialog.asksaveasfilename(title="Save Protocol", defaultextension=".py", filetypes=(("python scripts", "*.py"),))
+        if fname:
+            Args().protocol_local = fname
+            with open(Args().protocol_local, "w") as f:
+                f.write(s)
+                NumSamples.reset(self.ns)
 
 
 class UploadButton(metaclass=ProtocolDefinitionRight.button):

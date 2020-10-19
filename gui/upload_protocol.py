@@ -1,7 +1,6 @@
 import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
-from .buttons import _palette
 from .button_frames import ButtonFrameBase
 from .images import set_ico, get_logo
 from .utils import warningbox, SSHClient
@@ -37,21 +36,16 @@ class ProtocolDefinition(tk.Frame):
         self.ns = tk.IntVar()
         self._numsamples = tk.Entry(self._left, textvariable=self.ns)
         self._numsamples.grid()
-        self._left.grid(row=2, column=0, sticky=tk.S)
+        
+        self._tiplog_label = tk.Label(self._left, text="Next tips")
+        self._tiplog_label.grid()
+        self._left.grid()
         
         self._right = ProtocolDefinitionRight(self)
         self._right.grid(row=2, column=1, sticky=tk.S)
         
-        self._tiplog_left = tk.Frame(self)
-        self._tiplog_label = tk.Label(self._tiplog_left, text="Next tips")
-        self._tiplog_label.grid()
-        self._tiplog_box = TipLog(self._tiplog_left)
-        self._tiplog_box.grid()
-        
-        self._tiplog_left.grid(row=3, column=0, sticky=tk.N+tk.E+tk.W)
-        
-        self._tiplog_reset = tk.Button(self, text="Reset", **_palette["off"], command=self._tiplog_box.reset)
-        self._tiplog_reset.grid(row=3, column=1, sticky=tk.N+tk.E+tk.W)
+        self._tiplog_box = TipLog(self)
+        self._tiplog_box.grid(row=3, columnspan=2, sticky=tk.E+tk.W)
     
     def generate(self) -> str:
         if self.ns.get() <= 0:
@@ -159,6 +153,12 @@ class UploadButton(metaclass=ProtocolDefinitionRight.button):
             ).format(Args().protocol_local, Args().protocol_remote))
 
 
+class LangMenu(MenuButton, metaclass=ProtocolDefinitionRight.button):
+    text: str = "Language"
+    opts: List[str] = sorted(["ENG", "ITA"])
+    dflt: str = Args().lang
+
+
 class TipLog(tk.Text):
     def __init__(self, parent, height=8, width=24, state=tk.DISABLED, **kwargs):
         super(TipLog, self).__init__(parent, height=height, width=width, state=state, **kwargs)
@@ -193,10 +193,14 @@ class TipLog(tk.Text):
         self.config(state=tk.DISABLED)
 
 
-class LangMenu(MenuButton, metaclass=ProtocolDefinitionRight.button):
-    text: str = "Language"
-    opts: List[str] = sorted(["ENG", "ITA"])
-    dflt: str = Args().lang
+class TipLogResetButton(metaclass=ProtocolDefinitionRight.button):
+    text: str = "Reset Tips"
+    
+    def __init__(self, parent, *args, **kwargs):
+        self.parent = parent
+    
+    def command(self):
+        self.parent.parent._tiplog_box.reset()
 
 
 if __name__ == "__main__":

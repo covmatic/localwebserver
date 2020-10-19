@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
+from .buttons import _palette
 from .button_frames import ButtonFrameBase
 from .images import set_ico, get_logo
 from .utils import warningbox, SSHClient
@@ -8,6 +9,8 @@ from .args import Args
 from services import protocol_gen
 from functools import partial
 import os
+from scp import SCPException
+import json
 from typing import List
 from api.utils import SingletonMeta
 
@@ -38,6 +41,17 @@ class ProtocolDefinition(tk.Frame):
         
         self._right = ProtocolDefinitionRight(self)
         self._right.grid(row=2, column=1, sticky=tk.S)
+        
+        self._tiplog_left = tk.Frame(self)
+        self._tiplog_label = tk.Label(self._tiplog_left, text="Next tips")
+        self._tiplog_label.grid()
+        self._tiplog_box = TipLog(self._tiplog_left)
+        self._tiplog_box.grid()
+        
+        self._tiplog_left.grid(row=3, column=0, sticky=tk.N+tk.E+tk.W)
+        
+        self._tiplog_reset = tk.Button(self, text="Reset", **_palette["off"], command=self._tiplog_box.reset)
+        self._tiplog_reset.grid(row=3, column=1, sticky=tk.N+tk.E+tk.W)
     
     def generate(self) -> str:
         if self.ns.get() <= 0:
@@ -143,6 +157,40 @@ class UploadButton(metaclass=ProtocolDefinitionRight.button):
                 if generate else
                 "Loaded protocol from disk:\n{}\n\nUploaded to\n{}"
             ).format(Args().protocol_local, Args().protocol_remote))
+
+
+class TipLog(tk.Text):
+    def __init__(self, parent, height=8, width=24, state=tk.DISABLED, **kwargs):
+        super(TipLog, self).__init__(parent, height=height, width=width, state=state, **kwargs)
+        self.update()
+    
+    @warningbox
+    def reset(self):
+        with SSHClient() as client:
+            client.exec_command("rm -f {}".format(Args().tip_log_remote))
+        self.update()
+    
+    @property
+    def tip_log(self) -> str:
+        s = ""
+        try:
+            with SSHClient() as client:
+                with client.scp_client() as scp_client:
+                    scp_client.get(Args().tip_log_remote, Args().tip_log_local)
+        except SCPException as e:
+            s = "tip log not found\nstarting from the beginning"
+        else:
+            with open(Args().tip_log_local, "r") as f:
+                j = json.load(f)
+            s = "\n\n".join("{}\n{}".format(k.replace("_", " ").strip(), v) for k, v in j.get("next", {}).items())
+        return s
+    
+    def update(self):
+        self.config(state=tk.NORMAL)
+        self.delete(1.0, "end")
+        self.insert(1.0, self.tip_log)
+        super(TipLog, self).update()
+        self.config(state=tk.DISABLED)
 
 
 class LangMenu(MenuButton, metaclass=ProtocolDefinitionRight.button):

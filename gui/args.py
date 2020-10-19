@@ -25,6 +25,8 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('--logo-url', metavar='url', type=str, default="https://covmatic.org/wp-content/uploads/2020/06/logo-1.png", help="remote URL for Covmatic logo")
         parser.add_argument('--log-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/outputs/completion_log.json", help="remote file path for completion log file")
         parser.add_argument('--log-local', metavar='path', type=str, default="./log_{}.json", help="local file path for completion log file (formattable with timestamp)")
+        parser.add_argument('--tip-log-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/outputs/tip_log.json", help="remote file path for tip log file")
+        parser.add_argument('--tip-log-local', metavar='path', type=str, default="./tip_log.json", help="local file path for tip log file")
         parser.add_argument('--protocol-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/protocol.py", help="remote file path for protocol file")
         parser.add_argument('--protocol-local', metavar='path', type=str, default="./.tmp_protocol.py", help="local file path for protocol file")
         return cls.reset(**parser.parse_args().__dict__)

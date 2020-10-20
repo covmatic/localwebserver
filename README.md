@@ -12,6 +12,7 @@ Consult our [wiki](https://github.com/OpenSourceCovidTesting/localWebServer/wiki
 * [Setup](#setup)
 * [Execute the program](#execute-the-program)
   * [Overview](#overview)
+  * [TempDeck GUI](#tempdeck-gui)
 * [Things to do](#things-to-do)
 * [Troubleshooting](#troubleshooting)
 * [Licence](#licence)
@@ -99,6 +100,23 @@ The protocol upload window allows you to specify protocol parameters and upload 
  - Reset tips button. This button resets the tip log. The robot will start picking tips from the first position of each rack.
    This button has immediate effect on the robot.
 
+### TempDeck GUI
+This GUI allows you to control multiple Opentrons Temperature modules (the *TempDeck*) connected via USB to your laptop.
+You can find more information about it [here](https://support.opentrons.com/en/articles/1820119-temperature-module).
+
+To open the GUI, you can do one of the following
+  - Go to the `localWebServer` directory and execute in a terminal:
+  
+    ```
+    python -m gui.tempdeck
+    ```
+  - On Windows, double click on [`TempDeck.bat`](TempDeck.bat)
+
+There is an entry field where you can specify the target temperature.
+There are 3 buttons
+- Refresh button. Rescan the USB ports to update the list of connected TempDecks.
+- Set button. Set the temperature of all connected TempDecks to the specified temperature.
+- Deactivate button. Deactivate all connected TempDeks.
 
 ## Things to do
 

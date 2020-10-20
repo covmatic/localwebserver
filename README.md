@@ -9,161 +9,110 @@ Consult our [wiki](https://github.com/OpenSourceCovidTesting/localWebServer/wiki
 
 ## Table of Contents
 
+* [Setup](#setup)
 * [Execute the program](#execute-the-program)
+  * [Overview](#overview)
 * [Things to do](#things-to-do)
-* [IT Technicians instructions](#instruction-for-it-technicians)
-    * [Task Runner](#task-runner)
-    * [api_protocol_automation](#api-protocol-automation)
-    * [Troubleshooting](#troubleshooting)
+* [Troubleshooting](#troubleshooting)
 * [Licence](#licence)
 
-## Execute the program
+## Setup
 
 1. Download from Github the latest version: on **MVP branch** there
 is the testing code
 
-2. Open the commander (prompt of the command) in the same directory
-of the downloaded repository
+2. Go your user home directory. Usually it is
+   - `C:/Users/<user>` on Windows
+   - `/home/<user>` on Linux
 
-3. Assign the IP or the localhost name of the robot to the environment variable
-called `OT-2-IP` 
+   Create a file named `covmatic.conf`. In this file you can specify custom settings. Required settings are
+   - `ip`: the ip address or hostname of the Opentrons robot you want to connext to
+   - `pwd`: the passphrase for the SSH key used when connecting to the Opentrons robot
+   
+   Other useful settings are:
+   - `ssh-key`: SSH key file path (default is `./ot2_ssh_key`). Please, make sure you have the correct SSH key file in the specified path. If you get authentication errors, this is the setting you want to check first.
+   - `path`: the Opentrons App filepath (default is `C:/Program Files/Opentrons/Opentrons.exe`)
+   - `station name`: the name of the default station protocol (default is `A`)
+   - `lang`: the default message language (default is `ENG`)
+   
+   For a complete list of settings, go to the `localWebServer` directory and execute in a terminal:
+   ```
+   python -m gui -h
+   ```
 
-4. Install the needed requirements with: `pip install -r requirements.txt`
- and wait the completion
+3. Install the needed requirements. Go to the `localWebServer` directory and execute in a terminal:
+   ```
+   python -m pip install -r requirements.txt
+   ```
+   This step will download files from the internet and it may take a couple of minutes.
  
-5. Run the [`app.py`](app.py) with: `python app.py`
+## Execute the program
+Run the [`gui`](gui). You can do one of the following
+  - Go to the `localWebServer` directory and execute in a terminal:
+  
+    ```
+    python -m gui
+    ```
+  - On Windows, double click on [`LocalWebServer.bat`](LocalWebServer.bat)
 
-> If you want to avoid to the passage 4, write a .bat file with inside
-> `python app.py`
+### Overview
+The GUI has a main window where you can see
+ - The Covmatic logo
+ - The robot ip/hostname
+ - Two columns of buttons
+Please, check that the ip/hostname corresponds to the robot you want to connect to.
+If the robot is offline, the GUI exits with a RuntimeError (`Cannot connect to <ip/hostname>`)
 
-> Pay attention to have the `ot2_ssh_key` and `ot2_ssh_key.pub`
-> on the root folder of the repository
+In the first column you will find buttons for functions strictly related to robot
+ - Package version button.
+ This button shows the current version of the protocol package installed on the robot.
+ It should read `System9 <version>`.
+If the button is blue, the package is up to date.
+If the button is white, the package is outdated: by clicking the button, you can update the package to the latest version (this may take a minute).
+The button should then turn blue, displaying the updated version number.
+- Robot lights button. This button allows for turning on and off the robot rail lights.
+If the button is blue, the lights are on. 
+If the button is white, the lights are off.
+By clicking the button, you can toggle the lights.
+- Home button. This button sends the robot deck home. Please, don't use this button when a protocol is running, as it may crash the process.
+- Protocol upload button. This button opens (or closes) the *Protocol upload* window.
+- Jupyter button. This buttons opens the robot's Jupyter server in a web browser.
 
-### Things to do
+In the second column you will find buttons related to services external to the robot
+- Opentrons button. This button launches the Opentrons app.
+  You will need this app for calibration procedures.
+  If the app doesn't open, please check that the app's path matches the path specified in the [configuration file](#setup)
+- LocalWebServer button. This button allows for turning on and off the local web server.
+  If the button is blue, the server is on. 
+  If the button is white, the server is off.
+  By clicking the button, you can toggle the server state.
+- WebApp button. This button opens the web app in a web browser.
 
-- [x] Tested the method of the environment variable for the IP of the robot
-- [ ] Add to the environment variable `OT-2-IP` the IP/Hostname of the robot
+#### Protocol upload
+The protocol upload window allows you to specify protocol parameters and upload the generated protocol file to the robot.
+ - Station menu. This menu allows you to specify which station protocol to use. The default choice is regulated by the [`station` setting](#setup)
+ - Number of samples entry. This entry field allows you to specify the number of samples that you want to process in your protocol
+ - Next tips. Here you can see which tip locations will be the next to be picked by the robot (for each type of tip rack).
+ - Save button. Save protocol file to a custom path.
+ - Upload button. Upload file to the robot. If this is not clicked, no changes are made to the robot's protocol.
+ - Language menu. This menu allows you to choose the message language. The default choice is regulated by the [`lang` setting](#setup)
+ - Reset tips button. This button resets the tip log. The robot will start picking tips from the first position of each rack.
+   This button has immediate effect on the robot.
+
+
+## Things to do
+
+- [x] Configuration file support for settings
 - [x] Test the newer code with the PCR results
 - [x] Added the resources for Pause and Resume
-- [ ] Tested Pause and Resume on the real system
-- [ ] Check the newer protocols
+- [x] Tested Pause and Resume on the real system
+- [x] Check the newer protocols
+- [ ] Troubleshooting section
+- [ ] Update the wiki page
 - [ ] Update the [`task_runner.py`](/services/task_runner.py)
 - [ ] Update the interface to the newest MBR
 - [ ] Testing
 - [ ] Clean the repository and the code
-
-In order to include locally on the laptop the Hostname of the robot:
-It can be done with prompt of commands:
-
-`setx OT-2-IP <HOSTNAME-OF-THE-ROBOT>`
-
-### Instruction for IT technicians
-
-#### Task runner
-The core of the program is contained inside [`task_runner.py`](services/task_runner.py)
-In that program there is a structure if-elif-else which covers all the situations
-involved for the execution of the protocols.
-For example:
-```python
-try:
-    station = protocol.station
-    action = protocol.action
-    if action == "settemp":
-        print("station 1 is setting the temperature module!")
-        ###################################################################################
-        client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-        # client = create_ssh_client(usr='root', key_file=key, pwd=target_machine_password)
-        channel = client.invoke_shell()
-        channel.send('opentrons_execute {}/{} -n \n'.format(OT2_PROTOCOL_PATH, OT2_TEMP_PROTOCOL_FILE))
-        channel.send('exit \n')
-        code = channel.recv_exit_status()
-        print("I got the code: {}".format(code))
-        local_filepath = ssh_scp()
-
-```
-
-The variable: `station = protocol.station` is the object which represents the station,
-instead: `action = protocol.action` is the object which relate the action, so the endpoint
-related to the particular protocol to execute.
-These 2 objects are used for defining what is "read" by the web interface.
-In this example you have that if the action is `settemp` (whatever is the station)
-it executes the following: 
-* Access to the machine as root with ssh
-* Invoke a shell inside the machine
-* Execute the protocols with the name stored in the variable `OT2_TEMP_PROTOCOL_FILE`
-* Exit from the ssh and printed the exit code
-* Copied in the root folder the log of the machine generated in the protocol
-
-> Important: If everything is good in the machine the error code is 0. 
->
-> E.g: `I got the code: 0`
-
-#### api protocol automation
-
-The module [`api_protocol_automation.py`](api/api_protocol_automation.py) it's another interesting
-program for working on the Opentrons side.
-Particularly inside the **<ins>class</ins>** `CheckFunction`
-there is this piece of code which shows the piece of the process in which the machine is arrived.
-
-```python
-client = create_ssh_client(usr='root', key_file=OT2_SSH_KEY, pwd=OT2_ROBOT_PASSWORD)
-scp_client = SCPClient(client.get_transport())
-logging_file = 'completion_log'
-scp_client.get(remote_path=OT2_REMOTE_LOG_FILEPATH, local_path=logging_file)
-scp_client.close()
-# Searching all logfile results file
-result_file = glob.glob('./' + logging_file)
-# Sorting the PCR's results
-result_file.sort(key=os.path.getctime)
-if result_file:
-    with open('./' + logging_file, 'r') as r:
-        status = json.load(r)
-    if status["stages"][-1]["status"] == "Progress":
-        output = status["stages"][-1]["stage_name"]
-    else:
-        output = "Starting Protocol"
-else:
-    output = "initializing"
-
-return {"status": False, "res": output}, 200
-```
-
-The code do the following:
-
-* Create a connection to the robot and get the current log
-* Searching all the files in the root folder called as `logging_file`
-* Sorting by creation time
-* Open that file and read the last one which the status is progress
-* If the log file hasn't status in Progress is at the beginning
-* If the log file isn't existing, it is initializing
-* the output is returned, note: 200 is the HTTP code: it means everything is fine.
-
-#### Troubleshooting:
-
-The main object to observe for doing troubleshooting is using the shell
-after executing the program. 
-
-1. If the robot doesn't move/no noises when you are executing the protocols:
-
-    In this case probably you are seeing on the shell something like: Windows Error - Not connected.
-    Solution: Check the `OT-2-IP` if it corrisponds to the hostname of the robot and it
-    is reachable by IP address.
-
-2. If there is shown on the interface or on the shell the code: `403 FORBIDDEN`:
-
-    It happens when the previous run for some reason was failed.
-    
-    Solution: STOP the localwebserver application, Delete the file `app.db` in the [store](store) folder
-    If you want to be sure, you can delete it each morning.
-
-3. If the execution of the protocol didn't work and/or is shown a code different from: `I got code: 0`
- 
-    Generally is something related to the protocol execution: errors in the protocol,
-     missing some custom labware loading.
-    Solution: Try to execute that protocol from the ssh connection manually, look at the error and fix.
-
-> We didn't found any critical error, if everything was perfectly setted we didn't get any errors
->or strange bugs.
 
 
 ## Special Thanks

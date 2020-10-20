@@ -41,6 +41,8 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
     def __init__(self, parent, python_exe: str = os.sys.executable, python_script: str = "./app.py", *args, **kwargs):
         self._python = python_exe
         self._script = python_script
+        self.state = True
+        self.update()
     
     def check_app(self) -> bool:
         return os.path.exists(self._python) and os.path.isfile(self._python) and os.path.exists(self._script) and os.path.isfile(self._script)

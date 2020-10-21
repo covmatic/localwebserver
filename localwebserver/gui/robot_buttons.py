@@ -1,8 +1,8 @@
 import tkinter as tk
 from .button_frames import ButtonFrameBase
 from ..utils import classproperty
-from ..ssh import SSHClient
-from .buttons import ColorChangingButton, ColorChangingTimerButton
+from ..ssh import SSHClient, try_ssh
+from .buttons import ColorChangingButton, ColorChangingTimerButton, SSHButtonMixin
 from .images import set_ico
 from ..args import Args
 from .upload_protocol import ProtocolDefinition
@@ -16,12 +16,14 @@ class RobotButtonFrame(ButtonFrameBase):
     pass
 
 
-class UpdateSystem(ColorChangingButton, metaclass=RobotButtonFrame.button):
+class UpdateSystem(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFrame.button):
     remote_dir: str = "/var/lib/jupyter/notebooks"
     system_version_file: str = "system_version.py"
     
     @classmethod
     def current_version(cls) -> str:
+        if not try_ssh():
+            return ""
         with SSHClient() as client:
             client.exec_command("mkdir -p {}".format(cls.remote_dir))
             with client.scp_client() as scp_client:
@@ -68,14 +70,14 @@ class UpdateSystem(ColorChangingButton, metaclass=RobotButtonFrame.button):
         return self.current_version() == self.latest_version()
 
     def command(self):
-        if not self.state:
+        if self.state:
             with SSHClient() as client:
                 _, sdtout, _ = client.exec_command("python -m pip install{} covid19-system9 --upgrade".format(self.pypi_index()))
                 sdtout.read()
         self.update()
 
 
-class LightsButton(ColorChangingButton, metaclass=RobotButtonFrame.button):
+class LightsButton(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFrame.button):
     text = "Robot Lights"
     endpoint = ":31950/robot/lights"
     
@@ -105,7 +107,7 @@ class LightsButton(ColorChangingButton, metaclass=RobotButtonFrame.button):
         self.update()
 
 
-class HomeButton(metaclass=RobotButtonFrame.button):
+class HomeButton(SSHButtonMixin, tk.Button, metaclass=RobotButtonFrame.button):
     text = "Home"
     endpoint = ":31950/robot/home"
     
@@ -147,7 +149,7 @@ class UploadButton(ColorChangingTimerButton, metaclass=RobotButtonFrame.button):
         super(UploadButton, self).destroy()
 
 
-class JupyterButton(metaclass=RobotButtonFrame.button):
+class JupyterButton(SSHButtonMixin, tk.Button, metaclass=RobotButtonFrame.button):
     text = "Jupyter"
     endpoint = ":48888"
     

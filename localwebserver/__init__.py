@@ -1,4 +1,9 @@
+"""Covmatic LocalWebServer."""
+from .args import Args
+
+
 __version__ = "0.0.0"
+Args.pull(__doc__)
 
 
 # Copyright (c) 2020 Covmatic.

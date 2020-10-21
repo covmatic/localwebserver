@@ -2,9 +2,10 @@ import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
 from .button_frames import ButtonFrameBase
+from .buttons import SSHButtonMixin, ConnectionLabel
 from .images import set_ico, get_logo
 from .utils import warningbox
-from ..ssh import SSHClient
+from ..ssh import SSHClient, try_ssh
 from ..args import Args
 from services import protocol_gen
 from functools import partial
@@ -12,7 +13,7 @@ import os
 from scp import SCPException
 import json
 from typing import List
-from api.utils import SingletonMeta
+from ..utils import SingletonMeta
 
 
 class ProtocolDefinition(tk.Frame):
@@ -23,10 +24,10 @@ class ProtocolDefinition(tk.Frame):
         self._ip_label = tk.Label(self, text=Args().ip)
         self._logo.grid(row=0, columnspan=2)
         self._ip_label.grid(row=1, columnspan=2)
+        self._conn_label = ConnectionLabel(self)
+        self._conn_label.grid(row=2, columnspan=2)
         
         self._left = tk.Frame(self)
-        self._empty_label = tk.Label(self._left, text=" ")
-        self._empty_label.grid()
         self._label = tk.Label(self._left, text="Station")
         self._label.grid()
         self._stationmenu = ProtocolDefinitionLeft(self._left)
@@ -40,13 +41,13 @@ class ProtocolDefinition(tk.Frame):
         
         self._tiplog_label = tk.Label(self._left, text="Next tips")
         self._tiplog_label.grid()
-        self._left.grid()
+        self._left.grid(row=3, column=0, sticky=tk.S)
         
         self._right = ProtocolDefinitionRight(self)
-        self._right.grid(row=2, column=1, sticky=tk.S)
+        self._right.grid(row=3, column=1, sticky=tk.S)
         
         self._tiplog_box = TipLog(self)
-        self._tiplog_box.grid(row=3, columnspan=2, sticky=tk.E+tk.W)
+        self._tiplog_box.grid(row=4, columnspan=2, sticky=tk.E+tk.W)
     
     def generate(self) -> str:
         if self.ns.get() <= 0:
@@ -124,7 +125,7 @@ class SaveButton(metaclass=ProtocolDefinitionRight.button):
                 NumSamples.reset(self.ns)
 
 
-class UploadButton(metaclass=ProtocolDefinitionRight.button):
+class UploadButton(SSHButtonMixin, tk.Button, metaclass=ProtocolDefinitionRight.button):
     last_n = None
     text = "Upload"
     
@@ -169,23 +170,25 @@ class TipLog(tk.Text):
     
     @warningbox
     def reset(self):
-        with SSHClient() as client:
-            client.exec_command("rm -f {}".format(Args().tip_log_remote))
+        if try_ssh():
+            with SSHClient() as client:
+                client.exec_command("rm -f {}".format(Args().tip_log_remote))
         self.update()
     
     @property
     def tip_log(self) -> str:
         s = ""
-        try:
-            with SSHClient() as client:
-                with client.scp_client() as scp_client:
-                    scp_client.get(Args().tip_log_remote, Args().tip_log_local)
-        except SCPException as e:
-            s = "tip log not found\nstarting from the beginning"
-        else:
-            with open(Args().tip_log_local, "r") as f:
-                j = json.load(f)
-            s = "\n\n".join("{}\n{}".format(k.replace("_", " ").strip(), v) for k, v in j.get("next", {}).items())
+        if try_ssh():
+            try:
+                with SSHClient() as client:
+                    with client.scp_client() as scp_client:
+                        scp_client.get(Args().tip_log_remote, Args().tip_log_local)
+            except SCPException as e:
+                s = "tip log not found\nstarting from the beginning"
+            else:
+                with open(Args().tip_log_local, "r") as f:
+                    j = json.load(f)
+                s = "\n\n".join("{}\n{}".format(k.replace("_", " ").strip(), v) for k, v in j.get("next", {}).items())
         return s
     
     def update(self):
@@ -196,7 +199,7 @@ class TipLog(tk.Text):
         self.config(state=tk.DISABLED)
 
 
-class TipLogResetButton(metaclass=ProtocolDefinitionRight.button):
+class TipLogResetButton(SSHButtonMixin, tk.Button, metaclass=ProtocolDefinitionRight.button):
     text: str = "Reset Tips"
     
     def __init__(self, parent, *args, **kwargs):

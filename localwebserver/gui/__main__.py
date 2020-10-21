@@ -1,17 +1,4 @@
 """Launch the GUI for the local machine."""
-from ..args import Args
-
-
-Args.parse(__doc__)
-
-
-from ..ssh import try_ssh
-
-
-if not try_ssh():
-    raise RuntimeError("Cannot connect to {}".format(Args().ip))
-
-
 from .gui import Covmatic
 from .images import set_ico
 import tkinter as tk

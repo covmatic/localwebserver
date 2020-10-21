@@ -1,4 +1,4 @@
-from api.utils import SingletonMeta
+from .utils import SingletonMeta
 import configargparse
 import argparse
 import os
@@ -8,7 +8,7 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
     @classmethod
     def parse(cls, description):
         parser = configargparse.ArgParser(description=description, default_config_files=[os.path.join(os.path.expanduser(d), "covmatic.conf") for d in ("~", ".")])
-        parser.add_argument('-I', '--ip', metavar='address', type=str, default="", help="the robot's IP address or hostname")
+        parser.add_argument('-I', '--ip', metavar='address', type=str, required=False, help="the robot's IP address or hostname")
         parser.add_argument('-A', '--app', metavar='path', type=str, default="C:/Program Files/Opentrons/Opentrons.exe", help="the Opentrons App filepath")
         parser.add_argument('-S', '--station', metavar='name', type=str, default="A", help="the default station type")
         parser.add_argument('-L', '--lang', metavar='lang', type=str, default="ENG", help="the default message language")
@@ -29,7 +29,15 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('--tip-log-local', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), "tip_log.json"), help="local file path for tip log file")
         parser.add_argument('--protocol-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/protocol.py", help="remote file path for protocol file")
         parser.add_argument('--protocol-local', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), ".tmp_protocol.py"), help="local file path for protocol file")
+        parser.add_argument('--api-prefix', metavar='prefix', type=str, default="/api", help="the prefix for localwebserver API paths")
+        parser.add_argument('--pcr-backup', metavar='path', type=str, default=os.path.expanduser("~/.pcr_backup"), help="the backup folder for PCR result files")
         return cls.reset(**parser.parse_args().__dict__)
+    
+    @classmethod
+    def pull(cls, description):
+        if not cls().__dict__:
+            cls.parse(description)
+        return cls()
 
 
 # Copyright (c) 2020 Covmatic.

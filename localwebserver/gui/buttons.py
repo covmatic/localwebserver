@@ -4,6 +4,7 @@ import subprocess
 import threading
 from typing import Tuple, List
 from . import _kill_app
+from ..ssh import try_ssh
 
 
 _palette = {
@@ -20,6 +21,13 @@ _palette = {
         "activeforeground": "white",
     }
 }
+
+
+class SSHButtonMixin:
+    def __init__(self, *args, **kwargs):
+        super(SSHButtonMixin, self).__init__(*args, **kwargs)
+        if not try_ssh():
+            self.config(state=tk.DISABLED)
 
 
 class SubprocessButton(tk.Button):
@@ -133,6 +141,13 @@ class ColorChangingSubprocessButton(ColorChangingTimerButton, SubprocessButton):
         self.execute()
         self.update()
 
+
+class ConnectionLabel(tk.Label):
+    def __init__(self, parent, text=None, *args, **kwargs):
+        if text is None:
+            text = " " if try_ssh() else "(disconnected)"
+        super(ConnectionLabel, self).__init__(parent, *args, text=text, **kwargs)
+        
 
 # Copyright (c) 2020 Covmatic.
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

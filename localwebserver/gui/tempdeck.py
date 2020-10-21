@@ -1,10 +1,5 @@
 """Tempdeck GUI"""
 from ..args import Args
-
-
-Args.parse(__doc__)
-
-
 import tkinter as tk
 import tkinter.messagebox
 from serial.tools.list_ports import comports

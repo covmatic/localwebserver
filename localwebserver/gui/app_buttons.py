@@ -5,6 +5,7 @@ from ..args import Args
 from .button_frames import ButtonFrameBase
 from .buttons import OnOffSubprocessButton, ColorChangingSubprocessButton
 from multiprocessing import Process
+from threading import Timer
 import webbrowser
 import os
 from typing import Tuple, List
@@ -37,9 +38,12 @@ class OpentronsButton(ColorChangingSubprocessButton, metaclass=AppButtonFrame.bu
 class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
     text: str = "Local Web Server"
     
-    def __init__(self, parent, *args, **kwargs):
+    def init_(self):
         self.state = True
         self.update()
+    
+    def __init__(self, parent, *args, **kwargs):
+        Timer(interval=1, function=self.init_).start()  # Delayed launch to allow successful stdout redirection
     
     @OnOffSubprocessButton.state.getter
     def state(self) -> bool:
@@ -51,7 +55,6 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
         else:
             self._subprocess = Process(target=lws_main)
             self._subprocess.start()
-        print(self.state)
     
     _already_running: str = "LocalWebServer running", "Another instance of the LocalWebServer has already been launched"
         

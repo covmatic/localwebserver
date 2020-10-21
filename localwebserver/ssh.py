@@ -2,6 +2,8 @@ from .args import Args
 import paramiko as pk
 from scp import SCPClient
 import socket
+from .utils import locked
+from threading import Lock
 
 
 class SSHClient(pk.SSHClient):
@@ -34,12 +36,20 @@ class SSHClient(pk.SSHClient):
         return self.SCPClientContext(self.get_transport())
 
 
-def try_ssh(timeout: float = 1) -> bool:
-    try:
-        with SSHClient(connect_kwargs=dict(timeout=timeout)):
-            return True
-    except (socket.timeout, socket.gaierror):
-        return False
+_try_ssh_cache = None
+_try_ssh_lock = Lock()
+
+
+@locked(_try_ssh_lock)
+def try_ssh(timeout: float = 0.5, force: bool = False) -> bool:
+    global _try_ssh_cache
+    if _try_ssh_cache is None or force:
+        try:
+            with SSHClient(connect_kwargs=dict(timeout=timeout)):
+                _try_ssh_cache = True
+        except (socket.timeout, socket.gaierror, pk.ssh_exception.AuthenticationException):
+            _try_ssh_cache = False
+    return _try_ssh_cache
 
 
 # Copyright (c) 2020 Covmatic.

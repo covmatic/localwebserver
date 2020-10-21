@@ -1,4 +1,5 @@
-from api import api
+"""LocalWeb Server"""
+from .api import LocalWebServerAPI
 from database import init_db
 from flask import Flask, request
 from flask_cors import CORS
@@ -14,6 +15,7 @@ def create_app():
     # Init all plugins
     CORS(app)
     init_db(app)
+    api = LocalWebServerAPI()
     api.init_app(app)
 
     # Register all views blueprints

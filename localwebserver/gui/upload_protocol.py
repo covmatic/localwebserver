@@ -7,7 +7,7 @@ from .images import set_ico, get_logo
 from .utils import warningbox
 from ..ssh import SSHClient, try_ssh
 from ..args import Args
-from services import protocol_gen
+from .. import protocol_gen
 from functools import partial
 import os
 from scp import SCPException

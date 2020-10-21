@@ -1,9 +1,25 @@
 """Covmatic LocalWebServer."""
 from .args import Args
+import logging
 
 
 __version__ = "0.0.0"
 Args.pull(__doc__)
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s %(name)-12s %(levelname)-8s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
+
+for m in (
+    "paramiko",
+    "PIL",
+    "timeloop",
+    "werkzeug",
+):
+    logging.getLogger(m).setLevel(logging.WARNING)
 
 
 # Copyright (c) 2020 Covmatic.

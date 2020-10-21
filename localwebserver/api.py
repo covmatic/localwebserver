@@ -1,9 +1,6 @@
 """LocalWebServer API"""
-from database import session
 import requests
 from flask_restful import Resource
-from flask_restful import reqparse
-from models.protocols import Protocol
 import glob
 import os
 from shutil import copy2
@@ -19,9 +16,30 @@ import logging
 class LocalWebServerAPI(Api):
     def __init__(self, prefix=Args().api_prefix, *args, **kwargs):
         super(LocalWebServerAPI, self).__init__(*args, prefix=prefix, **kwargs)
+        self.add_resource(ActionFunction, '/<int:station>/<string:action>')
         self.add_resource(CheckFunction, '/check')
         self.add_resource(PauseFunction, '/pause')
         self.add_resource(ResumeFunction, '/resume')
+
+
+class ActionFunction(Resource):
+    lock = threading.Lock()
+    station = None
+    action = None
+    
+    def get(self, station, action):
+        if CheckFunction.protocol_running():
+            return {
+                       "status": "failed",
+                       "message": "There's a task already running. Please try again later"
+            }, 403
+        else:
+            ActionFunction.station = station
+            ActionFunction.action = action
+            return {
+                       "status": False,
+                       "message": "There's no task already running. Everything's ok"
+            }, 200
 
 
 class BarcodeSingleton(str, metaclass=SingletonMeta):
@@ -37,9 +55,9 @@ class CheckFunction(Resource):
     def logger(self) -> logging.getLoggerClass():
         return logging.getLogger(type(self).__name__)
     
-    @property
+    @staticmethod
     @locked(bak_lock)
-    def protocol_running(self) -> bool:
+    def protocol_running() -> bool:
         # If a temporary error occurs, respond same as before
         if try_ssh():
             with SSHClient() as client:
@@ -56,7 +74,7 @@ class CheckFunction(Resource):
         return cls._bak
     
     def get(self):
-        if self.protocol_running:
+        if self.protocol_running():
             with BarcodeSingleton.lock:
                 try:
                     rv = requests.get("http://{}:8080/log".format(Args().ip))

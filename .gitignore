@@ -147,3 +147,4 @@ dmypy.json
 *.png
 *.ico
 .tmp_protocol.py
+*log.json

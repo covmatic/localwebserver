@@ -45,9 +45,6 @@ setuptools.setup(
         'Flask-Cors',
         'Flask-RESTful',
         'Flask-WTF',
-        'SQLAlchemy',
-        'sqlalchemy-repr',
-        'timeloop'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -1,26 +1,19 @@
 """LocalWeb Server"""
 from .api import LocalWebServerAPI
-from database import init_db
+from .args import Args
+from . import task_runner
 from flask import Flask, request
 from flask_cors import CORS
-from services import task_runner
-from views import bp_automation
 
 
-def create_app():
-    app = Flask(__name__)
-    app.secret_key = b'_5#y2L"s8zxec]/'
-    app.config.from_object('config')
-
-    # Init all plugins
-    CORS(app)
-    init_db(app)
-    api = LocalWebServerAPI()
-    api.init_app(app)
-
-    # Register all views blueprints
-    app.register_blueprint(bp_automation)
-    return app
+class LocalWebServerAPP(Flask):
+    def __init__(self, name=__name__, *args, **kwargs):
+        super(LocalWebServerAPP, self).__init__(name, *args, **kwargs)
+        self.secret_key = b'_5#y2L"s8zxec]/'
+        self.config.from_object(Args().__dict__)
+        
+        CORS(self)
+        LocalWebServerAPI().init_app(self)
 
 
 def shutdown_server():
@@ -31,16 +24,16 @@ def shutdown_server():
 
 
 def main():
-    task_runner.print_info()
-    local_app = create_app()
+    app = LocalWebServerAPP()
     
-    @local_app.route('/shutdown', methods=['GET'])
+    @app.route('/shutdown', methods=['GET'])
     def shutdown():
         shutdown_server()
         return 'Server shutting down...'
     
-    task_runner.start_scheduler(local_app)
-    local_app.run(host='::', port=5001, debug=False)
+    task_runner.start()
+    app.run(host='::', port=5001, debug=False)
+    task_runner.stop()
     
 
 if __name__ == "__main__":

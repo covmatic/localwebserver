@@ -1,1 +1,1 @@
-python -m gui.tempdeck
+python -m localwebserver.gui.tempdeck

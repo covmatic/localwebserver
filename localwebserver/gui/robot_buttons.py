@@ -6,6 +6,7 @@ from .buttons import ColorChangingButton, ColorChangingTimerButton, SSHButtonMix
 from .images import set_ico
 from ..args import Args
 from .upload_protocol import ProtocolDefinition
+import logging
 import webbrowser
 import requests
 import json
@@ -19,6 +20,10 @@ class RobotButtonFrame(ButtonFrameBase):
 class UpdateSystem(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFrame.button):
     remote_dir: str = "/var/lib/jupyter/notebooks"
     system_version_file: str = "system_version.py"
+    
+    @property
+    def logger(self):
+        return logging.getLogger(type(self).__name__)
     
     @classmethod
     def current_version(cls) -> str:
@@ -70,10 +75,16 @@ class UpdateSystem(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFra
         return self.current_version() == self.latest_version()
 
     def command(self):
-        if self.state:
+        if not self.state:
             with SSHClient() as client:
-                _, sdtout, _ = client.exec_command("python -m pip install{} covid19-system9 --upgrade".format(self.pypi_index()))
-                sdtout.read()
+                _, stdout, stderr = client.exec_command("python -m pip install{} covid19-system9 --upgrade".format(self.pypi_index()))
+                for o, lvl in [
+                    (stdout, "info"),
+                    (stderr, "warning"),
+                ]:
+                    out = o.read().decode('ascii')
+                    if out:
+                        getattr(self.logger, lvl)(out)
         self.update()
 
 

@@ -1,4 +1,5 @@
 from functools import wraps
+from threading import Timer
 
 
 class SingletonMeta(type):
@@ -47,6 +48,31 @@ def locked(lock):
             return r
         return _foo
     return _locked
+
+
+class LoopFunction:
+    def __init__(self, interval, func):
+        self._interval = interval
+        self._func = func
+        self._thread = None
+    
+    def stop(self):
+        if self._thread is not None:
+            self._thread.cancel()
+    
+    def start_(self):
+        self._func()
+        self.start()
+    
+    def start(self):
+        self._thread = Timer(self._interval, self.start_)
+        self._thread.start()
+
+
+def loop(interval):
+    def _looped(foo):
+        return LoopFunction(interval, foo)
+    return _looped
 
 
 # Copyright (c) 2020 Covmatic.

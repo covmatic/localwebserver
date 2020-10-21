@@ -1,1 +1,1 @@
-python -m gui
+python -m localwebserver.gui

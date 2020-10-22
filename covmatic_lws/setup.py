@@ -61,7 +61,7 @@ def win_setup():
     if not os.path.exists(home_config):
         with open(home_config, "w"):
             pass
-    subprocess.Popen(home_config)
+    subprocess.Popen(["notepad", home_config])
             
 
 @setup.case('')

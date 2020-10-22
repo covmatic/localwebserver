@@ -1,56 +1,115 @@
+from __future__ import annotations
 from .ssh import SSHClient
 from .args import Args
-from .api import ActionFunction
-from .utils import loop
+from .utils import locked, classproperty
 import subprocess
+import threading
 import logging
+from typing import Optional
+from abc import ABCMeta, abstractmethod
 
 
-def print_info():
-    logging.getLogger().info("Target Opentrons IP: {}".format(Args().ip))
+class TaskDefinition:
+    _list = []
+    
+    @classmethod
+    def get(cls, station, action):
+        for t in cls._list:
+            if t.station == station and t.action == action:
+                return t
+        raise KeyError("Cannot find a {} for keys: station={}, action={}".format(cls.__name__, station, action))
+    
+    def __init__(self, station, action, cls, *args, **kwargs):
+        TaskDefinition._list.append(self)
+        self.station = station
+        self.action = action
+        self.cls = cls
+        self.args = args
+        self.kwargs = kwargs
 
 
-def station_task(station, action):
-    with SSHClient() as client:
-        channel = client.invoke_shell()
-        channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
-        channel.send('exit \n')
-        code = channel.recv_exit_status()
-    logging.getLogger().info("Protocol exit code: {}".format(code))
+class TaskMeta(ABCMeta):
+    def __call__(cls, station, action):
+        td = TaskDefinition.get(station, action)
+        self = td.cls.__new__(td.cls, *td.args, station=td.station, action=td.action, **td.kwargs)
+        self.__init__(*td.args, station=td.station, action=td.action, **td.kwargs)
+        return self
 
 
-def pcr_task(station, action):
-    subprocess.call(Args().pcr_app)
+class Task(metaclass=TaskMeta):
+    class TaskRunningException(Exception):
+        pass
+    
+    lock = threading.Lock()
+    _running: Optional[Task] = None
+    
+    def __init__(self, station, action, *args, **kwargs):
+        super(Task, self).__init__(*args, **kwargs)
+        self.station = station
+        self.action = action
+        self._thread = None
+    
+    @classproperty
+    def running(self) -> bool:
+        if Task._running is None or Task._running._thread is None:
+            return False
+        if not Task._running._thread.is_alive():
+            Task._running._thread.join()
+            Task._running._thread = None
+            Task._running = None
+            return False
+        return True
+    
+    @classproperty
+    def type(self) -> type:
+        return type(Task._running)
+    
+    @abstractmethod
+    def new_thread(self) -> threading.Thread:
+        pass
+    
+    @locked(lock)
+    def start(self):
+        if Task.running:
+            raise Task.TaskRunningException("Cannot start {}: a {} is already running".format(self, Task._running))
+        Task._running = self
+        self._thread = self.new_thread()
+        Task._running._thread.start()
+    
+    _str_fields = ("station", "action")
+    
+    def __str__(self) -> str:
+        return "{} ({})".format(type(self).__name__, ", ".join("{}={}".format(k, getattr(self, k)) for k in self._str_fields))
 
 
-_tasks = [
-    (1, "stationA", station_task),
-    (2, "stationB", station_task),
-    (3, "stationC", station_task),
-    (4, "PCR", pcr_task),
-]
+class StationTask(Task):
+    class StationTaskThread(threading.Thread):
+        def __init__(self, task: Task, *args, **kwargs):
+            super(StationTask.StationTaskThread, self).__init__(*args, **kwargs)
+            self.task = task
+        
+        def run(self):
+            logging.getLogger().info("Starting protocol: {}".format(self.task))
+            with SSHClient() as client:
+                channel = client.invoke_shell()
+                channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
+                channel.send('exit \n')
+                code = channel.recv_exit_status()
+            logging.getLogger().info("Protocol exit code: {}".format(code))
+    
+    def new_thread(self) -> threading.Thread:
+        return StationTask.StationTaskThread(self)
 
 
-@loop(5)
-def check_new_tasks():
-    if ActionFunction.station and ActionFunction.action:
-        for s, a, foo in _tasks:
-            if ActionFunction.station == s and ActionFunction.action == a:
-                logging.getLogger().info("Protocol: station={}, action={}".format(s, a))
-                foo(s, a)
-                ActionFunction.station = None
-                ActionFunction.action = None
-                return
-        logging.getLogger().info("Unsupported protocol: station={}, action={}".format(s, a))
+class PCRTask(Task):
+    def new_thread(self) -> threading.Thread:
+        return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
-def start():
-    print_info()
-    check_new_tasks.start()
-
-
-def stop():
-    check_new_tasks.stop()
+TaskDefinition(1, "stationA", StationTask)
+TaskDefinition(2, "stationB", StationTask)
+TaskDefinition(3, "stationC", StationTask)
+TaskDefinition(4, "PCR", PCRTask)
 
 
 # Copyright (c) 2020 Covmatic.

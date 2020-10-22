@@ -6,9 +6,9 @@ import os
 from shutil import copy2
 import json
 from .args import Args
+from .task_runner import Task, StationTask
 import threading
 from .utils import SingletonMeta, locked
-from .ssh import try_ssh, SSHClient
 from flask_restful import Api
 import logging
 
@@ -16,30 +16,24 @@ import logging
 class LocalWebServerAPI(Api):
     def __init__(self, prefix=Args().api_prefix, *args, **kwargs):
         super(LocalWebServerAPI, self).__init__(*args, prefix=prefix, **kwargs)
-        self.add_resource(ActionFunction, '/<int:station>/<string:action>')
+        self.add_resource(TaskFunction, '/<int:station>/<string:action>')
         self.add_resource(CheckFunction, '/check')
         self.add_resource(PauseFunction, '/pause')
         self.add_resource(ResumeFunction, '/resume')
 
 
-class ActionFunction(Resource):
+class TaskFunction(Resource):
     lock = threading.Lock()
-    station = None
-    action = None
     
     def get(self, station, action):
-        if CheckFunction.protocol_running():
+        try:
+            Task(station, action).start()
+        except (Task.TaskRunningException, KeyError) as e:
+            logging.getLogger().info(e)
             return {
                        "status": "failed",
-                       "message": "There's a task already running. Please try again later"
-            }, 403
-        else:
-            ActionFunction.station = station
-            ActionFunction.action = action
-            return {
-                       "status": False,
-                       "message": "There's no task already running. Everything's ok"
-            }, 200
+                       "message": str(e)
+            }, 422
 
 
 class BarcodeSingleton(str, metaclass=SingletonMeta):
@@ -49,22 +43,10 @@ class BarcodeSingleton(str, metaclass=SingletonMeta):
 class CheckFunction(Resource):
     bak_lock = threading.Lock()
     _bak = {}
-    _running = False
     
     @property
     def logger(self) -> logging.getLoggerClass():
         return logging.getLogger(type(self).__name__)
-    
-    @staticmethod
-    @locked(bak_lock)
-    def protocol_running() -> bool:
-        # If a temporary error occurs, respond same as before
-        if try_ssh():
-            with SSHClient() as client:
-                # TODO: update this when refactored as a service
-                _, stdout, _ = client.exec_command("ps -e | grep opentrons_execute | grep -v grep")
-                CheckFunction._running = bool(stdout.read().decode('ascii'))
-        return CheckFunction._running
     
     @classmethod
     @locked(bak_lock)
@@ -74,34 +56,35 @@ class CheckFunction(Resource):
         return cls._bak
     
     def get(self):
-        if self.protocol_running():
-            with BarcodeSingleton.lock:
-                try:
-                    rv = requests.get("http://{}:8080/log".format(Args().ip))
-                except requests.exceptions.ConnectionError:
-                    self.logger.info("{} - Connection Error".format("http://{}:8080/log".format(Args().ip)))
-                else:
-                    self.logger.info("{} - Status Code {}".format(self.log_endpoint, rv.status_code))
-                    self.logger.debug(rv.content.decode('ascii'))
-                    if rv.status_code == 200:
-                        CheckFunction.bak(rv.json())
-                finally:
-                    output = CheckFunction.bak()
-                if output.get("external", False):
-                    while not BarcodeSingleton():
-                        BarcodeSingleton.reset(requests.get("http://127.0.0.1:{}/exit".format(Args().barcode_port)).content.decode('ascii'))
-            return {
-                       "status": False,
-                       "res": "Status: {}\nStage: {}{}".format(
-                           output.get("status", None),
-                           output.get("stage", None),
-                           "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
-                       )
-                   }, 200
+        if Task.running:
+            if issubclass(Task.type, StationTask):
+                with BarcodeSingleton.lock:
+                    try:
+                        rv = requests.get("http://{}:8080/log".format(Args().ip))
+                    except requests.exceptions.ConnectionError:
+                        self.logger.info("{} - Connection Error".format("http://{}:8080/log".format(Args().ip)))
+                    else:
+                        self.logger.info("{} - Status Code {}".format(self.log_endpoint, rv.status_code))
+                        self.logger.debug(rv.content.decode('ascii'))
+                        if rv.status_code == 200:
+                            CheckFunction.bak(rv.json())
+                    finally:
+                        output = CheckFunction.bak()
+                    if output.get("external", False):
+                        while not BarcodeSingleton():
+                            BarcodeSingleton.reset(requests.get("http://127.0.0.1:{}/exit".format(Args().barcode_port)).content.decode('ascii'))
+                return {
+                           "status": False,
+                           "res": "Status: {}\nStage: {}{}".format(
+                               output.get("status", None),
+                               output.get("stage", None),
+                               "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
+                           )
+                       }, 200
         else:
             with CheckFunction.bak_lock:
                 if CheckFunction.bak() is None:
-                    # No protocol is running, look for PCR result files
+                    # No protocol was running, look for PCR result files
                     pcr_result_files = glob.glob(Args().pcr_results).sort(key=os.path.getctime)
                     if pcr_result_files:
                         try:
@@ -118,7 +101,7 @@ class CheckFunction(Resource):
                     else:
                         return {"status": True, "res": "No Protocol nor Result available"}, 200
                 else:
-                    # Protocol has ended, reset backup
+                    # Protocol has just ended, reset backup
                     CheckFunction.bak(force=True)
                     self.logger.info("Protocol completed")
                     return {"status": True, "res": "Completed"}, 200
@@ -126,27 +109,42 @@ class CheckFunction(Resource):
 
 class PauseFunction(Resource):
     def get(self):
-        requests.get("http://{}:8080/pause".format(Args().ip))
-        return {"status": False, "res": "Pausa"}, 200
+        try:
+            requests.get("http://{}:8080/pause".format(Args().ip))
+        except Exception as e:
+            r = {"status": False, "res": str(e)}, 500
+        else:
+            r = {"status": False, "res": "Pausa"}, 200
+        return r
 
 
 class ResumeFunction(Resource):
     @staticmethod
     def _resume():
-        return requests.get("http://{}:8080/resume".format(Args().ip))
+        try:
+            requests.get("http://{}:8080/resume".format(Args().ip))
+        except Exception as e:
+            r = {"status": False, "res": str(e)}, 500
+        else:
+            r = {"status": False, "res": "Resumed"}, 200
+        return r
     
     @locked(BarcodeSingleton.lock)
     def get(self):
         if BarcodeSingleton():
-            while requests.get("http://127.0.0.1:{}/enter".format(Args().barcode_port)).content.decode('ascii') != BarcodeSingleton():
-                pass
-            self._resume()
-            t = threading.Timer(1, BarcodeSingleton.reset)
-            t.start()
-            t.join()
+            try:
+                while requests.get("http://127.0.0.1:{}/enter".format(Args().barcode_port)).content.decode('ascii') != BarcodeSingleton():
+                    pass
+            except Exception as e:
+                r = {"status": False, "res": str(e)}, 500
+            else:
+                r = self._resume()
+                t = threading.Timer(1, BarcodeSingleton.reset)
+                t.start()
+                t.join()
         else:
-            self._resume()
-        return {"status": False, "res": "Resumed"}, 200
+            r = self._resume()
+        return r
         
 
 # Copyright (c) 2020 Covmatic.

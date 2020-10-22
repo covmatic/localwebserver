@@ -1,7 +1,6 @@
 """LocalWeb Server"""
 from .api import LocalWebServerAPI
 from .args import Args
-from . import task_runner
 from flask import Flask, request
 from flask_cors import CORS
 
@@ -31,9 +30,7 @@ def main():
         shutdown_server()
         return 'Server shutting down...'
     
-    task_runner.start()
     app.run(host='::', port=5001, debug=False)
-    task_runner.stop()
     
 
 if __name__ == "__main__":

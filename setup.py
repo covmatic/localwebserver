@@ -24,7 +24,7 @@ def get_version(rel_path):
 
 setuptools.setup(
     name="covmatic-localwebserver",
-    version=get_version("localwebserver/__init__.py"),
+    version=get_version("covmatic_lws/__init__.py"),
     author="Marco Tiraboschi",
     author_email="marcotiraboschi@hotmail.it",
     description="Package for the COVMATIC LocalWebServer",

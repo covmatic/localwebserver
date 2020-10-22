@@ -28,6 +28,9 @@ def linux_setup():
 @setup.case(('win32', 'cygwin'))
 def win_setup():
     import winshell
+    import win32con
+    winshell.Shortcut.show_states["min"] = win32con.SW_SHOWMINNOACTIVE
+    
     template_dir = os.path.join(os.path.dirname(__file__), "templates")
     if Args().desktop_file:
         with winshell.shortcut(Args().desktop_file) as link:

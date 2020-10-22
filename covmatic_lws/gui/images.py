@@ -1,32 +1,34 @@
-from ..args import Args
+import tkinter as tk
+from _tkinter import TclError
 from PIL import ImageTk, Image
-import requests
 import os
+from functools import partial
 
 
-def get_pic(url: str, file: str, resize: float = 1):
-    if not os.path.exists(file):
-        response = requests.get(url)
-        os.makedirs(os.path.dirname(file), exist_ok=True)
-        with open(file, 'wb') as f:
-            f.write(response.content)
-    if os.path.exists(file) and os.path.isfile(file):
-        img = Image.open(file)
-        if resize != 1:
-            img = img.resize([int(resize * d) for d in img.size])
-        return ImageTk.PhotoImage(image=img)
+_image_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 
 
-def get_icon(resize: float = 1):
-    return get_pic(Args().icon_url, Args().icon_file, resize)
+def get_pic(filename: str, filedir: str = _image_dir, resize: float = 1):
+    img = Image.open(os.path.join(filedir, filename))
+    if resize != 1:
+        img = img.resize([int(resize * d) for d in img.size])
+    return ImageTk.PhotoImage(image=img)
+
+
+def get_icon(fname="Covmatic_Icon.png", resize: float = 1):
+    return get_pic(fname, resize=resize)
 
 
 def get_logo(resize: float = 1):
-    return get_pic(Args().logo_url, Args().logo_file, resize)
+    return get_pic("Covmatic_Logo.png", resize=resize)
 
 
-def set_ico(parent):
-    parent.tk.call('wm', 'iconphoto', parent._w, get_icon())
+def set_ico(parent, icon_file_prefix: str = "Covmatic_Icon"):
+    fname = partial("{}.{}".format, icon_file_prefix)
+    try:
+        parent.iconphoto(True, tk.PhotoImage(file=os.path.join(_image_dir, fname("ico"))))
+    except TclError:
+        parent.tk.call('wm', 'iconphoto', parent._w, get_icon(fname("png")))
 
 
 # Copyright (c) 2020 Covmatic.

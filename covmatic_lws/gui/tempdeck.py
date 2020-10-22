@@ -91,7 +91,7 @@ class TempDeckGUI(tk.Frame):
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Covmatic TempDeck")
-    set_ico(root)
+    set_ico(root, "Covmatic_Icon_Red")
     td = TempDeckGUI(root)
     root.mainloop()
 

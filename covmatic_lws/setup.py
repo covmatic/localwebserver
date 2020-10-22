@@ -2,6 +2,7 @@ from .args import Args
 from .utils import FunctionCaseStartWith
 import logging
 import os
+import subprocess
 
 
 setup = FunctionCaseStartWith(os.sys.platform)
@@ -23,6 +24,11 @@ def linux_setup():
                     df.write(tf.read().format(Args().python, os.path.join(template_dir, "Covmatic_Icon_Red.ico")))
         else:
             logging.getLogger().warning("No tempdeck desktop file specified, skipping")
+    home_config = os.path.expanduser("~/covmatic.conf")
+    if not os.path.exists(home_config):
+        with open(home_config, "w"):
+            pass
+    subprocess.Popen(["xdg-open", home_config])
 
 
 @setup.case(('win32', 'cygwin'))
@@ -51,6 +57,11 @@ def win_setup():
                 link.icon_location = (os.path.join(template_dir, "Covmatic_Icon_Red.ico"), 0)
         else:
             logging.getLogger().warning("No tempdeck desktop file specified, skipping")
+    home_config = os.path.join(os.path.expanduser("~"), "covmatic.conf")
+    if not os.path.exists(home_config):
+        with open(home_config, "w"):
+            pass
+    subprocess.Popen(home_config)
             
 
 @setup.case('')

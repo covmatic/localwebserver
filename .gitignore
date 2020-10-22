@@ -3,6 +3,7 @@ __pycache__
 
 # Artifacts
 build
+.eggs
 *.egg-info
 dist
 .tmp_protocol.py

@@ -1,68 +1,82 @@
-# localWebServer
-
-In this "documentation" should be explained some part of the code and how to set
-this program for the first time.
-
-The full documentation and informations can be obtained from: https://covmatic.org/
-
-Consult our [wiki](https://github.com/OpenSourceCovidTesting/localWebServer/wiki) for setting the program
+# LocalWebServer
+This software is part of the *Covmatic* project.  
+Visit the website https://covmatic.org/ for more documentation and information.
 
 ## Table of Contents
-
+* [Installation](#installation)
 * [Setup](#setup)
-* [Execute the program](#execute-the-program)
-  * [Overview](#overview)
-  * [TempDeck GUI](#tempdeck-gui)
-* [Things to do](#things-to-do)
-* [Troubleshooting](#troubleshooting)
-* [Licence](#licence)
+* [Execution](#execution)
+* [LocalWebServer](#localwebserver-gui)
+* [TempDeck](#tempdeck-gui)
+
+## Installation
+**This software is still in its beta phase and the packaged is stored on test.pypi. You will have to install dependecies manually (see the [requirements](requirements.txt))**
+
+You can [install the Covmatic LocalWebServer via `pip`](https://test.pypi.org/project/covmatic-localwebserver):
+```
+<python> -m pip install -i https://test.pypi.org/simple/ covmatic-localwebserver
+```
+Where `<python>` should be changed for the Python instance you wish to install the LocalWebServer onto. We will be following this convention for all the next instructions. 
 
 ## Setup
+To set up the LocalWebServer application, run
+```
+<python> -m covmatic_lws.setup
+``` 
+This will create a desktop link and open in a text editor the file `covmatic.conf` in your user home directory.
+To create a link also for the TempDeck GUI, please run
+```
+<python> -m covmatic_lws.setup --tempdeck-desktop
+``` 
+This functionality is supported in Windows and Linux.
 
-1. Download from Github the latest version: on **MVP branch** there
-is the testing code
+If you are running another OS, please open the `covmatic.conf` file manually.
+If you would like an automatic desktop link creator for your OS, please open an issue on GitHub. 
 
-2. Go your user home directory. Usually it is
-   - `C:/Users/<user>` on Windows
-   - `/home/<user>` on Linux
+### Configuration
+The file `covmatic.conf` stores configuration settings for running the LocalWebServer. The most important settings are
+ - `ip`: the ip address or hostname of the Opentrons robot you want to connect to
+ - `ssh-key`: SSH key file path (default is `~/ot2_ssh_key`). Please, make sure you have the correct SSH key file in the specified path
+ - `pwd`: the passphrase for the SSH key used when connecting to the Opentrons robot
+To learn how to set up SSH on your Opentrons robot, please refer to [the official guide](https://support.opentrons.com/en/articles/3203681-setting-up-ssh-access-to-your-ot-2).
 
-   Create a file named `covmatic.conf`. In this file you can specify custom settings. Required settings are
-   - `ip`: the ip address or hostname of the Opentrons robot you want to connext to
-   - `pwd`: the passphrase for the SSH key used when connecting to the Opentrons robot
-   
-   Other useful settings are:
-   - `ssh-key`: SSH key file path (default is `./ot2_ssh_key`). Please, make sure you have the correct SSH key file in the specified path. If you get authentication errors, this is the setting you want to check first.
-   - `path`: the Opentrons App filepath (default is `C:/Program Files/Opentrons/Opentrons.exe`)
-   - `station name`: the name of the default station protocol (default is `A`)
-   - `lang`: the default message language (default is `ENG`)
-   
-   For a complete list of settings, go to the `localWebServer` directory and execute in a terminal:
-   ```
-   python -m gui -h
-   ```
+Other useful settings are:
+ - `app`: the Opentrons App filepath (default is `C:/Program Files/Opentrons/Opentrons.exe`)
+ - `station name`: the name of the default station protocol (default is `A`)
+ - `lang`: the default message language (default is `ENG`)
 
-3. Install the needed requirements. Go to the `localWebServer` directory and execute in a terminal:
-   ```
-   python -m pip install -r requirements.txt
-   ```
-   This step will download files from the internet and it may take a couple of minutes.
- 
-## Execute the program
-Run the [`gui`](gui). You can do one of the following
-  - Go to the `localWebServer` directory and execute in a terminal:
-  
-    ```
-    python -m gui
-    ```
-  - On Windows, double click on [`LocalWebServer.bat`](LocalWebServer.bat)
+For a complete list of settings, run
+```
+<python> -m covmatic_lws -h
+```
 
-### Overview
-The GUI has a main window where you can see
+## Execution
+To start the Covmatic LocalWebServer gui, run
+```
+<python> -m covmatic_lws.gui
+```
+To start the Covmatic TempDeck gui, run
+```
+<python> -m covmatic_lws.gui.tempdeck
+```
+If you ran the setup program, you will have desktop entries for these applications
+
+### Linux
+ - The `Covmatic` app (blue icon) is the LocalWebServer GUI
+ - The `TempDeck` app (red icon) is the TempDeck GUI
+
+### Windows
+ - The `Covmatic Localwebser` link (blue icon) is the LocalWebServer GUI
+ - The `Covmatic TempDeck` link (red icon) is the TempDeck GUI
+
+## LocalWebServer GUI
+The LocalWebServer GUI has a main window where you can see
  - The Covmatic logo
  - The robot ip/hostname
  - Two columns of buttons
+
 Please, check that the ip/hostname corresponds to the robot you want to connect to.
-If the robot is offline, the GUI exits with a RuntimeError (`Cannot connect to <ip/hostname>`)
+If the robot is offline, `(disconnected)` will show under the robot's ip/hostname.
 
 In the first column you will find buttons for functions strictly related to robot
  - Package version button.
@@ -82,7 +96,7 @@ By clicking the button, you can toggle the lights.
 In the second column you will find buttons related to services external to the robot
 - Opentrons button. This button launches the Opentrons app.
   You will need this app for calibration procedures.
-  If the app doesn't open, please check that the app's path matches the path specified in the [configuration file](#setup)
+  If the app doesn't open, please check that the app's path matches the path specified in the [configuration file](#configuration)
 - LocalWebServer button. This button allows for turning on and off the local web server.
   If the button is blue, the server is on. 
   If the button is white, the server is off.
@@ -100,17 +114,9 @@ The protocol upload window allows you to specify protocol parameters and upload 
  - Reset tips button. This button resets the tip log. The robot will start picking tips from the first position of each rack.
    This button has immediate effect on the robot.
 
-### TempDeck GUI
+## TempDeck GUI
 This GUI allows you to control multiple Opentrons Temperature modules (the *TempDeck*) connected via USB to your laptop.
 You can find more information about it [here](https://support.opentrons.com/en/articles/1820119-temperature-module).
-
-To open the GUI, you can do one of the following
-  - Go to the `localWebServer` directory and execute in a terminal:
-  
-    ```
-    python -m gui.tempdeck
-    ```
-  - On Windows, double click on [`TempDeck.bat`](TempDeck.bat)
 
 There is an entry field where you can specify the target temperature.
 There are 3 buttons
@@ -118,39 +124,8 @@ There are 3 buttons
 - Set button. Set the temperature of all connected TempDecks to the specified temperature.
 - Deactivate button. Deactivate all connected TempDeks.
 
-## Things to do
-
-- [x] Configuration file support for settings
-- [x] Test the newer code with the PCR results
-- [x] Added the resources for Pause and Resume
-- [x] Tested Pause and Resume on the real system
-- [x] Check the newer protocols
-- [ ] Troubleshooting section
-- [ ] Update the wiki page
-- [ ] Update the [`task_runner.py`](/services/task_runner.py)
-- [ ] Update the interface to the newest MBR
-- [ ] Testing
-- [ ] Clean the repository and the code
-
-
-## Special Thanks
-
-I want to thank to each one that helped and collaborate to realize this project!
-This was possible thanks to the help of each volunteer and to the ideas of everyone,
-the hard work in the lab, the programming and maintaining of the code.
-
-Thank you and Congrats to all!
-
-Here you can find us: https://covmatic.org/about-us/
-
 ## Licence
-Copyright (c) 2020 Covmatic.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
-
-
-![Tux, the Linux mascot](https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Classic_flat_look_3D.svg/155px-Classic_flat_look_3D.svg.png)
+Copyright (c) 2020 Covmatic.  
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:  
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.  
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.   

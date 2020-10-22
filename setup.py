@@ -33,16 +33,20 @@ setuptools.setup(
     url="https://github.com/OpenSourceCovidTesting/localWebServer",
     packages=setuptools.find_packages(),
     include_package_data=True,
+    setup_requires=[
+        'opentrons',
+        'Flask'
+    ],
     install_requires=[
+        'opentrons',
+        'Flask',
         'configargparse',
         'cherrypy',
         'requests',
-        'opentrons',
         'Pillow',
         'paramiko',
         'scp',
         'winshell',
-        'Flask',
         'Flask-Cors',
         'Flask-RESTful',
         'Flask-WTF',

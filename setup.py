@@ -41,6 +41,7 @@ setuptools.setup(
         'Pillow',
         'paramiko',
         'scp',
+        'winshell',
         'Flask',
         'Flask-Cors',
         'Flask-RESTful',

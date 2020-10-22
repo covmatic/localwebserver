@@ -13,6 +13,12 @@ def desktop_file_linux():
     return os.path.expanduser("~/.local/share/applications/covmatic.desktop")
 
 
+@desktop_file.case(('win32', 'cygwin'))
+def desktop_file_win():
+    import winshell
+    return os.path.join(winshell.desktop(), "Covmatic LocalWebServer.lnk")
+
+
 @desktop_file.case('')  # all other
 def desktop_file_other():
     return ""
@@ -21,6 +27,12 @@ def desktop_file_other():
 @tempdeck_desktop_file.case('linux')
 def tempdeck_desktop_file_linux():
     return os.path.expanduser("~/.local/share/applications/covmatic_tempdeck.desktop")
+
+
+@tempdeck_desktop_file.case(('win32', 'cygwin'))
+def tempdeck_desktop_file_win():
+    import winshell
+    return os.path.join(winshell.desktop(), "Covmatic TempDeck.lnk")
 
 
 @tempdeck_desktop_file.case('')  # all other

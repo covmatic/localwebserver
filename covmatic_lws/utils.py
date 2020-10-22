@@ -1,4 +1,4 @@
-from functools import wraps
+from functools import wraps, partial
 from threading import Timer
 
 
@@ -73,6 +73,24 @@ def loop(interval):
     def _looped(foo):
         return LoopFunction(interval, foo)
     return _looped
+
+
+class FunctionCase(dict):
+    def __init__(self, key):
+        super(FunctionCase, self).__init__()
+        self._key = key
+    
+    def case(self, key, value=None):
+        if value is None:
+            return partial(self.case, key)
+        for k in key if isinstance(key, tuple) else (key,):
+            self[k] = value
+        return value
+        
+    def __call__(self, *args, **kwargs):
+        if self._key not in self:
+            raise NotImplementedError("No function implemented for case '{}'. Supported cases are: {}".format(self._key, ", ".join(map("'{}'".format, self.keys()))))
+        return self[self._key](*args, **kwargs)
 
 
 # Copyright (c) 2020 Covmatic.

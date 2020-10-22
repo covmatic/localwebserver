@@ -7,6 +7,7 @@ import os
 def get_pic(url: str, file: str, resize: float = 1):
     if not os.path.exists(file):
         response = requests.get(url)
+        os.makedirs(os.path.dirname(file), exist_ok=True)
         with open(file, 'wb') as f:
             f.write(response.content)
     if os.path.exists(file) and os.path.isfile(file):

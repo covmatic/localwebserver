@@ -28,7 +28,7 @@ class OpentronsButton(ColorChangingSubprocessButton, metaclass=AppButtonFrame.bu
     
     @property
     def _check_fail(self) -> Tuple[str, str]:
-        return "Opentrons APP not found", "Opentrons APP not found at {}\nPlease set the correct path in the environment variable:\n\nOPENTRONS_APP".format(self._app_file)
+        return "Opentrons APP not found", "Opentrons APP not found at {}\nPlease set the correct path in the setting 'app':\n\n--app [path]".format(self._app_file)
     
     @property
     def _subprocess_args(self) -> List[str]:

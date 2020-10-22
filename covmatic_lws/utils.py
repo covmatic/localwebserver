@@ -88,9 +88,21 @@ class FunctionCase(dict):
         return value
         
     def __call__(self, *args, **kwargs):
-        if self._key not in self:
-            raise NotImplementedError("No function implemented for case '{}'. Supported cases are: {}".format(self._key, ", ".join(map("'{}'".format, self.keys()))))
-        return self[self._key](*args, **kwargs)
+        try:
+            return self[self._key](*args, **kwargs)
+        except KeyError:
+            raise NotImplementedError("No function implemented for case '{}'. Supported cases are: {}".format(self._key, ", ".join(map("'{}'".format, self.keys()))))    
+
+
+class FunctionCaseStartWith(FunctionCase):
+    def __getitem__(self, item: str):
+        try:
+            for k in self.keys():
+                if item.startswith(k):
+                    return super(FunctionCaseStartWith, self).__getitem__(k)
+        except AttributeError:
+            pass
+        return super(FunctionCaseStartWith, self).__getitem__(item)
 
 
 # Copyright (c) 2020 Covmatic.

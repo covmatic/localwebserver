@@ -1,7 +1,31 @@
-from .utils import SingletonMeta
+from .utils import SingletonMeta, FunctionCaseStartWith
 import configargparse
 import argparse
 import os
+
+
+desktop_file = FunctionCaseStartWith(os.sys.platform)
+tempdeck_desktop_file = FunctionCaseStartWith(os.sys.platform)
+
+
+@desktop_file.case('linux')
+def desktop_file_linux():
+    return os.path.expanduser("~/.local/share/applications/covmatic.desktop")
+
+
+@desktop_file.case('')  # all other
+def desktop_file_other():
+    return ""
+
+
+@tempdeck_desktop_file.case('linux')
+def tempdeck_desktop_file_linux():
+    return os.path.expanduser("~/.local/share/applications/covmatic_tempdeck.desktop")
+
+
+@tempdeck_desktop_file.case('')  # all other
+def tempdeck_desktop_file_other():
+    return ""
 
 
 class Args(argparse.Namespace, metaclass=SingletonMeta):
@@ -31,6 +55,10 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('--protocol-local', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), ".tmp_protocol.py"), help="local file path for protocol file")
         parser.add_argument('--api-prefix', metavar='prefix', type=str, default="/api", help="the prefix for localwebserver API paths")
         parser.add_argument('--pcr-backup', metavar='path', type=str, default=os.path.expanduser("~/.pcr_backup"), help="the backup folder for PCR result files")
+        parser.add_argument('--desktop-file', metavar='path', type=str, default=desktop_file(), help="(setup) the desktop file path for the GUI")
+        parser.add_argument('--tempdeck-desktop-file', metavar='path', type=str, default=tempdeck_desktop_file(), help="(setup) the desktop file path for the Tempdeck GUI")
+        parser.add_argument('--tempdeck-desktop', action='store_true', help='(setup) create a desktop file for the Tempdeck GUI')
+        parser.add_argument('--python', metavar='path', type=str, default=os.sys.executable, help="(setup) the Python instance file path")
         return cls.reset(**parser.parse_args().__dict__)
     
     @classmethod

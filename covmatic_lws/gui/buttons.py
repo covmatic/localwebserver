@@ -76,8 +76,8 @@ class SubprocessButton(tk.Button):
         else:
             tk.messagebox.showwarning(*self._check_fail)
     
-    _already_running: str = ""
-    _check_fail: Tuple[str, str] = "", ""
+    _already_running: str = ("", "")
+    _check_fail: Tuple[str, str] = ("", "")
     _subprocess_args: List[str] = []
 
 

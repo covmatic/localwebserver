@@ -24,7 +24,7 @@ class OpentronsButton(ColorChangingSubprocessButton, metaclass=AppButtonFrame.bu
     def check_app(self) -> bool:
         return os.path.exists(self._app_file) and os.path.isfile(self._app_file)
     
-    _already_running: str = "Opentrons APP running", "Another instance of the Opentrons APP has already been launched"
+    _already_running = ("Opentrons APP running", "Another instance of the Opentrons APP has already been launched")
     
     @property
     def _check_fail(self) -> Tuple[str, str]:
@@ -56,7 +56,7 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
             self._subprocess = Process(target=lws_main)
             self._subprocess.start()
     
-    _already_running: str = "LocalWebServer running", "Another instance of the LocalWebServer has already been launched"
+    _already_running = ("LocalWebServer running", "Another instance of the LocalWebServer has already been launched")
         
 
 class WebAppButton(metaclass=AppButtonFrame.button):

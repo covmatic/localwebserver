@@ -59,8 +59,13 @@ class CheckFunction(Resource):
     log_endpoint = "http://{}:8080/log".format(Args().ip)
     
     def get(self):
-        if Task.running:
-            if issubclass(Task.type, StationTask):
+        with Task.lock:
+            task_running = Task.running
+            task_type = Task.type
+            task_str = str(Task._running)
+        if task_running:
+            self.logger.debug("{} is running".format(task_str))
+            if issubclass(task_type, StationTask):
                 with BarcodeSingleton.lock:
                     try:
                         rv = requests.get(self.log_endpoint)
@@ -84,12 +89,16 @@ class CheckFunction(Resource):
                                "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
                            )
                        }, 200
+            else:
+                return {"status": False, "res": task_str}, 200
         else:
+            self.logger.debug("No task is running")
             with CheckFunction.bak_lock:
                 if CheckFunction.bak() is None:
                     # No protocol was running, look for PCR result files
                     pcr_result_files = glob.glob(Args().pcr_results).sort(key=os.path.getctime)
                     if pcr_result_files:
+                        self.logger.debug("Found PCR files")
                         try:
                             with open(str(pcr_result_files[-1]), 'r', encoding='utf-8-sig') as f:
                                 result = json.load(f)
@@ -102,11 +111,12 @@ class CheckFunction(Resource):
                         os.remove(pcr_result_files[-1])
                         return {"status": True, "res": result}, 200
                     else:
+                        self.logger.debug("No Protocol nor Result available")
                         return {"status": True, "res": "No Protocol nor Result available"}, 200
                 else:
                     # Protocol has just ended, reset backup
-                    CheckFunction.bak(force=True)
                     self.logger.info("Protocol completed")
+                    CheckFunction.bak(None, force=True)
                     return {"status": True, "res": "Completed"}, 200
 
 

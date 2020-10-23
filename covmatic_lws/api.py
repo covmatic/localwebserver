@@ -93,31 +93,30 @@ class CheckFunction(Resource):
                 return {"status": False, "res": task_str}, 200
         else:
             self.logger.debug("No task is running")
-            with CheckFunction.bak_lock:
-                if CheckFunction.bak() is None:
-                    # No protocol was running, look for PCR result files
-                    pcr_result_files = glob.glob(Args().pcr_results).sort(key=os.path.getctime)
-                    if pcr_result_files:
-                        self.logger.debug("Found PCR files")
-                        try:
-                            with open(str(pcr_result_files[-1]), 'r', encoding='utf-8-sig') as f:
-                                result = json.load(f)
-                        except Exception as e:
-                            return {"status": True, "res": str(e)}, 500
-                        # Make a backup of the PCR results
-                        os.makedirs(Args().pcr_backup, exist_ok=True)
-                        copy2(pcr_result_files[-1], Args().pcr_backup)
-                        # Delete the last file in order to not create confusion
-                        os.remove(pcr_result_files[-1])
-                        return {"status": True, "res": result}, 200
-                    else:
-                        self.logger.debug("No Protocol nor Result available")
-                        return {"status": True, "res": "No Protocol nor Result available"}, 200
+            if CheckFunction.bak() is None:
+                # No protocol was running, look for PCR result files
+                pcr_result_files = glob.glob(Args().pcr_results).sort(key=os.path.getctime)
+                if pcr_result_files:
+                    self.logger.debug("Found PCR files")
+                    try:
+                        with open(str(pcr_result_files[-1]), 'r', encoding='utf-8-sig') as f:
+                            result = json.load(f)
+                    except Exception as e:
+                        return {"status": True, "res": str(e)}, 500
+                    # Make a backup of the PCR results
+                    os.makedirs(Args().pcr_backup, exist_ok=True)
+                    copy2(pcr_result_files[-1], Args().pcr_backup)
+                    # Delete the last file in order to not create confusion
+                    os.remove(pcr_result_files[-1])
+                    return {"status": True, "res": result}, 200
                 else:
-                    # Protocol has just ended, reset backup
-                    self.logger.info("Protocol completed")
-                    CheckFunction.bak(None, force=True)
-                    return {"status": True, "res": "Completed"}, 200
+                    self.logger.debug("No Protocol nor Result available")
+                    return {"status": True, "res": "No Protocol nor Result available"}, 200
+            else:
+                # Protocol has just ended, reset backup
+                self.logger.info("Protocol completed")
+                CheckFunction.bak(None, force=True)
+                return {"status": True, "res": "Completed"}, 200
 
 
 class PauseFunction(Resource):

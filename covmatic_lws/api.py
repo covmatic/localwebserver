@@ -23,17 +23,18 @@ class LocalWebServerAPI(Api):
 
 
 class TaskFunction(Resource):
-    lock = threading.Lock()
-    
     def get(self, station, action):
         try:
-            Task(station, action).start()
+            t = Task(station, action)
+            t.start()
         except (Task.TaskRunningException, KeyError) as e:
             logging.getLogger().info(e)
             return {
                        "status": "failed",
                        "message": str(e)
             }, 422
+        else:
+            return {"status": False, "message": "Started {}".format(t)}, 201
 
 
 class BarcodeSingleton(str, metaclass=SingletonMeta):

@@ -1,8 +1,30 @@
 """Launch the GUI for the local machine."""
+import tkinter as tk
+import tkinter.messagebox
+import os
+from ..check_update import up_to_date
+
+
+up2date, cv, lv = up_to_date()
+if not up2date:
+    root = tk.Tk()
+    root.title("Covmatic GUI")
+    root.withdraw()
+    update = tk.messagebox.askyesno(
+        "Update avaliable",
+        "You are using the Covmatic LocalWebserver version {},\nbut version {} is available.\n\nDo you want to upgrade?".format(cv, lv),
+        parent=root,
+    )
+    if update:
+        os.system("{p} -m pip install  -i https://test.pypi.org/pypi/ --upgrade covmatic-localwebserver && {p} -m covmatic_lws.gui".format(p=os.sys.executable))
+    root.destroy()
+    if update:
+        exit()
+
+
 from .gui import Covmatic
 from .images import set_ico
 import tkinter as tk
-import os
 
 
 root = tk.Tk()

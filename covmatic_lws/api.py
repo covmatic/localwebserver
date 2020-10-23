@@ -34,7 +34,7 @@ class TaskFunction(Resource):
                        "message": str(e)
             }, 422
         else:
-            CheckFunction.bak(None, force=True)
+            CheckFunction.bak({})
             return {"status": False, "message": "Started {}".format(t)}, 201
 
 
@@ -52,8 +52,8 @@ class CheckFunction(Resource):
     
     @classmethod
     @locked(bak_lock)
-    def bak(cls, value=None, force: bool = False):
-        if value is not None or force:
+    def bak(cls, value=None):
+        if value is not None:
             cls._bak = value
         return cls._bak
     
@@ -94,7 +94,7 @@ class CheckFunction(Resource):
                 return {"status": False, "res": task_str}, 200
         else:
             self.logger.debug("No task is running")
-            if CheckFunction.bak() is None:
+            if not CheckFunction.bak():
                 # No protocol was running, look for PCR result files
                 pcr_result_files = sorted(glob.glob(Args().pcr_results), key=os.path.getctime, reverse=True)
                 if pcr_result_files:
@@ -116,7 +116,7 @@ class CheckFunction(Resource):
             else:
                 # Protocol has just ended, reset backup
                 self.logger.info("Protocol completed")
-                CheckFunction.bak(None, force=True)
+                CheckFunction.bak({})
                 return {"status": True, "res": "Completed"}, 200
 
 

@@ -34,6 +34,7 @@ class TaskFunction(Resource):
                        "message": str(e)
             }, 422
         else:
+            CheckFunction.bak(None, force=True)
             return {"status": False, "message": "Started {}".format(t)}, 201
 
 
@@ -95,19 +96,19 @@ class CheckFunction(Resource):
             self.logger.debug("No task is running")
             if CheckFunction.bak() is None:
                 # No protocol was running, look for PCR result files
-                pcr_result_files = glob.glob(Args().pcr_results).sort(key=os.path.getctime)
+                pcr_result_files = sorted(glob.glob(Args().pcr_results), key=os.path.getctime, reverse=True)
                 if pcr_result_files:
                     self.logger.debug("Found PCR files")
                     try:
-                        with open(str(pcr_result_files[-1]), 'r', encoding='utf-8-sig') as f:
+                        with open(str(pcr_result_files[0]), 'r', encoding='utf-8-sig') as f:
                             result = json.load(f)
                     except Exception as e:
                         return {"status": True, "res": str(e)}, 500
                     # Make a backup of the PCR results
                     os.makedirs(Args().pcr_backup, exist_ok=True)
-                    copy2(pcr_result_files[-1], Args().pcr_backup)
+                    copy2(pcr_result_files[0], Args().pcr_backup)
                     # Delete the last file in order to not create confusion
-                    os.remove(pcr_result_files[-1])
+                    os.remove(pcr_result_files[0])
                     return {"status": True, "res": result}, 200
                 else:
                     self.logger.debug("No Protocol nor Result available")

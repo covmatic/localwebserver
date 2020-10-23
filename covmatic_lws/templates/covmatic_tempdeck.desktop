@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Name=TempDeck
+Comment=Covmatic TempDeck GUI
+Terminal=false
+Type=Application
+Exec={} -m covmatic_lws.gui.tempdeck
+Icon={}
+Categories=Development;

@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Name=Covmatic
+Comment=Covmatic LocalWebServer GUI
+Terminal=false
+Type=Application
+Exec={} -m covmatic_lws.gui
+Icon={}
+Categories=Development;

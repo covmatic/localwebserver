@@ -32,7 +32,7 @@ setuptools.setup(
     description="Package for the COVMATIC LocalWebServer",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/OpenSourceCovidTesting/localWebServer",
+    url="https://github.com/covmatic/localwebserver",
     packages=setuptools.find_packages(),
     include_package_data=True,
     setup_requires=[

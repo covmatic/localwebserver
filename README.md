@@ -10,11 +10,11 @@ Visit the website https://covmatic.org/ for more documentation and information.
 * [TempDeck](#tempdeck-gui)
 
 ## Installation
-**This software is still in its beta phase and the packaged is stored on test.pypi. You will have to install dependecies manually (see the [requirements](requirements.txt))**
+**This software is still in its beta phase. Every feature may be subject to change**
 
-You can [install the Covmatic LocalWebServer via `pip`](https://test.pypi.org/project/covmatic-localwebserver):
+You can [install the Covmatic LocalWebServer via `pip`](https://pypi.org/project/covmatic-localwebserver):
 ```
-<python> -m pip install -i https://test.pypi.org/simple/ covmatic-localwebserver
+<python> -m pip install covmatic-localwebserver
 ```
 Where `<python>` should be changed for the Python instance you wish to install the LocalWebServer onto. We will be following this convention for all the next instructions. 
 

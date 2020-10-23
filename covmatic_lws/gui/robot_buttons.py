@@ -6,6 +6,7 @@ from .buttons import ColorChangingButton, ColorChangingTimerButton, SSHButtonMix
 from .images import set_ico
 from ..args import Args
 from .upload_protocol import ProtocolDefinition
+from ..check_update import up_to_date
 import logging
 import webbrowser
 import requests
@@ -41,6 +42,9 @@ class UpdateSystem(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFra
     def text(self) -> str:
         return "System9 {}".format(self.current_version())
     
+    def up_to_date(self):
+        return up_to_date(type(self).current_version(), "covid19-system9", "https://test.pypi.org/simple", python_install="python")
+    
     @staticmethod
     def local_path(file: str):
         return os.path.join(os.path.dirname(__file__), file)
@@ -57,27 +61,15 @@ class UpdateSystem(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFra
         self.configure(text=self.text)
         super(UpdateSystem, self).update()
     
-    @staticmethod
-    def pypi_index():
-        s = os.environ.get("SYSTEM9_INDEX", "https://test.pypi.org/pypi/")
-        return s and " -i {}".format(s)
-    
-    @staticmethod
-    def latest_version() -> str:
-        pkg_name = "covid19-system9"
-        for s in os.popen("{} -m pip search{} -V {}".format(os.sys.executable, UpdateSystem.pypi_index(), pkg_name)).read().split("\n"):
-            if s[:len(pkg_name)] == pkg_name:
-                return s.split("(")[1].split(")")[0]
-        return UpdateSystem.current_version()
-    
     @property
     def state(self):
-        return self.current_version() == self.latest_version()
+        return self.up_to_date()[0]
 
     def command(self):
-        if not self.state:
+        up2date, _, _, up_cmd = self.up_to_date()
+        if not up2date:
             with SSHClient() as client:
-                _, stdout, stderr = client.exec_command("python -m pip install{} covid19-system9 --upgrade".format(self.pypi_index()))
+                _, stdout, stderr = client.exec_command(up_cmd)
                 for o, lvl in [
                     (stdout, "info"),
                     (stderr, "warning"),

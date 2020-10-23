@@ -55,14 +55,16 @@ class CheckFunction(Resource):
             cls._bak = value
         return cls._bak
     
+    log_endpoint = "http://{}:8080/log".format(Args().ip)
+    
     def get(self):
         if Task.running:
             if issubclass(Task.type, StationTask):
                 with BarcodeSingleton.lock:
                     try:
-                        rv = requests.get("http://{}:8080/log".format(Args().ip))
+                        rv = requests.get(self.log_endpoint)
                     except requests.exceptions.ConnectionError:
-                        self.logger.info("{} - Connection Error".format("http://{}:8080/log".format(Args().ip)))
+                        self.logger.info("{} - Connection Error".format(self.log_endpoint))
                     else:
                         self.logger.info("{} - Status Code {}".format(self.log_endpoint, rv.status_code))
                         self.logger.debug(rv.content.decode('ascii'))

@@ -42,7 +42,7 @@ To learn how to set up SSH on your Opentrons robot, please refer to [the officia
 
 Other useful settings are:
  - `app`: the Opentrons App filepath (default is `C:/Program Files/Opentrons/Opentrons.exe`)
- - `station name`: the name of the default station protocol (default is `A`)
+ - `station` name: the name of the default station protocol (default is `A`)
  - `lang`: the default message language (default is `ENG`)
 
 For a complete list of settings, run

@@ -10,7 +10,7 @@ from {module} import {cls}
 
 
 logging.getLogger({cls}.__name__).setLevel(logging.{log_level})
-metadata = {copen}'apiLevel': '{apiLevel}'{cclose}
+metadata = {copen}'apiLevel': '{apiLevel}', 'author': 'Covmatic LocalWebServer Protocol Generator <https://github.com/covmatic/localwebserver>'{cclose}
 station = {cls}(**json.loads('{prot_kwargs}'))
 
 

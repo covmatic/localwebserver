@@ -1,4 +1,7 @@
+import tkinter as tk
 import json
+from abc import ABCMeta, abstractmethod
+from .args import Args
 
 
 _template = """import logging
@@ -7,7 +10,7 @@ from {module} import {cls}
 
 
 logging.getLogger({cls}.__name__).setLevel(logging.{log_level})
-metadata = {copen}'apiLevel': '{apiLevel}'{cclose}
+metadata = {copen}'apiLevel': '{apiLevel}', 'author': 'Covmatic LocalWebServer Protocol Generator <https://github.com/covmatic/localwebserver>'{cclose}
 station = {cls}(**json.loads('{prot_kwargs}'))
 
 
@@ -22,17 +25,103 @@ def run(ctx):
 """
 
 
+class ProtocolArgument(metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def key(self) -> str:
+        pass
+    
+    @property
+    @abstractmethod
+    def verbose_name(self) -> str:
+        pass
+    
+    @abstractmethod
+    def get(self):
+        pass
+    
+    def check(self) -> bool:
+        return True
+    
+    @property
+    def err_msg(self) -> str:
+        return "Argument check failed: {}\n{}\nIllegal value: {}".format(self.key, self.verbose_name, self.get())
+    
+    def check_get(self):
+        if self.check():
+            return self.get()
+        raise ValueError(self.err_msg)
+
+
+class IntegerArgument(tk.IntVar, ProtocolArgument, metaclass=ABCMeta):
+    @property
+    def key(self) -> str:
+        return self._name
+
+
+class PositiveArgument(IntegerArgument, metaclass=ABCMeta):
+    def check(self) -> bool:
+        return self.get() > 0 and super(PositiveArgument, self).check()
+    
+    @property
+    def err_msg(self) -> str:
+        return "{}\n{}".format(ProtocolArgument.err_msg.fget(self), "Argument should be positive")
+
+
+class NumSamples(PositiveArgument):
+    @property
+    def verbose_name(self) -> str:
+        return "Number of Samples"
+    
+    def __init__(self, *args, **kwargs):
+        kwargs["name"] = kwargs.get("name", "num_samples")
+        super(NumSamples, self).__init__(*args, **kwargs)
+
+
+class NumCycles(PositiveArgument):
+    @property
+    def verbose_name(self) -> str:
+        return "Number of Cycles"
+    
+    def __init__(self, *args, **kwargs):
+        kwargs["name"] = kwargs.get("name", "num_cycles")
+        super(NumCycles, self).__init__(*args, **kwargs)
+
+
+class StartAt(tk.StringVar, ProtocolArgument):
+    def __init__(self, *args, **kwargs):
+        kwargs["name"] = kwargs.get("name", "start_at")
+        super(StartAt, self).__init__(*args, **kwargs)
+    
+    @property
+    def key(self) -> str:
+        return self._name
+    
+    def get(self):
+        return super(StartAt, self).get() or None
+    
+    @property
+    def verbose_name(self) -> str:
+        return "Start at"
+
+
 _classes = {
-    "A": ("system9.a.technogenetics", "StationATechnogenetics24"),
-    "B": ("system9.b.technogenetics", "StationBTechnogenetics"),
-    "C": ("system9.c.technogenetics", "StationCTechnogenetics"),
+    "A": ("system9.a.technogenetics", "StationATechnogenetics24", NumSamples),
+    "B": ("system9.b.technogenetics", "StationBTechnogenetics", NumSamples),
+    "C": ("system9.c.technogenetics", "StationCTechnogenetics", NumSamples),
+    "Elution Removal": ("system9.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
+    "Wash B Removal": ("system9.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
 }
+
+
+if Args().start_at:
+    _classes = {k: (*v, StartAt) for k, v in _classes.items()}
 
 
 def protocol_gen(cls: str, log_level: str = "INFO", apiLevel='2.3', **prot_kwargs) -> str:
     if cls not in _classes:
         raise KeyError("Class {} is not supported: supported classes are: {}".format(cls, ", ".join(_classes.keys())))
-    module, cls = _classes[cls]
+    module, cls = _classes[cls][:2]
     return _template.format(
         copen="{",
         cclose="}",

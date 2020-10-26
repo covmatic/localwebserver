@@ -1,6 +1,7 @@
 import tkinter as tk
 import json
 from abc import ABCMeta, abstractmethod
+from .args import Args
 
 
 _template = """import logging
@@ -110,6 +111,10 @@ _classes = {
     "C": ("system9.c.technogenetics", "StationCTechnogenetics", NumSamples),
     "Elution Removal": ("system9.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
 }
+
+
+if Args().start_at:
+    _classes = {k: (*v, StartAt) for k, v in _classes.items()}
 
 
 def protocol_gen(cls: str, log_level: str = "INFO", apiLevel='2.3', **prot_kwargs) -> str:

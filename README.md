@@ -80,8 +80,8 @@ If the robot is offline, `(disconnected)` will show under the robot's ip/hostnam
 
 In the first column you will find buttons for functions strictly related to robot
  - Package version button.
- This button shows the current version of the protocol package installed on the robot.
- It should read `System9 <version>`.
+ This button shows the current version of the [protocol package](https://github.com/covmatic/stations) installed on the robot.
+ It should read `Stations <version>`.
 If the button is blue, the package is up to date.
 If the button is white, the package is outdated: by clicking the button, you can update the package to the latest version (this may take a minute).
 The button should then turn blue, displaying the updated version number.

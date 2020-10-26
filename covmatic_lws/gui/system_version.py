@@ -1,9 +1,9 @@
 try:
-    import system9
+    import covmatic_stations
 except ModuleNotFoundError:
     print("not installed")
 else:
-    print(system9.__version__)
+    print(covmatic_stations.__version__)
 
 
 # Copyright (c) 2020 Covmatic.

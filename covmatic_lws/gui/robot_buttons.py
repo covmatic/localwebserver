@@ -43,7 +43,7 @@ class UpdateSystem(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFra
         return "Stations {}".format(self.current_version())
     
     def up_to_date(self):
-        return up_to_date(type(self).current_version(), "covmatic-stations", "https://test.pypi.org/simple", python_install="python")
+        return up_to_date(type(self).current_version(), "covmatic-stations", python_install="python")
     
     @staticmethod
     def local_path(file: str):

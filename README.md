@@ -10,7 +10,8 @@ Visit the website https://covmatic.org/ for more documentation and information.
 * [TempDeck](#tempdeck-gui)
 
 ## Installation
-**This software is still in its beta phase. Every feature may be subject to change**
+> :warning: **This software is still in its beta phase**  
+> Every feature may be subject to change without notice
 
 You can [install the Covmatic LocalWebServer via `pip`](https://pypi.org/project/covmatic-localwebserver):
 ```
@@ -80,8 +81,8 @@ If the robot is offline, `(disconnected)` will show under the robot's ip/hostnam
 
 In the first column you will find buttons for functions strictly related to robot
  - Package version button.
- This button shows the current version of the protocol package installed on the robot.
- It should read `System9 <version>`.
+ This button shows the current version of the [protocol package](https://github.com/covmatic/stations) installed on the robot.
+ It should read `Stations <version>`.
 If the button is blue, the package is up to date.
 If the button is white, the package is outdated: by clicking the button, you can update the package to the latest version (this may take a minute).
 The button should then turn blue, displaying the updated version number.
@@ -124,8 +125,10 @@ There are 3 buttons
 - Set button. Set the temperature of all connected TempDecks to the specified temperature.
 - Deactivate button. Deactivate all connected TempDeks.
 
-## Licence
-Copyright (c) 2020 Covmatic.  
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:  
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.  
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.   
+
+<!---
+Copyright (c) 2020 Covmatic.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->

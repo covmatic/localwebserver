@@ -40,10 +40,10 @@ class UpdateSystem(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFra
     
     @classproperty
     def text(self) -> str:
-        return "System9 {}".format(self.current_version())
+        return "Stations {}".format(self.current_version())
     
     def up_to_date(self):
-        return up_to_date(type(self).current_version(), "covid19-system9", "https://test.pypi.org/simple", python_install="python")
+        return up_to_date(type(self).current_version(), "covmatic-stations", python_install="python")
     
     @staticmethod
     def local_path(file: str):

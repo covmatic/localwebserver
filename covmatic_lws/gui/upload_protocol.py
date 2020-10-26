@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
 from .button_frames import ButtonFrameBase
-from .buttons import SSHButtonMixin, ConnectionLabel
+from .buttons import SSHButtonMixin, ConnectionLabel, _palette
 from .images import set_ico, get_logo
 from .utils import warningbox
 from ..ssh import SSHClient, try_ssh
@@ -29,7 +29,7 @@ class ProtocolDefinition(tk.Frame):
         self._conn_label.grid(row=2, columnspan=2)
         
         self._left = ParentFrame(self)
-        self._station_menu = StationsMenu(self._left)
+        self._station_menu = StationsMenu(self._left, **_palette["off"])
         self._argframe = ArgFrame(self._left, station_var=self._station_menu.var)
         self._station_menu.var.trace_add("write", self._argframe.update)
         self._station_menu.grid()

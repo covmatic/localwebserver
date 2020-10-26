@@ -50,11 +50,9 @@ class ProtocolDefinition(tk.Frame):
         return self._validfile
     
     def protocol_changed(self, *args, **kwargs):
-        print("protocol changed")
         self._validfile = False
     
     def protocol_saved(self, *args, **kwargs):
-        print("protocol saved")
         self._validfile = True
     
     @property

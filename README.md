@@ -10,7 +10,8 @@ Visit the website https://covmatic.org/ for more documentation and information.
 * [TempDeck](#tempdeck-gui)
 
 ## Installation
-**This software is still in its beta phase. Every feature may be subject to change**
+> :warning: **This software is still in its beta phase**  
+> Every feature may be subject to change without notice
 
 You can [install the Covmatic LocalWebServer via `pip`](https://pypi.org/project/covmatic-localwebserver):
 ```

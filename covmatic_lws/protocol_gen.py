@@ -110,6 +110,7 @@ _classes = {
     "B": ("system9.b.technogenetics", "StationBTechnogenetics", NumSamples),
     "C": ("system9.c.technogenetics", "StationCTechnogenetics", NumSamples),
     "Elution Removal": ("system9.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
+    "Wash B Removal": ("system9.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
 }
 
 

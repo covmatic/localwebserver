@@ -40,6 +40,7 @@ class TaskFunction(Resource):
 
 class BarcodeSingleton(str, metaclass=SingletonMeta):
     lock = threading.Lock()
+    valid = True
 
 
 class CheckFunction(Resource):
@@ -79,9 +80,14 @@ class CheckFunction(Resource):
                             CheckFunction.bak(rv.json())
                     finally:
                         output = CheckFunction.bak()
-                    if output.get("external", False):
+                    if BarcodeSingleton.valid and output.get("external", False):
+                        self.logger.debug("Barcode is valid and stage is external")
                         while not BarcodeSingleton():
                             BarcodeSingleton.reset(requests.get("http://127.0.0.1:{}/exit".format(Args().barcode_port)).content.decode('ascii'))
+                    if not BarcodeSingleton.valid and not output.get("external", True):
+                        self.logger.debug("Barcode is not valid and stage is internal. Resetting barcode")
+                        BarcodeSingleton.reset()
+                        BarcodeSingleton.valid = True
                 return {
                            "status": False,
                            "res": "Status: {}\nStage: {}{}".format(
@@ -144,7 +150,7 @@ class ResumeFunction(Resource):
     
     @locked(BarcodeSingleton.lock)
     def get(self):
-        if BarcodeSingleton():
+        if BarcodeSingleton() and BarcodeSingleton.valid:
             try:
                 while requests.get("http://127.0.0.1:{}/enter".format(Args().barcode_port)).content.decode('ascii') != BarcodeSingleton():
                     pass
@@ -152,9 +158,7 @@ class ResumeFunction(Resource):
                 r = {"status": False, "res": str(e)}, 500
             else:
                 r = self._resume()
-                t = threading.Timer(1, BarcodeSingleton.reset)
-                t.start()
-                t.join()
+                BarcodeSingleton.valid = False
         else:
             r = self._resume()
         return r

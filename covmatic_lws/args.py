@@ -59,6 +59,8 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('--log-local', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), "log_{}.json"), help="local file path for completion log file (formattable with timestamp)")
         parser.add_argument('--tip-log-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/outputs/tip_log.json", help="remote file path for tip log file")
         parser.add_argument('--tip-log-local', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), "tip_log.json"), help="local file path for tip log file")
+        parser.add_argument('--magnet-json-remote', metavar='path', type=str, default="", help="remote file path for magnet configuration (this is used for magnet configuration)")
+        parser.add_argument('--magnet-json-local', metavar='path', type=str, default="", help="local file path for magnet configuration (if both remote and local paths are given, this is used for magnet configuration)")
         parser.add_argument('--start-at', action='store_true', help='enable the start_at protocol argument in the upload protocol window')
         parser.add_argument('--protocol-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/protocol.py", help="remote file path for protocol file")
         parser.add_argument('--protocol-local', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), ".tmp_protocol.py"), help="local file path for protocol file")

@@ -7,6 +7,7 @@ import threading
 import logging
 from typing import Optional
 from abc import ABCMeta, abstractmethod
+import os
 
 
 class TaskDefinition:
@@ -92,7 +93,16 @@ class StationTask(Task):
             logging.getLogger().info("Starting protocol: {}".format(self.task))
             with SSHClient() as client:
                 channel = client.invoke_shell()
+                # Copy over magnet configuration
+                if Args().magnet_json_remote and os.path.isfile(Args().magnet_json_local):
+                    channel = client.invoke_shell("mkdir -p {}".format(os.path.dirname(Args().magnet_json_remote)))
+                    with client.scp_client() as scp_client:
+                        scp_client.put(Args().magnet_json_local, Args().magnet_json_remote)
+                # Launch protocol
+                if Args().magnet_json_remote:
+                    channel.send('export OT_MAGNET_JSON=\"{}\"\n'.format(Args().magnet_json_remote))
                 channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
+                # Wait for exit code
                 channel.send('exit \n')
                 code = channel.recv_exit_status()
             logging.getLogger().info("Protocol exit code: {}".format(code))

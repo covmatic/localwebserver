@@ -2,27 +2,11 @@ import tkinter as tk
 import json
 from abc import ABCMeta, abstractmethod
 from .args import Args
+import os
 
 
-_template = """import logging
-import json
-from {module} import {cls}
-
-
-logging.getLogger({cls}.__name__).setLevel(logging.{log_level})
-metadata = {copen}'apiLevel': '{apiLevel}', 'author': 'Covmatic LocalWebServer Protocol Generator <https://github.com/covmatic/localwebserver>'{cclose}
-station = {cls}(**json.loads('{prot_kwargs}'))
-
-
-def run(ctx):
-    return station.run(ctx)
-
-
-# Copyright (c) 2020 Covmatic.
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"""
+with open(os.path.join(os.path.dirname(__file__), "templates", "protocol.py")) as f:
+    _template = f.read()
 
 
 class ProtocolArgument(metaclass=ABCMeta):
@@ -106,11 +90,11 @@ class StartAt(tk.StringVar, ProtocolArgument):
 
 
 _classes = {
-    "A": ("system9.a.technogenetics", "StationATechnogenetics24", NumSamples),
-    "B": ("system9.b.technogenetics", "StationBTechnogenetics", NumSamples),
-    "C": ("system9.c.technogenetics", "StationCTechnogenetics", NumSamples),
-    "Elution Removal": ("system9.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
-    "Wash B Removal": ("system9.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
+    "A": ("covmatic_stations.a.technogenetics", "StationATechnogenetics24", NumSamples),
+    "B": ("covmatic_stations.b.technogenetics", "StationBTechnogenetics", NumSamples),
+    "C": ("covmatic_stations.c.technogenetics", "StationCTechnogenetics", NumSamples),
+    "Elution Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
+    "Wash B Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
 }
 
 

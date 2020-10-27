@@ -1,25 +1,15 @@
-"""Covmatic LocalWebServer."""
-from .args import Args
 import logging
+import json
+from {module} import {cls}
 
 
-__version__ = "0.2.11"
-Args.pull(__doc__)
+logging.getLogger({cls}.__name__).setLevel(logging.{log_level})
+metadata = {copen}'apiLevel': '{apiLevel}', 'author': 'Covmatic LocalWebServer Protocol Generator <https://github.com/covmatic/localwebserver>'{cclose}
+station = {cls}(**json.loads('{prot_kwargs}'))
 
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s %(name)-12s %(levelname)-8s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-)
-
-for m in (
-    "paramiko",
-    "PIL",
-    "timeloop",
-    "werkzeug",
-):
-    logging.getLogger(m).setLevel(logging.WARNING)
+def run(ctx):
+    return station.run(ctx)
 
 
 # Copyright (c) 2020 Covmatic.

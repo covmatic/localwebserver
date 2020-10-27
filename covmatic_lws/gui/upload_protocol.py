@@ -221,6 +221,7 @@ class TipLog(tk.Text):
             except SCPException as e:
                 s = "tip log not found\nstarting from the beginning"
             else:
+                os.makedirs(os.path.dirname(Args().tip_log_local), exist_ok=True)
                 with open(Args().tip_log_local, "r") as f:
                     j = json.load(f)
                 s = "\n\n".join("{}\n{}".format(k.replace("_", " ").strip(), v) for k, v in j.get("next", {}).items())

@@ -40,6 +40,7 @@ The file `covmatic.conf` stores configuration settings for running the LocalWebS
  - `ssh-key`: SSH key file path (default is `~/ot2_ssh_key`). Please, make sure you have the correct SSH key file in the specified path
  - `pwd`: the passphrase for the SSH key used when connecting to the Opentrons robot
 To learn how to set up SSH on your Opentrons robot, please refer to [the official guide](https://support.opentrons.com/en/articles/3203681-setting-up-ssh-access-to-your-ot-2).
+
 An example configuration file would be
 ```
 ip=robot-name.local

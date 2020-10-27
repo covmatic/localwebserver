@@ -6,6 +6,7 @@ from .button_frames import ButtonFrameBase
 from .buttons import OnOffSubprocessButton, ColorChangingSubprocessButton
 from multiprocessing import Process
 from threading import Timer
+import requests
 import webbrowser
 import os
 from typing import Tuple, List
@@ -62,8 +63,19 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
 class WebAppButton(metaclass=AppButtonFrame.button):
     text: str = "Web App"
     
+    @property
+    def robot_name(self) -> str:
+        name = None
+        try:
+            name = requests.get("http://{}:31950/health".format(Args().ip)).json().get("name", None)
+        except Exception:
+            pass
+        return name
+    
     def command(self, app_url: str = Args().web_app):
-        webbrowser.open(app_url)
+        name = self.robot_name
+        url = "{}/station{}".format(app_url, "/{}/{}".format(Args().station, name) if name else "s")
+        webbrowser.open(url)
 
 
 # Copyright (c) 2020 Covmatic.

@@ -13,7 +13,7 @@ import os
 from scp import SCPException
 import json
 from typing import List
-from ..utils import SingletonMeta
+from ..utils import SingletonMeta, classproperty
 from itertools import chain
 
 
@@ -32,6 +32,7 @@ class ProtocolDefinition(tk.Frame):
         self._station_menu = StationsMenu(self._left, **_palette["off"])
         self._argframe = ArgFrame(self._left, station_var=self._station_menu.var)
         self._station_menu.var.trace_add("write", self._argframe.update)
+        self._station_menu.var.trace_add("write", lambda *args, **kwargs: setattr(Args(), "station", self._station_menu.var.get()))
         self._station_menu.grid()
         self._argframe.grid()
         self._argframe.update()
@@ -138,7 +139,10 @@ class MenuButton(tk.Menubutton):
 class StationsMenu(MenuButton):
     text: str = "Station"
     opts = protocol_gen._classes.keys()
-    dflt = Args().station
+    
+    @classproperty
+    def dflt(cls) -> str:
+        return Args().station
     
     def __init__(self, parent, *args, **kwargs):
         kwargs["width"] = kwargs.get("width", max(19, max(map(len, protocol_gen._classes.keys()))))

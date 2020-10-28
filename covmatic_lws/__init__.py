@@ -3,7 +3,7 @@ from .args import Args
 import logging
 
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 Args.pull(__doc__)
 
 
@@ -18,6 +18,7 @@ for m in (
     "PIL",
     "timeloop",
     "werkzeug",
+    "urllib3",
 ):
     logging.getLogger(m).setLevel(logging.WARNING)
 

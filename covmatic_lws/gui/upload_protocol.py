@@ -16,6 +16,7 @@ import json
 from typing import List
 from ..utils import SingletonMeta, classproperty
 from itertools import chain
+import time
 
 
 class ProtocolDefinition(tk.Frame):
@@ -61,12 +62,13 @@ class ProtocolDefinition(tk.Frame):
     def ns(self) -> int:
         return self._argframe.as_dict()["num_samples"]
     
-    def generate(self) -> str: 
+    def generate(self) -> str:
         return protocol_gen.protocol_gen(
             self._station_menu.var.get(),
             **self._argframe.as_dict(),
             language=self._right._buttons[2].var.get(),
             log_lws_url="http://{}.local:5001/api/log".format(socket.gethostname()),
+            log_filepath=Args().log_remote or "/var/lib/jupyter/notebooks/outputs/{}.log".format(time.strftime("%Y_%m_%d__%H_%M_%S")),
         )
 
 

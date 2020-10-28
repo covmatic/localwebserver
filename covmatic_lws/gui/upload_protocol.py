@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
+import socket
 from .button_frames import ButtonFrameBase
 from .buttons import SSHButtonMixin, ConnectionLabel, _palette
 from .images import set_ico, get_logo
@@ -65,6 +66,7 @@ class ProtocolDefinition(tk.Frame):
             self._station_menu.var.get(),
             **self._argframe.as_dict(),
             language=self._right._buttons[2].var.get(),
+            log_lws_url="http://{}.local:5001/api/log".format(socket.gethostname()),
         )
 
 

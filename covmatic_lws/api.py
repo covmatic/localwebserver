@@ -1,6 +1,7 @@
 """LocalWebServer API"""
 import requests
 from flask_restful import Resource
+from flask import request
 import glob
 import os
 from shutil import copy2
@@ -20,6 +21,14 @@ class LocalWebServerAPI(Api):
         self.add_resource(CheckFunction, '/check')
         self.add_resource(PauseFunction, '/pause')
         self.add_resource(ResumeFunction, '/resume')
+        self.add_resource(LogFunction, '/log')
+
+
+class LogFunction(Resource):
+    lock = threading.Lock()
+    
+    def post(self):
+        logging.getLogger().info(request.get_data(as_text=True))
 
 
 class TaskFunction(Resource):

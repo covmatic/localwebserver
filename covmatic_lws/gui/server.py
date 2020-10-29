@@ -55,7 +55,6 @@ class GUIServer:
         except UnicodeDecodeError:
             s = s.decode('ascii')
         with LogContent.lock:
-            print(repr(LogContent()))
             LogContent().set("{}{}{}".format(LogContent().get(), "\n" if LogContent().get() else "", s))
     
     @staticmethod

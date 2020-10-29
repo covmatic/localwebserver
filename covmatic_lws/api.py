@@ -12,6 +12,7 @@ import threading
 from .utils import SingletonMeta, locked
 from flask_restful import Api
 import logging
+from .ssh import SSHClient
 
 
 class LocalWebServerAPI(Api):
@@ -139,6 +140,13 @@ class CheckFunction(Resource):
                 # Station protocol has just ended, reset backup
                 res = "Failed" if code else "Completed"
                 self.logger.info("Protocol {}: exit code {}".format(res.lower(), code))
+                if Args().log_local:
+                    log_remote = CheckFunction.bak().get("runlog", None)
+                    if log_remote:
+                        os.makedirs(os.path.dirname(Args().log_local), exist_ok=True)
+                        with SSHClient() as client:
+                            with client.scp_client() as scp_client:
+                                scp_client.get(log_remote, Args().log_local)
                 CheckFunction.bak({})
                 return {"status": True, "res": res, "exit_code": code}, 500 if code else 200
 

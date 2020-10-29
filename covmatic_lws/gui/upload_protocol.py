@@ -67,7 +67,6 @@ class ProtocolDefinition(tk.Frame):
             self._station_menu.var.get(),
             **self._argframe.as_dict(),
             language=self._right._buttons[2].var.get(),
-            log_lws_url="http://{}.local:5001/api/log".format(socket.gethostname()),
             log_filepath=Args().log_remote or "/var/lib/jupyter/notebooks/outputs/{}.log".format(time.strftime("%Y_%m_%d__%H_%M_%S")),
         )
 

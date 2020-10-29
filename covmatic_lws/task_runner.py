@@ -2,12 +2,14 @@ from __future__ import annotations
 from .ssh import SSHClient
 from .args import Args
 from .utils import locked, classproperty
+from .gui.server import LogContent
 import subprocess
 import threading
 import logging
 from typing import Optional
 from abc import ABCMeta, abstractmethod
 import os
+import requests
 
 
 class TaskDefinition:
@@ -105,6 +107,8 @@ class StationTask(Task):
                 if Args().magnet_json_remote:
                     channel.send('export OT_MAGNET_JSON=\"{}\"\n'.format(Args().magnet_json_remote))
                 channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
+                # Try and register onto the protocol log
+                LogContent().set("")
                 # Wait for exit code
                 channel.send('exit \n')
                 code = channel.recv_exit_status()

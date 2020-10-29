@@ -2,10 +2,11 @@ from typing import Optional
 import tkinter as tk
 import tkinter.simpledialog
 from functools import partial
-from threading import Thread, Timer
+from threading import Thread, Timer, Lock
 import cherrypy
 from ..args import Args
 from .utils import warningbox
+from ..utils import SingletonMeta
 
 
 DEFAULT_CONFIG = {
@@ -15,6 +16,10 @@ DEFAULT_CONFIG = {
         "engine.autoreload.on": False,
     }
 }
+
+
+class LogContent(tk.StringVar, metaclass=SingletonMeta):
+    lock = Lock()
 
 
 class GUIServer:
@@ -41,6 +46,17 @@ class GUIServer:
     @cherrypy.expose
     def exit(self):
         return self.barcode("exit")
+    
+    @cherrypy.expose
+    def log(self):
+        s = cherrypy.request.body.read(int(cherrypy.request.headers['Content-Length']))
+        try:
+            s = s.decode('utf-8')
+        except UnicodeDecodeError:
+            s = s.decode('ascii')
+        with LogContent.lock:
+            print(repr(LogContent()))
+            LogContent().set("{}{}{}".format(LogContent().get(), "\n" if LogContent().get() else "", s))
     
     @staticmethod
     def stop():

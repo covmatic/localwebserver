@@ -13,6 +13,7 @@ from .utils import SingletonMeta, locked
 from flask_restful import Api
 import logging
 from .ssh import SSHClient
+import time
 
 
 class LocalWebServerAPI(Api):
@@ -142,12 +143,17 @@ class CheckFunction(Resource):
                 self.logger.info("Protocol {}: exit code {}".format(res.lower(), code))
                 if Args().log_local:
                     log_remote = CheckFunction.bak().get("runlog", None)
+                    log_local = Args().log_local.format(time.strftime("%Y_%m_%d__%H_%M_%S"))
                     if log_remote:
-                        os.makedirs(os.path.dirname(Args().log_local), exist_ok=True)
-                        with SSHClient() as client:
-                            with client.scp_client() as scp_client:
-                                scp_client.get(log_remote, Args().log_local)
-                            self.logger.info("Copied runlog:\nfrom '{}'\nto '{}'".format(log_remote, Args().log_local))
+                        os.makedirs(os.path.dirname(log_local), exist_ok=True)
+                        try:
+                            with SSHClient() as client:
+                                with client.scp_client() as scp_client:
+                                    scp_client.get(log_remote, log_local)
+                        except Exception as e:
+                            self.logger.warning("Could not copy runlog from '{}' to '{}':\n{}".format(log_remote, log_local, e))
+                        else:
+                            self.logger.info("Copied runlog from '{}' to '{}'".format(log_remote, log_local))
                 CheckFunction.bak({})
                 return {"status": True, "res": res, "exit_code": code}, 500 if code else 200
 

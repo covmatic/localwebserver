@@ -109,8 +109,11 @@ class CheckFunction(Resource):
                 return {"status": False, "res": task_str}, 200
         else:
             self.logger.debug("No task is running")
-            if not CheckFunction.bak():
-                # No protocol was running, look for PCR result files
+            with Task.lock:
+                code = Task.exit_code
+                Task.exit_code = None
+            if code is None:
+                # No station protocol was running, look for PCR result files
                 pcr_result_files = sorted(glob.glob(Args().pcr_results), key=os.path.getctime, reverse=True)
                 if pcr_result_files:
                     self.logger.debug("Found PCR files")
@@ -129,10 +132,11 @@ class CheckFunction(Resource):
                     self.logger.debug("No Protocol nor Result available")
                     return {"status": True, "res": "No Protocol nor Result available"}, 200
             else:
-                # Protocol has just ended, reset backup
-                self.logger.info("Protocol completed")
+                # Station protocol has just ended, reset backup
+                res = "Failed" if code else "Completed"
+                self.logger.info("Protocol {}: exit code {}".format(res.lower(), code))
                 CheckFunction.bak({})
-                return {"status": True, "res": "Completed"}, 200
+                return {"status": True, "res": res, "exit_code": code}, 500 if code else 200
 
 
 class PauseFunction(Resource):

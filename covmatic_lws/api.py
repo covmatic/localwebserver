@@ -28,7 +28,11 @@ class LogFunction(Resource):
     lock = threading.Lock()
     
     def post(self):
-        logging.getLogger().info(request.get_data(as_text=True))
+        try:
+            s = request.data.decode('utf-8')
+        except UnicodeDecodeError:
+            s = request.get_data(as_text=True)
+        logging.getLogger().info(s)
 
 
 class TaskFunction(Resource):

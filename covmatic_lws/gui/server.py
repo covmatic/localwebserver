@@ -48,6 +48,10 @@ class GUIServer:
         return self.barcode("exit")
     
     @cherrypy.expose
+    def reset_log(self):
+        LogContent().set("")
+    
+    @cherrypy.expose
     def log(self):
         s = cherrypy.request.body.read(int(cherrypy.request.headers['Content-Length']))
         try:

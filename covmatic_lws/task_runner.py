@@ -94,6 +94,11 @@ class StationTask(Task):
         
         def run(self):
             logging.getLogger().info("Starting protocol: {}".format(self.task))
+            # Try to reset the run log
+            try:
+                requests.get("http://127.0.0.1:{}/reset_log".format(Args().barcode_port))
+            except Exception:
+                pass
             with Task.lock:
                 Task.exit_code = -1
             with SSHClient() as client:
@@ -107,8 +112,6 @@ class StationTask(Task):
                 if Args().magnet_json_remote:
                     channel.send('export OT_MAGNET_JSON=\"{}\"\n'.format(Args().magnet_json_remote))
                 channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
-                # Try and register onto the protocol log
-                LogContent().set("")
                 # Wait for exit code
                 channel.send('exit \n')
                 code = channel.recv_exit_status()

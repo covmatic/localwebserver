@@ -147,6 +147,7 @@ class CheckFunction(Resource):
                         with SSHClient() as client:
                             with client.scp_client() as scp_client:
                                 scp_client.get(log_remote, Args().log_local)
+                            self.logger.info("Copied runlog:\nfrom '{}'\nto '{}'".format(log_remote, Args().log_local))
                 CheckFunction.bak({})
                 return {"status": True, "res": res, "exit_code": code}, 500 if code else 200
 

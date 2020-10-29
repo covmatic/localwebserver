@@ -17,9 +17,9 @@ DEFAULT_CONFIG = {
 }
 
 
-class BarcodeServer:
+class GUIServer:
     def __init__(self, parent, config: Optional[dict] = DEFAULT_CONFIG):
-        super(BarcodeServer, self).__init__()
+        super(GUIServer, self).__init__()
         self._parent = parent
         self._config = config
     
@@ -47,7 +47,7 @@ class BarcodeServer:
         cherrypy.engine.exit()
 
 
-class BarcodeServerThread(BarcodeServer, Thread):    
+class GUIServerThread(GUIServer, Thread):    
     def run(self):
         cherrypy.quickstart(self, config=self._config)
     
@@ -56,7 +56,7 @@ class BarcodeServerThread(BarcodeServer, Thread):
             Timer(after, partial(self.join, timeout=timeout)).start()
         else:
             self.stop()
-            super(BarcodeServerThread, self).join(timeout=timeout)
+            super(GUIServerThread, self).join(timeout=timeout)
 
 
 # Copyright (c) 2020 Covmatic.

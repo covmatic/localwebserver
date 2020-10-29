@@ -1,10 +1,9 @@
 import tkinter as tk
 from ..args import Args
-from ..ssh import try_ssh
 from .robot_buttons import RobotButtonFrame
 from .app_buttons import AppButtonFrame
 from .images import get_logo
-from .barcodeserver import BarcodeServerThread
+from .server import GUIServerThread
 from .buttons import ConnectionLabel
 
 
@@ -15,7 +14,7 @@ class Covmatic(tk.Frame):
     ):
         super(Covmatic, self).__init__(parent, *args, **kwargs)
         self._ip_label = tk.Label(self, text=Args().ip)
-        self._empty_label = tk.Label(self, text=" " if try_ssh() else "(disconnected)")
+        self._empty_label = ConnectionLabel(self)
         self._logo_photo = get_logo(resize=0.1)
         self._logo = tk.Label(self, image=self._logo_photo)
         self._robot_buttons = RobotButtonFrame(self)
@@ -26,7 +25,7 @@ class Covmatic(tk.Frame):
         self._empty_label.grid(row=2, columnspan=2)
         self._robot_buttons.grid(row=3, column=0, sticky=tk.N)
         self._app_buttons.grid(row=3, column=1, sticky=tk.N)
-        self._barcode_server = BarcodeServerThread(self)
+        self._barcode_server = GUIServerThread(self)
         self._barcode_server.start()
     
     def destroy(self):

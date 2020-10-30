@@ -2,12 +2,14 @@ from __future__ import annotations
 from .ssh import SSHClient
 from .args import Args
 from .utils import locked, classproperty
+from .gui.server import LogContent
 import subprocess
 import threading
 import logging
 from typing import Optional
 from abc import ABCMeta, abstractmethod
 import os
+import requests
 
 
 class TaskDefinition:
@@ -43,6 +45,7 @@ class Task(metaclass=TaskMeta):
     
     lock = threading.Lock()
     _running: Optional[Task] = None
+    exit_code: int = None
     
     def __init__(self, station, action, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
@@ -91,6 +94,13 @@ class StationTask(Task):
         
         def run(self):
             logging.getLogger().info("Starting protocol: {}".format(self.task))
+            # Try to reset the run log
+            try:
+                requests.get("http://127.0.0.1:{}/reset_log".format(Args().barcode_port))
+            except Exception:
+                pass
+            with Task.lock:
+                Task.exit_code = -1
             with SSHClient() as client:
                 channel = client.invoke_shell()
                 # Copy over magnet configuration
@@ -105,6 +115,8 @@ class StationTask(Task):
                 # Wait for exit code
                 channel.send('exit \n')
                 code = channel.recv_exit_status()
+            with Task.lock:
+                Task.exit_code = code
             logging.getLogger().info("Protocol exit code: {}".format(code))
     
     def new_thread(self) -> threading.Thread:

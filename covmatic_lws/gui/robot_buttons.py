@@ -6,12 +6,14 @@ from .buttons import ColorChangingButton, ColorChangingTimerButton, SSHButtonMix
 from .images import set_ico
 from ..args import Args
 from .upload_protocol import ProtocolDefinition
+from .log import LogWindow
 from ..check_update import up_to_date
 import logging
 import webbrowser
 import requests
 import json
 import os
+from typing import Tuple
 
 
 class RobotButtonFrame(ButtonFrameBase):
@@ -125,8 +127,9 @@ class HomeButton(SSHButtonMixin, tk.Button, metaclass=RobotButtonFrame.button):
             pass
 
 
-class UploadButton(ColorChangingTimerButton, metaclass=RobotButtonFrame.button):
-    text = "Upload Protocol"
+class WinButton(ColorChangingTimerButton):
+    new_win: type = None
+    render: Tuple[str, tuple, dict] = ("grid", (), {})
     
     @property
     def state(self) -> bool:
@@ -142,14 +145,22 @@ class UploadButton(ColorChangingTimerButton, metaclass=RobotButtonFrame.button):
                     self._win_root.destroy()
                 self._win_root = tk.Toplevel()
                 set_ico(self._win_root)
-                self._win_root.title('Upload Protocol')
-                self._win = ProtocolDefinition(self._win_root)
-                self._win.grid()
+                self._win_root.title(type(self).text)
+                self._win = type(self).new_win(self._win_root)
+                self.render_win(self._win)
         self.update()
+    
+    def render_win(self, win):
+        getattr(win, type(self).render[0])(*type(self).render[1], **type(self).render[2])
     
     def destroy(self):
         self.state = False
-        super(UploadButton, self).destroy()
+        super(WinButton, self).destroy()
+
+
+class UploadButton(WinButton, metaclass=RobotButtonFrame.button):
+    text = "Upload Protocol"
+    new_win = ProtocolDefinition
 
 
 class JupyterButton(SSHButtonMixin, tk.Button, metaclass=RobotButtonFrame.button):
@@ -162,6 +173,12 @@ class JupyterButton(SSHButtonMixin, tk.Button, metaclass=RobotButtonFrame.button
     
     def command(self):
         webbrowser.open(self.url)
+
+
+class RunLogButton(WinButton, metaclass=RobotButtonFrame.button):
+    text = "Run Log"
+    new_win = LogWindow
+    render: Tuple[str, tuple, dict] = ("pack", (), dict(expand=True, fill=tk.BOTH))
 
 
 # Copyright (c) 2020 Covmatic.

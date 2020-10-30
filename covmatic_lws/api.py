@@ -1,6 +1,7 @@
 """LocalWebServer API"""
 import requests
 from flask_restful import Resource
+from flask import request
 import glob
 import os
 from shutil import copy2
@@ -11,6 +12,8 @@ import threading
 from .utils import SingletonMeta, locked
 from flask_restful import Api
 import logging
+from .ssh import SSHClient
+import time
 
 
 class LocalWebServerAPI(Api):
@@ -20,6 +23,18 @@ class LocalWebServerAPI(Api):
         self.add_resource(CheckFunction, '/check')
         self.add_resource(PauseFunction, '/pause')
         self.add_resource(ResumeFunction, '/resume')
+        self.add_resource(LogFunction, '/log')
+
+
+class LogFunction(Resource):
+    lock = threading.Lock()
+    
+    def post(self):
+        try:
+            s = request.data.decode('utf-8')
+        except UnicodeDecodeError:
+            s = request.get_data(as_text=True)
+        logging.getLogger().info(s)
 
 
 class TaskFunction(Resource):
@@ -100,8 +115,11 @@ class CheckFunction(Resource):
                 return {"status": False, "res": task_str}, 200
         else:
             self.logger.debug("No task is running")
-            if not CheckFunction.bak():
-                # No protocol was running, look for PCR result files
+            with Task.lock:
+                code = Task.exit_code
+                Task.exit_code = None
+            if code is None:
+                # No station protocol was running, look for PCR result files
                 pcr_result_files = sorted(glob.glob(Args().pcr_results), key=os.path.getctime, reverse=True)
                 if pcr_result_files:
                     self.logger.debug("Found PCR files")
@@ -120,10 +138,24 @@ class CheckFunction(Resource):
                     self.logger.debug("No Protocol nor Result available")
                     return {"status": True, "res": "No Protocol nor Result available"}, 200
             else:
-                # Protocol has just ended, reset backup
-                self.logger.info("Protocol completed")
+                # Station protocol has just ended, reset backup
+                res = "Failed" if code else "Completed"
+                self.logger.info("Protocol {}: exit code {}".format(res.lower(), code))
+                if Args().log_local:
+                    log_remote = CheckFunction.bak().get("runlog", None)
+                    log_local = Args().log_local.format(time.strftime("%Y_%m_%d__%H_%M_%S"))
+                    if log_remote:
+                        os.makedirs(os.path.dirname(log_local), exist_ok=True)
+                        try:
+                            with SSHClient() as client:
+                                with client.scp_client() as scp_client:
+                                    scp_client.get(log_remote, log_local)
+                        except Exception as e:
+                            self.logger.warning("Could not copy runlog from '{}' to '{}':\n{}".format(log_remote, log_local, e))
+                        else:
+                            self.logger.info("Copied runlog from '{}' to '{}'".format(log_remote, log_local))
                 CheckFunction.bak({})
-                return {"status": True, "res": "Completed"}, 200
+                return {"status": True, "res": res, "exit_code": code}, 500 if code else 200
 
 
 class PauseFunction(Resource):

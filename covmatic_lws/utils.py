@@ -2,19 +2,13 @@ from functools import wraps, partial
 from threading import Timer
 
 
-class SingletonMeta(type):
-    def __new__(meta, name, bases, classdict):
-        def new(cls, *args, **kwargs):
-            if cls._inst is None:
-                if super(cls, cls).__new__ is object.__new__:
-                    args = []
-                    kwargs = {}
-                cls._inst = super(cls, cls).__new__(cls, *args, **kwargs)
-            return cls._inst
+class SingletonMeta(type):    
+    def __call__(cls, *args, **kwargs):
+        if cls._inst is None:
+            cls._inst = super(cls, cls).__new__(cls, *args, **kwargs)
+            cls._inst.__init__(*args, **kwargs)
+        return cls._inst
         
-        classdict["__new__"] = classdict.get("__new__", new)
-        return super(SingletonMeta, meta).__new__(meta, name, bases, classdict)
-    
     def __init__(cls, name, bases, classdict):
         super(SingletonMeta, cls).__init__(name, bases, classdict)
         cls._inst = None

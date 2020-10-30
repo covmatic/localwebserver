@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
+import socket
 from .button_frames import ButtonFrameBase
 from .buttons import SSHButtonMixin, ConnectionLabel, _palette
 from .images import set_ico, get_logo
@@ -15,6 +16,7 @@ import json
 from typing import List
 from ..utils import SingletonMeta, classproperty
 from itertools import chain
+import time
 
 
 class ProtocolDefinition(tk.Frame):
@@ -60,11 +62,12 @@ class ProtocolDefinition(tk.Frame):
     def ns(self) -> int:
         return self._argframe.as_dict()["num_samples"]
     
-    def generate(self) -> str: 
+    def generate(self) -> str:
         return protocol_gen.protocol_gen(
             self._station_menu.var.get(),
             **self._argframe.as_dict(),
             language=self._right._buttons[2].var.get(),
+            wait_first_log=Args().wait_log,
         )
 
 

@@ -2,10 +2,11 @@ from typing import Optional
 import tkinter as tk
 import tkinter.simpledialog
 from functools import partial
-from threading import Thread, Timer
+from threading import Thread, Timer, Lock
 import cherrypy
 from ..args import Args
 from .utils import warningbox
+from ..utils import SingletonMeta
 
 
 DEFAULT_CONFIG = {
@@ -17,9 +18,13 @@ DEFAULT_CONFIG = {
 }
 
 
-class BarcodeServer:
+class LogContent(tk.StringVar, metaclass=SingletonMeta):
+    lock = Lock()
+
+
+class GUIServer:
     def __init__(self, parent, config: Optional[dict] = DEFAULT_CONFIG):
-        super(BarcodeServer, self).__init__()
+        super(GUIServer, self).__init__()
         self._parent = parent
         self._config = config
     
@@ -42,12 +47,26 @@ class BarcodeServer:
     def exit(self):
         return self.barcode("exit")
     
+    @cherrypy.expose
+    def reset_log(self):
+        LogContent().set("")
+    
+    @cherrypy.expose
+    def log(self):
+        s = cherrypy.request.body.read(int(cherrypy.request.headers['Content-Length']))
+        try:
+            s = s.decode('utf-8')
+        except UnicodeDecodeError:
+            s = s.decode('ascii')
+        with LogContent.lock:
+            LogContent().set("{}{}{}".format(LogContent().get(), "\n" if LogContent().get() else "", s))
+    
     @staticmethod
     def stop():
         cherrypy.engine.exit()
 
 
-class BarcodeServerThread(BarcodeServer, Thread):    
+class GUIServerThread(GUIServer, Thread):    
     def run(self):
         cherrypy.quickstart(self, config=self._config)
     
@@ -56,7 +75,7 @@ class BarcodeServerThread(BarcodeServer, Thread):
             Timer(after, partial(self.join, timeout=timeout)).start()
         else:
             self.stop()
-            super(BarcodeServerThread, self).join(timeout=timeout)
+            super(GUIServerThread, self).join(timeout=timeout)
 
 
 # Copyright (c) 2020 Covmatic.

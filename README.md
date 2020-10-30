@@ -39,12 +39,14 @@ The file `covmatic.conf` stores configuration settings for running the LocalWebS
  - `ip`: the ip address or hostname of the Opentrons robot you want to connect to
  - `ssh-key`: SSH key file path (default is `~/ot2_ssh_key`). Please, make sure you have the correct SSH key file in the specified path
  - `pwd`: the passphrase for the SSH key used when connecting to the Opentrons robot
+ - `web-app`: the webapp url (including, eventually, `https://`)
 To learn how to set up SSH on your Opentrons robot, please refer to [the official guide](https://support.opentrons.com/en/articles/3203681-setting-up-ssh-access-to-your-ot-2).
 
 An example configuration file would be
 ```
 ip=robot-name.local
 pwd=pass
+web-app=https://covmatic-web-app.com
 ```
 
 Other useful settings are:
@@ -99,6 +101,8 @@ By clicking the button, you can toggle the lights.
 - Home button. This button sends the robot deck home. Please, don't use this button when a protocol is running, as it may crash the process.
 - Protocol upload button. This button opens (or closes) the *Protocol upload* window.
 - Jupyter button. This buttons opens the robot's Jupyter server in a web browser.
+- Run Log button. This button opens (or closes) the run log window.
+  The run log window displays the protocol run log in real time. It is reset at the start of a new run.
 
 In the second column you will find buttons related to services external to the robot
 - Opentrons button. This button launches the Opentrons app.
@@ -109,6 +113,7 @@ In the second column you will find buttons related to services external to the r
   If the button is white, the server is off.
   By clicking the button, you can toggle the server state.
 - WebApp button. This button opens the web app in a web browser.
+  If the [`web-app` setting](#configuration) is unset, this button is disabled.
 
 #### Protocol upload
 The protocol upload window allows you to specify protocol parameters and upload the generated protocol file to the robot.

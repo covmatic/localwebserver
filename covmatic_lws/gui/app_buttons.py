@@ -63,6 +63,10 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
 class WebAppButton(metaclass=AppButtonFrame.button):
     text: str = "Web App"
     
+    def __init__(self, parent, *args, **kwargs):
+        if not Args().web_app:
+            self.config(state=tk.DISABLED)
+    
     @property
     def robot_name(self) -> str:
         name = None
@@ -73,9 +77,10 @@ class WebAppButton(metaclass=AppButtonFrame.button):
         return name
     
     def command(self, app_url: str = Args().web_app):
-        name = self.robot_name
-        url = "{}/station{}".format(app_url, "/{}/{}".format(Args().station, name) if name else "s")
-        webbrowser.open(url)
+        if app_url:
+            name = self.robot_name
+            url = "{}/station{}".format(app_url, "/{}/{}".format(Args().station, name) if name else "s")
+            webbrowser.open(url)
 
 
 # Copyright (c) 2020 Covmatic.

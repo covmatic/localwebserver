@@ -1,6 +1,40 @@
 from . import __version__
-from typing import Tuple
 import os
+from typing import Tuple, Iterable, Callable
+from itertools import zip_longest
+from functools import partialmethod
+import operator
+
+
+class Version(str):
+    sep = '.'
+    
+    def as_iter(self) -> Iterable[int]:
+        for x in self.split(self.sep):
+            try:
+                yield int(x)
+            except Exception:
+                break
+        
+    def as_tuple(self) -> Tuple[int]:
+        return tuple(self.as_iter())
+    
+    def compare(self, other: str, f: Callable) -> bool:
+        for s, o in zip_longest(self.as_iter(), type(self)(other).as_iter(), fillvalue=0):
+            if s != o:
+                return f(s, o)
+        return f(s, o)
+
+
+for op in (
+    "__lt__",
+    "__le__",
+    "__eq__",
+    "__ne__",
+    "__ge__",
+    "__gt__",
+):
+    setattr(Version, op, partialmethod(Version.compare, f=getattr(operator, op)))
 
 
 def latest_version(pkg_name: str = "covmatic-localwebserver", index=None, python: str = os.sys.executable) -> str:
@@ -25,4 +59,4 @@ def up_to_date(current_version: str = __version__, pkg_name: str = "covmatic-loc
         python_install = python_lookup
     lv = latest_version(pkg_name=pkg_name, index=index and os.path.dirname(index), python=python_lookup)
     cmd = "{} -m pip install{} --upgrade {}".format(python_install, " -i {}".format(index) if index else "", pkg_name)
-    return lv == current_version, current_version, lv, cmd
+    return Version(lv) <= current_version, current_version, lv, cmd

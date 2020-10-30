@@ -3,7 +3,7 @@ from .args import Args
 import logging
 
 
-__version__ = "0.6.9"
+__version__ = "0.6.10"
 Args.pull(__doc__)
 
 

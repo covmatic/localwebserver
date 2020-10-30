@@ -47,7 +47,7 @@ def try_ssh(timeout: float = 0.5, force: bool = False) -> bool:
         try:
             with SSHClient(connect_kwargs=dict(timeout=timeout)):
                 _try_ssh_cache = True
-        except (socket.timeout, socket.gaierror, pk.ssh_exception.AuthenticationException):
+        except Exception:
             _try_ssh_cache = False
     return _try_ssh_cache
 

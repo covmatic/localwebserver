@@ -16,7 +16,7 @@ def latest_version(pkg_name: str = "covmatic-localwebserver", index=None, python
 
 def up_to_date(current_version: str = __version__, pkg_name: str = "covmatic-localwebserver", index=None, python_lookup: str = os.sys.executable, python_install: str = None) -> Tuple[bool, str, str, str]:
     """Returns:
-        up_to_date: wheter the package is up to date or not
+        up_to_date: whether the package is up to date or not
         current_version: the current version
         latest_version: the latest version on PyPI
         update_command: the command to update the package

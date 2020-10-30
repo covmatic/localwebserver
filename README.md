@@ -19,6 +19,13 @@ You can [install the Covmatic LocalWebServer via `pip`](https://pypi.org/project
 ```
 Where `<python>` should be changed for the Python instance you wish to install the LocalWebServer onto. We will be following this convention for all the next instructions. 
 
+### Troubleshooting
+In some cases, the `opentrons` package fails to install as a dependency of this package.
+If it happens, please install the `opentrons` package separately.
+```
+<python> -m pip install opentrons
+<python> -m pip install covmatic-localwebserver
+```
 ## Setup
 To set up the LocalWebServer application, run
 ```

@@ -2,7 +2,6 @@ from __future__ import annotations
 from .ssh import SSHClient
 from .args import Args
 from .utils import locked, classproperty
-from .gui.server import LogContent
 import subprocess
 import threading
 import logging
@@ -87,6 +86,27 @@ class Task(metaclass=TaskMeta):
 
 
 class StationTask(Task):
+    class StationConfigFile:
+        def __init__(self, local, remote, env_key: str):
+            self._local = local
+            self._remote = remote
+            self._env_key = env_key
+        
+        def push(self, ssh_client: SSHClient, ssh_channel):
+            if self._remote:
+                # Copy over configuration
+                if os.path.isfile(self._local):
+                    ssh_client.exec_command("mkdir -p {}".format(os.path.dirname(self._remote)))
+                    with ssh_client.scp_client() as scp_client:
+                        scp_client.put(self._local, self._remote)
+                    logging.getLogger().info("Copied '{}' to '{}'".format(self._local, self._remote))
+                # Set environment key
+                ssh_channel.send('export {}=\"{}\"\n'.format(self._env_key, self._remote))
+                logging.getLogger().info('Using {}=\"{}\"'.format(self._env_key, self._remote))
+    
+    magnet_config = StationConfigFile(Args().magnet_json_local, Args().magnet_json_remote, "OT_MAGNET_JSON")
+    copan48_config = StationConfigFile(Args().copan48_json_local, Args().copan48_json_remote, "OT_COPAN_48_CORRECT")
+    
     class StationTaskThread(threading.Thread):
         def __init__(self, task: Task, *args, **kwargs):
             super(StationTask.StationTaskThread, self).__init__(*args, **kwargs)
@@ -103,14 +123,10 @@ class StationTask(Task):
                 Task.exit_code = -1
             with SSHClient() as client:
                 channel = client.invoke_shell()
-                # Copy over magnet configuration
-                if Args().magnet_json_remote and os.path.isfile(Args().magnet_json_local):
-                    channel = client.invoke_shell("mkdir -p {}".format(os.path.dirname(Args().magnet_json_remote)))
-                    with client.scp_client() as scp_client:
-                        scp_client.put(Args().magnet_json_local, Args().magnet_json_remote)
+                # Copy over configurations
+                StationTask.magnet_config.push(client, channel)
+                StationTask.copan48_config.push(client, channel)
                 # Launch protocol
-                if Args().magnet_json_remote:
-                    channel.send('export OT_MAGNET_JSON=\"{}\"\n'.format(Args().magnet_json_remote))
                 channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
                 # Wait for exit code
                 channel.send('exit \n')

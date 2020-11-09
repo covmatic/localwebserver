@@ -9,6 +9,7 @@ from typing import Optional
 from abc import ABCMeta, abstractmethod
 import os
 import requests
+import glob
 
 
 class TaskDefinition:
@@ -140,7 +141,16 @@ class StationTask(Task):
 
 
 class PCRTask(Task):
+
     def new_thread(self) -> threading.Thread:
+        # Clean the results of the PCR before starting the process
+        pcr_result_files = glob.glob(Args().pcr_results)
+        if pcr_result_files:
+            for f in pcr_result_files:
+                logging.debug('file removed: {}'.format(f))
+                os.remove(f)
+        else:
+            logging.debug('PCR results folder already clean!')
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 

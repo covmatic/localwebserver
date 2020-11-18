@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.messagebox
 from ..localwebserver import main as lws_main
 from ..args import Args
+from ..ssh import try_ssh
 from .button_frames import ButtonFrameBase
 from .buttons import OnOffSubprocessButton, ColorChangingSubprocessButton
 from multiprocessing import Process
@@ -63,24 +64,21 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
 class WebAppButton(metaclass=AppButtonFrame.button):
     text: str = "Web App"
     
-    def __init__(self, parent, *args, **kwargs):
-        if not Args().web_app:
+    def __init__(self, parent, app_url: str = Args().web_app, *args, **kwargs):
+        self.app_url = app_url
+        self.robot_name = None
+        if self.app_url:
+            if try_ssh():
+                try:
+                    self.robot_name = requests.get("http://{}:31950/health".format(Args().ip)).json().get("name", None)
+                except Exception:
+                    pass
+        else:
             self.config(state=tk.DISABLED)
     
-    @property
-    def robot_name(self) -> str:
-        name = None
-        try:
-            name = requests.get("http://{}:31950/health".format(Args().ip)).json().get("name", None)
-        except Exception:
-            pass
-        return name
-    
-    def command(self, app_url: str = Args().web_app):
-        if app_url:
-            name = self.robot_name
-            url = "{}/station{}".format(app_url, "/{}/{}".format(Args().station, name) if name else "s")
-            webbrowser.open(url)
+    def command(self):
+        if self.app_url:
+            webbrowser.open("{}/station{}".format(self.app_url, "/{}/{}".format(Args().station, self.robot_name) if self.robot_name else "s"))
 
 
 # Copyright (c) 2020 Covmatic.

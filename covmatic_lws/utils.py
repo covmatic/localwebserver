@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from functools import wraps, partial
 from threading import Timer
 
@@ -33,12 +34,23 @@ def classproperty(foo):
     return ClassProperty(foo if isinstance(foo, (classmethod, staticmethod)) else classmethod(foo))
 
 
-def locked(lock):
+@contextmanager
+def acquire_lock(lock, blocking: bool = True, timeout: int = -1):
+    acq = lock.acquire(blocking=blocking, timeout=timeout)
+    yield acq
+    if acq:
+        lock.release()
+
+
+def locked(lock, blocking: bool = True, timeout: int = -1):
     def _locked(foo):
         @wraps(foo)
         def _foo(*args, **kwargs):
-            with lock:
-                r = foo(*args, **kwargs)
+            with acquire_lock(lock=lock, blocking=blocking, timeout=timeout) as acq:
+                if acq:
+                    r = foo(*args, **kwargs)
+                else:
+                    r = TimeoutError("lock timeout expired")
             return r
         return _foo
     return _locked

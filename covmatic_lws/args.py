@@ -55,6 +55,7 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('--no-wait-log', dest="wait_log", action='store_false', help='make the protocol start as soon as possible, without waiting for the first log request')
         parser.add_argument('--pcr-app', metavar="path", type=str, default="C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.4/BioRad.Example_Application.exe", help="the PCR app filepath")
         parser.add_argument('--pcr-results', metavar="path", type=str, default="C:/PCR_BioRad/json_results/????????_Data_??-??-????_??-??-??_Result.json", help="the PCR results filepath (scheme)")
+        parser.add_argument('--pcr-pcrd', metavar="path", type=str, default="C:/PCR_BioRad/pcrd_results", help="the PCR pcrd folder")
         parser.add_argument('--web-app', metavar='url', type=str, default="", help="the Web App URL")
         parser.add_argument('--log-local', metavar='path', type=str, default="", help="local file path for run log file")
         parser.add_argument('--tip-log-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/outputs/tip_log.json", help="remote file path for tip log file")

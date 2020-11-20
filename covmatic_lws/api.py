@@ -14,6 +14,7 @@ from flask_restful import Api
 import logging
 from .ssh import SSHClient
 import time
+import base64
 
 
 class LocalWebServerAPI(Api):
@@ -130,18 +131,35 @@ class CheckFunction(Resource):
                 # No station protocol was running, look for PCR result files
                 pcr_result_files = sorted(glob.glob(Args().pcr_results), key=os.path.getctime, reverse=True)
                 if pcr_result_files:
-                    self.logger.debug("Found PCR files")
+                    self.logger.debug("Found PCR files: {}".format(pcr_result_files))
                     try:
                         with open(str(pcr_result_files[0]), 'r', encoding='utf-8-sig') as f:
                             result = json.load(f)
                     except Exception as e:
                         return {"status": True, "res": str(e)}, 500
+                    output = {"result": result}
+                    # Look for pcrd file
+                    pcrd_filename = os.path.basename(
+                        pcr_result_files[0]
+                    ).split("_", maxsplit=1)[-1][:-12]  # .split(...)[-1] -> remove leading serial number, [:-12] remove trailing '_Result.json'
+                    pcrd_filename = os.path.join(Args().pcr_pcrd, pcrd_filename + ".pcrd")
+                    if os.path.isfile(pcrd_filename):
+                        self.logger.debug("Matching pcrd file found: {}".format(pcrd_filename))
+                        try:
+                            with open(pcrd_filename, 'rb') as pcrd_f:
+                                pcrd_s = base64.b64encode(pcrd_f.read()).decode('ascii')
+                        except Exception as e:
+                            self.logger.warning("Error while encoding pcrd file '{}':\n{}".format(pcrd_filename, str(e)))
+                        else:
+                            output["pcrd"] = pcrd_s
+                    else:
+                        self.logger.warning("No matching pcrd file found: {}".format(pcrd_filename))
                     # Make a backup of the PCR results
                     os.makedirs(Args().pcr_backup, exist_ok=True)
                     copy2(pcr_result_files[0], Args().pcr_backup)
                     # Delete the last file in order to not create confusion
                     os.remove(pcr_result_files[0])
-                    return {"status": True, "res": result}, 200
+                    return {"status": True, "res": output}, 200
                 else:
                     self.logger.debug("No Protocol nor Result available")
                     return {"status": True, "res": "No Protocol nor Result available"}, 200

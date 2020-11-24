@@ -88,9 +88,9 @@ class CheckFunction(Resource):
             self.logger.debug("{} is running".format(task_str))
             if issubclass(task_type, StationTask):
                 try:
-                    rv = requests.get(self.log_endpoint)
-                except requests.exceptions.ConnectionError:
-                    self.logger.info("{} - Connection Error".format(self.log_endpoint))
+                    rv = requests.get(self.log_endpoint, timeout=2)
+                except Exception as e:
+                    self.logger.info("{} - {}".format(self.log_endpoint, type(e).__name__))
                 else:
                     self.logger.info("{} - Status Code {}".format(self.log_endpoint, rv.status_code))
                     self.logger.debug(rv.content.decode('ascii'))

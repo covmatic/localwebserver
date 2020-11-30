@@ -131,6 +131,13 @@ class StationTask(Task):
                 channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
                 # Wait for exit code
                 channel.send('exit \n')
+                while not channel.exit_status_ready():
+                    channel.settimeout(1)
+                    try:
+                        channel.recv(1024)
+                    except Exception:
+                        pass
+                    channel.settimeout(None)
                 code = channel.recv_exit_status()
             with Task.lock:
                 Task.exit_code = code

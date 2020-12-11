@@ -48,6 +48,7 @@ class Task(metaclass=TaskMeta):
     lock = threading.Lock()
     _running: Optional[Task] = None
     exit_code: int = None
+    barcode: str = None
     
     def __init__(self, station, action, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
@@ -172,6 +173,7 @@ class YumiSocket:
         self.serv = socket.create_server(("", self.port))
         self.con, self.client_address = self.serv.accept()
         logging.info('Connessione stabilita con: {}'.format(self.client_address))
+        self.barcode = None
         self.count = 0
         self.barcode_rack = {}
 
@@ -190,19 +192,25 @@ class YumiSocket:
                 self.barcode_rack[self.count] = None
                 logging.warning(msg)
             else:
-                msg = "Ho ricevuto il barcode: {}".format(req.decode())
+                self.barcode = req.decode()
+                msg = "Ho ricevuto il barcode: {}".format(self.barcode)
                 logging.info(msg)
+                # TODO: Invio Barcode
+                # Cerco di trasferire il dato su api.py
+                with Task.lock:
+                    Task.barcode = self.barcode
                 # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
                 # VARIABILE STATICA PER SIMULAZIONE CON YUMI
-                OK = "NO"
+                OK = "OK"
                 if OK == "OK":
                     self.count += 1
-                    self.barcode_rack[self.count] = req.decode()
+                    self.barcode_rack[self.count] = self.barcode
                     logging.info('Barcode Conforme')
                 else:
                     self.count += 1
                     self.barcode_rack[self.count] = None
                     logging.warning('Barcode non Conforme')
+                # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
                 self.con.sendall(OK.encode())
 
     def start(self):

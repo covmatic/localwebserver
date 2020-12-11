@@ -10,6 +10,8 @@ from abc import ABCMeta, abstractmethod
 import os
 import requests
 import glob
+import socket
+import sys
 
 
 class TaskDefinition:
@@ -161,14 +163,65 @@ class PCRTask(Task):
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
+class YumiSocket:
+    """YumiSocket Class for connection"""
+
+    def __init__(self):
+        """Constructor for YumiSocket"""
+        self.port = 1025
+        self.serv = socket.create_server(("", self.port))
+        self.con, self.client_address = self.serv.accept()
+        logging.info('Connessione stabilita con: {}'.format(self.client_address))
+        self.count = 0
+        self.barcode_rack = {}
+
+    def receiver(self):
+        while True:
+            req = self.con.recv(4096)
+            # Nel caso non sia ricevuto nulla (nessun byte) significa che il socket lato yumi è chiuso
+            if not req:
+                logging.info('Socket chiuso => Spegni Server')
+                logging.info(self.barcode_rack)
+                # TODO: check if it has sense put this for closing at the end.
+                sys.exit(1)
+            if req.decode() == 'Non ho ricevuto nulla...':
+                self.count += 1
+                msg = 'Provetta in posizione: {} non è stato barcodato...'.format(self.count)
+                self.barcode_rack[self.count] = None
+                logging.warning(msg)
+            else:
+                msg = "Ho ricevuto il barcode: {}".format(req.decode())
+                logging.info(msg)
+                # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
+                # VARIABILE STATICA PER SIMULAZIONE CON YUMI
+                OK = "NO"
+                if OK == "OK":
+                    self.count += 1
+                    self.barcode_rack[self.count] = req.decode()
+                    logging.info('Barcode Conforme')
+                else:
+                    self.count += 1
+                    self.barcode_rack[self.count] = None
+                    logging.warning('Barcode non Conforme')
+                self.con.sendall(OK.encode())
+
+    def start(self):
+        try:
+            self.receiver()
+        except Exception as err:
+            logging.error(err)
+
+
 class YumiTask(Task):
     # TODO: Create a task that execute a Python module which returns the position
     # of the barcode and the barcode
     def new_thread(self) -> threading.Thread:
-        return threading.Thread()
+        logging.debug('YumiTask Thread')
+        YumiS = YumiSocket()
+        return threading.Thread(YumiS.start())
 
 
-# TaskDefinition(0, "YuMi", YumiTask)
+TaskDefinition(0, "YuMi", YumiTask)
 TaskDefinition(1, "stationA", StationTask)
 TaskDefinition(2, "stationB", StationTask)
 TaskDefinition(3, "stationC", StationTask)

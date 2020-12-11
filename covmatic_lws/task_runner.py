@@ -218,7 +218,7 @@ class YumiTask(Task):
     def new_thread(self) -> threading.Thread:
         logging.debug('YumiTask Thread')
         YumiS = YumiSocket()
-        return threading.Thread(YumiS.start())
+        return threading.Thread(target=YumiS.start())
 
 
 TaskDefinition(0, "YuMi", YumiTask)

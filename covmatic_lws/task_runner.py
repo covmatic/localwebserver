@@ -161,6 +161,14 @@ class PCRTask(Task):
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
+class YumiTask(Task):
+    # TODO: Create a task that execute a Python module which returns the position
+    # of the barcode and the barcode
+    def new_thread(self) -> threading.Thread:
+        return threading.Thread()
+
+
+# TaskDefinition(0, "YuMi", YumiTask)
 TaskDefinition(1, "stationA", StationTask)
 TaskDefinition(2, "stationB", StationTask)
 TaskDefinition(3, "stationC", StationTask)

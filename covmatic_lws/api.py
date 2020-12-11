@@ -7,7 +7,7 @@ import os
 from shutil import copy2
 import json
 from .args import Args
-from .task_runner import Task, StationTask
+from .task_runner import Task, StationTask, YumiTask
 import threading
 from .utils import SingletonMeta, locked, acquire_lock
 from flask_restful import Api
@@ -120,6 +120,10 @@ class CheckFunction(Resource):
                                "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
                            )
                        }, 200
+            # Aggiunto qui il caso per il caricamento dati
+            elif issubclass(task_type, YumiTask):
+                with Task.lock:
+                    return {"status": True, "res": Task.barcode}, 200
             else:
                 return {"status": False, "res": task_str}, 200
         else:

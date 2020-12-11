@@ -181,7 +181,7 @@ class YumiSocket:
             # Nel caso non sia ricevuto nulla (nessun byte) significa che il socket lato yumi è chiuso
             if not req:
                 logging.info('Socket chiuso => Spegni Server')
-                logging.info(self.barcode_rack)
+                logging.info('Barcodes ricevuti: \n {}'.format(self.barcode_rack))
                 # TODO: check if it has sense put this for closing at the end.
                 sys.exit(1)
             if req.decode() == 'Non ho ricevuto nulla...':

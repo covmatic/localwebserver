@@ -11,7 +11,10 @@ import os
 import requests
 import glob
 import socket
-import sys
+import queue
+
+
+task_fwd_queue = queue.Queue()
 
 
 class TaskDefinition:
@@ -61,7 +64,6 @@ class Task(metaclass=TaskMeta):
     lock = threading.Lock()
     _running: Optional[Task] = None
     exit_code: int = None
-    barcode: str = None  # TODO: Why is this an attribute of class Task? Move away
 
     def __init__(self, station, action, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
@@ -181,78 +183,52 @@ class PCRTask(Task):
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
-class YumiSocket:
-    """YumiSocket Class for connection"""
-
-    def __init__(self):
-        """Constructor for YumiSocket"""
-        # FIXME: Why are you using raw sockets? We already have a server running (Flask API). Please, use that
-        self.port = 1025
-        self.serv = socket.create_server(("", self.port))
-        self.con, self.client_address = self.serv.accept()
-        # FIXME: Please, log messages in English for consistency
-        logging.info('Connessione stabilita con: {}'.format(self.client_address))
-        self.barcode = None
-        self.count = 0
-        self.barcode_rack = {}
-
-    def receiver(self):
-        while True:
-            req = self.con.recv(4096)
-            # Nel caso non sia ricevuto nulla (nessun byte) significa che il socket lato yumi è chiuso
-            if not req:
-                logging.info('Socket chiuso => Spegni Server')
-                logging.info('Barcodes ricevuti: \n {}'.format(self.barcode_rack))
-                # TODO: check if it has sense put this for closing at the end.
-                sys.exit(1)
-            # FIXME: Comparing strings as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
-            if req.decode() == 'Non ho ricevuto nulla...':
-                self.count += 1
-                msg = 'Provetta in posizione: {} non è stato barcodato...'.format(self.count)
-                self.barcode_rack[self.count] = None
-                logging.warning(msg)
-            else:
-                self.barcode = req.decode()
-                msg = "Ho ricevuto il barcode: {}".format(self.barcode)
-                logging.info(msg)
-                # TODO: Invio Barcode
-                # Cerco di trasferire il dato su api.py
-
-                # FIXME: Do not use this lock. It is used for starting tasks
-                with Task.lock:
-                    Task.barcode = self.barcode
-                # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
-                # VARIABILE STATICA PER SIMULAZIONE CON YUMI
-                OK = "OK"
-                if OK == "OK":
-                    self.count += 1
-                    # FIXME: barcode_rack is initialized as dictionary, but used as list
-                    self.barcode_rack[self.count] = self.barcode
-                    logging.info('Barcode Conforme')
-                else:
-                    self.count += 1
-                    self.barcode_rack[self.count] = None
-                    logging.warning('Barcode non Conforme')
-                # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
-                self.con.sendall(OK.encode())
-
-    def start(self):
-        # FIXME: bahaviour and usage of this class resembles Thread. Please, inherit from Thread for robustness and semantics
-        try:
-            self.receiver()
-        except Exception as err:
-            logging.error(err)
-
-
 @task_definition(0, "YuMi")
 class YumiTask(Task):
+    class YumiTaskThread(threading.Thread):
+        def __init__(self, port: int = 1025):
+            super().__init__()
+            # Using raw sockets because of Rapid API
+            self.port = port
+            self.barcode_rack = []  # FIXME: unused
+
+        def run(self):
+            server = socket.create_server(("", self.port))
+            conn_sock, cli_addr = server.accept()
+            logging.info("Established connection with %s", cli_addr)
+            while True:
+                req = conn_sock.recv(4096)
+                if not req:
+                    logging.info("Connection with %s interrupted. Closing task", cli_addr)
+                    break
+                # FIXME: Comparing strings of natural language text as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
+                if req.decode() == 'Non ho ricevuto nulla...':
+                    self.barcode_rack.append(None)
+                    logging.warning("Barcode of tube in position %d has not been scanned", len(self.barcode_rack))
+                else:
+                    barcode = req.decode()
+                    logging.info("Received barcode: %s", barcode)
+
+                    # Enqueue barcode for forwarding (must be a valid JSON string)
+                    task_fwd_queue.put('"{}"'.format(barcode))
+                    # Next call to chek will return all newly enqueued barcodes
+
+                    # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
+                    # VARIABILE STATICA PER SIMULAZIONE CON YUMI
+                    OK = "OK"
+                    if OK == "OK":
+                        self.barcode_rack.append(barcode)
+                        logging.info('Compliant barcode')
+                    else:
+                        self.barcode_rack.append(None)
+                        logging.warning('Non-compliant barcode')
+                    # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
+                    conn_sock.sendall(OK.encode())
+
     # TODO: Create a task that execute a Python module which returns the position
     # of the barcode and the barcode
     def new_thread(self) -> threading.Thread:
-        logging.debug('YumiTask Thread')
-        YumiS = YumiSocket()
-        # FIXME: target must be a callable object, but you are passing it None. --> threading.Thread(target=YumiS.start)
-        return threading.Thread(target=YumiS.start())
+        return YumiTask.YumiTaskThread()
 
 
 # Copyright (c) 2020 Covmatic.

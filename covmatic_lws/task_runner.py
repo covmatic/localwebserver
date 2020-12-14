@@ -33,6 +33,19 @@ class TaskDefinition:
         self.kwargs = kwargs
 
 
+def task_definition(station, action, *args, **kwargs):
+    def td_(cls):
+        td = TaskDefinition(
+            station,
+            action,
+            cls,
+            *args,
+            **kwargs
+        )
+        return cls
+    return td_
+
+
 class TaskMeta(ABCMeta):
     def __call__(cls, station, action):
         td = TaskDefinition.get(station, action)
@@ -89,6 +102,9 @@ class Task(metaclass=TaskMeta):
         return "{} ({})".format(type(self).__name__, ", ".join("{}={}".format(k, getattr(self, k)) for k in self._str_fields))
 
 
+@task_definition(1, "stationA")
+@task_definition(2, "stationB")
+@task_definition(3, "stationC")
 class StationTask(Task):
     class StationConfigFile:
         def __init__(self, local, remote, env_key: str):
@@ -150,6 +166,7 @@ class StationTask(Task):
         return StationTask.StationTaskThread(self)
 
 
+@task_definition(4, "PCR")
 class PCRTask(Task):
 
     def new_thread(self) -> threading.Thread:
@@ -227,6 +244,7 @@ class YumiSocket:
             logging.error(err)
 
 
+@task_definition(0, "YuMi")
 class YumiTask(Task):
     # TODO: Create a task that execute a Python module which returns the position
     # of the barcode and the barcode
@@ -235,13 +253,6 @@ class YumiTask(Task):
         YumiS = YumiSocket()
         # FIXME: target must be a callable object, but you are passing it None. --> threading.Thread(target=YumiS.start)
         return threading.Thread(target=YumiS.start())
-
-
-TaskDefinition(0, "YuMi", YumiTask)
-TaskDefinition(1, "stationA", StationTask)
-TaskDefinition(2, "stationB", StationTask)
-TaskDefinition(3, "stationC", StationTask)
-TaskDefinition(4, "PCR", PCRTask)
 
 
 # Copyright (c) 2020 Covmatic.

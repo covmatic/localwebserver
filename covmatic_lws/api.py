@@ -7,7 +7,7 @@ import os
 from shutil import copy2
 import json
 from .args import Args
-from .task_runner import Task, StationTask, YumiTask
+from .task_runner import Task, StationTask, task_fwd_queue
 import threading
 from .utils import SingletonMeta, locked, acquire_lock
 from flask_restful import Api
@@ -15,7 +15,7 @@ import logging
 from .ssh import SSHClient
 import time
 import base64
-
+import queue
 
 class LocalWebServerAPI(Api):
     def __init__(self, prefix=Args().api_prefix, *args, **kwargs):
@@ -29,7 +29,7 @@ class LocalWebServerAPI(Api):
 
 class LogFunction(Resource):
     lock = threading.Lock()
-    
+
     def post(self):
         try:
             s = request.data.decode('utf-8')
@@ -66,21 +66,34 @@ class BarcodeSingleton(str, metaclass=SingletonMeta):
 class CheckFunction(Resource):
     bak_lock = threading.Lock()
     _bak = {}
-    
+
     @property
     def logger(self) -> logging.getLoggerClass():
         return logging.getLogger(type(self).__name__)
-    
+
     @classmethod
     @locked(bak_lock)
     def bak(cls, value=None):
         if value is not None:
             cls._bak = value
         return cls._bak
-    
+
     log_endpoint = "http://{}:8080/log".format(Args().ip)
-    
+
     def get(self):
+        # Get enqueued content to forward, if any
+        q = []
+        while True:
+            try:
+                j = task_fwd_queue.get(block=False)
+            except queue.Empty:
+                break
+            else:
+                if j is not None:
+                    q.append(j)
+        if q:
+            return q, 200
+
         with Task.lock:
             task_running = Task.running
             task_type = Task.type
@@ -120,12 +133,6 @@ class CheckFunction(Resource):
                                "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
                            )
                        }, 200
-            # Aggiunto qui il caso per il caricamento dati
-            elif issubclass(task_type, YumiTask):
-                with Task.lock:
-                    return {"status": True, "res": Task.barcode}, 200
-            else:
-                return {"status": False, "res": task_str}, 200
         else:
             self.logger.debug("No task is running")
             with Task.lock:
@@ -205,7 +212,7 @@ class ResumeFunction(Resource):
     @property
     def logger(self) -> logging.getLoggerClass():
         return logging.getLogger(type(self).__name__)
-    
+
     def _resume(self):
         self.logger.debug("Resuming")
         try:
@@ -215,7 +222,7 @@ class ResumeFunction(Resource):
         else:
             r = {"status": False, "res": "Resumed"}, 200
         return r
-    
+
     def get(self):
         with acquire_lock(BarcodeSingleton.lock, timeout=2) as acq:
             if acq:
@@ -234,7 +241,7 @@ class ResumeFunction(Resource):
             else:
                 r = {"status": False, "res": "Barcode lock not acquired, resume skipped"}, 500
         return r
-        
+
 
 # Copyright (c) 2020 Covmatic.
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

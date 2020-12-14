@@ -210,7 +210,9 @@ class YumiTask(Task):
                     logging.info("Received barcode: %s", barcode)
 
                     # Enqueue barcode for forwarding (must be a valid JSON string)
-                    task_fwd_queue.put('"{}"'.format(barcode))
+                    # task_fwd_queue.put('"{}"'.format(barcode))
+                    # Converted into a string
+                    task_fwd_queue.put('{}'.format(barcode))
                     # Next call to chek will return all newly enqueued barcodes
 
                     # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme

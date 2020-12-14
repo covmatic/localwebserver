@@ -16,14 +16,14 @@ import sys
 
 class TaskDefinition:
     _list = []
-    
+
     @classmethod
     def get(cls, station, action):
         for t in cls._list:
             if t.station == station and t.action == action:
                 return t
         raise KeyError("Cannot find a {} for keys: station={}, action={}".format(cls.__name__, station, action))
-    
+
     def __init__(self, station, action, cls, *args, **kwargs):
         TaskDefinition._list.append(self)
         self.station = station
@@ -44,18 +44,18 @@ class TaskMeta(ABCMeta):
 class Task(metaclass=TaskMeta):
     class TaskRunningException(Exception):
         pass
-    
+
     lock = threading.Lock()
     _running: Optional[Task] = None
     exit_code: int = None
-    barcode: str = None
-    
+    barcode: str = None  # TODO: Why is this an attribute of class Task? Move away
+
     def __init__(self, station, action, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
         self.station = station
         self.action = action
         self._thread = None
-    
+
     @classproperty
     def running(self) -> bool:
         if Task._running is None or Task._running._thread is None:
@@ -66,15 +66,15 @@ class Task(metaclass=TaskMeta):
             Task._running = None
             return False
         return True
-    
+
     @classproperty
     def type(self) -> type:
         return type(Task._running)
-    
+
     @abstractmethod
     def new_thread(self) -> threading.Thread:
         pass
-    
+
     @locked(lock)
     def start(self):
         if Task.running:
@@ -82,9 +82,9 @@ class Task(metaclass=TaskMeta):
         Task._running = self
         self._thread = self.new_thread()
         Task._running._thread.start()
-    
+
     _str_fields = ("station", "action")
-    
+
     def __str__(self) -> str:
         return "{} ({})".format(type(self).__name__, ", ".join("{}={}".format(k, getattr(self, k)) for k in self._str_fields))
 
@@ -95,7 +95,7 @@ class StationTask(Task):
             self._local = local
             self._remote = remote
             self._env_key = env_key
-        
+
         def push(self, ssh_client: SSHClient, ssh_channel):
             if self._remote:
                 # Copy over configuration
@@ -107,15 +107,15 @@ class StationTask(Task):
                 # Set environment key
                 ssh_channel.send('export {}=\"{}\"\n'.format(self._env_key, self._remote))
                 logging.getLogger().info('Using {}=\"{}\"'.format(self._env_key, self._remote))
-    
+
     magnet_config = StationConfigFile(Args().magnet_json_local, Args().magnet_json_remote, "OT_MAGNET_JSON")
     copan48_config = StationConfigFile(Args().copan48_json_local, Args().copan48_json_remote, "OT_COPAN_48_CORRECT")
-    
+
     class StationTaskThread(threading.Thread):
         def __init__(self, task: Task, *args, **kwargs):
             super(StationTask.StationTaskThread, self).__init__(*args, **kwargs)
             self.task = task
-        
+
         def run(self):
             logging.getLogger().info("Starting protocol: {}".format(self.task))
             # Try to reset the run log
@@ -145,7 +145,7 @@ class StationTask(Task):
             with Task.lock:
                 Task.exit_code = code
             logging.getLogger().info("Protocol exit code: {}".format(code))
-    
+
     def new_thread(self) -> threading.Thread:
         return StationTask.StationTaskThread(self)
 
@@ -169,9 +169,11 @@ class YumiSocket:
 
     def __init__(self):
         """Constructor for YumiSocket"""
+        # FIXME: Why are you using raw sockets? We already have a server running (Flask API). Please, use that
         self.port = 1025
         self.serv = socket.create_server(("", self.port))
         self.con, self.client_address = self.serv.accept()
+        # FIXME: Please, log messages in English for consistency
         logging.info('Connessione stabilita con: {}'.format(self.client_address))
         self.barcode = None
         self.count = 0
@@ -186,6 +188,7 @@ class YumiSocket:
                 logging.info('Barcodes ricevuti: \n {}'.format(self.barcode_rack))
                 # TODO: check if it has sense put this for closing at the end.
                 sys.exit(1)
+            # FIXME: Comparing strings as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
             if req.decode() == 'Non ho ricevuto nulla...':
                 self.count += 1
                 msg = 'Provetta in posizione: {} non è stato barcodato...'.format(self.count)
@@ -197,6 +200,8 @@ class YumiSocket:
                 logging.info(msg)
                 # TODO: Invio Barcode
                 # Cerco di trasferire il dato su api.py
+
+                # FIXME: Do not use this lock. It is used for starting tasks
                 with Task.lock:
                     Task.barcode = self.barcode
                 # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
@@ -204,6 +209,7 @@ class YumiSocket:
                 OK = "OK"
                 if OK == "OK":
                     self.count += 1
+                    # FIXME: barcode_rack is initialized as dictionary, but used as list
                     self.barcode_rack[self.count] = self.barcode
                     logging.info('Barcode Conforme')
                 else:
@@ -214,6 +220,7 @@ class YumiSocket:
                 self.con.sendall(OK.encode())
 
     def start(self):
+        # FIXME: bahaviour and usage of this class resembles Thread. Please, inherit from Thread for robustness and semantics
         try:
             self.receiver()
         except Exception as err:
@@ -226,6 +233,7 @@ class YumiTask(Task):
     def new_thread(self) -> threading.Thread:
         logging.debug('YumiTask Thread')
         YumiS = YumiSocket()
+        # FIXME: target must be a callable object, but you are passing it None. --> threading.Thread(target=YumiS.start)
         return threading.Thread(target=YumiS.start())
 
 

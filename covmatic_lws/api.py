@@ -1,7 +1,7 @@
 """LocalWebServer API"""
 import requests
 from flask_restful import Resource
-from flask import request
+from flask import request, abort
 import glob
 import os
 from shutil import copy2
@@ -162,7 +162,7 @@ class CheckFunction(Resource):
                     return {"status": True, "res": output}, 200
                 else:
                     self.logger.debug("No Protocol nor Result available")
-                    return {"status": True, "res": "No Protocol nor Result available"}, 200
+                    return abort(404, "No Protocol nor Result available")
             else:
                 # Station protocol has just ended, reset backup
                 res = "Failed" if code else "Completed"

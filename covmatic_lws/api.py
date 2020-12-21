@@ -7,7 +7,7 @@ import os
 from shutil import copy2
 import json
 from .args import Args
-from .task_runner import Task, StationTask, task_fwd_queue
+from .task_runner import Task, StationTask, task_fwd_queue, YumiTask
 import threading
 from .utils import SingletonMeta, locked, acquire_lock
 from flask_restful import Api
@@ -82,17 +82,14 @@ class CheckFunction(Resource):
 
     def get(self):
         # Get enqueued content to forward, if any
-        q = []
-        while True:
-            try:
-                j = task_fwd_queue.get(block=False)
-            except queue.Empty:
-                break
-            else:
-                if j is not None:
-                    q.append(j)
-        if q:
-            return q, 200
+        # TODO for now we return element-by-element
+        #      the dashboard should be implemented the accept a list as a result first
+        try:
+            j = task_fwd_queue.get(block=False)
+        except queue.Empty:
+            pass
+        else:
+            return j, 200
 
         with Task.lock:
             task_running = Task.running
@@ -133,6 +130,12 @@ class CheckFunction(Resource):
                                "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
                            )
                        }, 200
+            elif issubclass(task_type, YumiTask):
+                return {
+                           "status": False,
+                           "res": "Waiting for barcode..."
+                       }, 200
+
         else:
             self.logger.debug("No task is running")
             with Task.lock:

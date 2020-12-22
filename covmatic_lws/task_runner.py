@@ -205,6 +205,10 @@ class YumiTask(Task):
                 if req.decode() == 'Non ho ricevuto nulla...':
                     self.barcode_rack.append(None)
                     logging.warning("Barcode of tube in position %d has not been scanned", len(self.barcode_rack))
+                    task_fwd_queue.put({
+                        "status": True,
+                        "res": "EMPTY"
+                    }, 200)
                 else:
                     barcode = req.decode()
                     logging.info("Received barcode: %s", barcode)
@@ -212,7 +216,10 @@ class YumiTask(Task):
                     # Enqueue barcode for forwarding (must be a valid JSON string)
                     # task_fwd_queue.put('"{}"'.format(barcode))
                     # Converted into a string
-                    task_fwd_queue.put('{}'.format(barcode))
+                    task_fwd_queue.put({
+                        "status": True,
+                        "res": "{}".format(barcode)
+                    }, 200)
                     # Next call to chek will return all newly enqueued barcodes
 
                     # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme

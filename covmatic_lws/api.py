@@ -89,7 +89,7 @@ class CheckFunction(Resource):
         except queue.Empty:
             pass
         else:
-            return j, 200
+            return j
 
         with Task.lock:
             task_running = Task.running

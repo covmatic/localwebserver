@@ -12,6 +12,7 @@ import requests
 import glob
 import socket
 import queue
+import time
 
 
 task_fwd_queue = queue.Queue()
@@ -234,11 +235,46 @@ class YumiTask(Task):
                     # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
                     conn_sock.sendall(OK.encode())
 
+    class YumiTaskThreadSimulation(YumiTaskThread):
+        class Increment:
+            def __init__(self):
+                self.i = 0
+
+            def getIncrement(self):
+                self.i += 1
+                return self.i
+
+        increment = Increment()
+        iterationsToReturnError = 2
+
+        def __init__(self):
+            self._incrementObj = self.increment
+            logging.info("Yumi simulation!")
+            super().__init__()
+
+        def run(self):
+            logging.info("Yumi task started!")
+            time.sleep(2)
+            i = self._incrementObj.getIncrement()
+            if i == self.iterationsToReturnError:
+                obj = {
+                    "status": True,
+                    "res": "EMPTY"
+                }
+                task_fwd_queue.put((obj, 200))
+            else:
+                logging.info("returning barcode")
+                obj = {
+                    "status": True,
+                    "res": "helloWorld{}".format(i)
+                }
+                task_fwd_queue.put((obj, 200))
+
     # TODO: Create a task that execute a Python module which returns the position
     # of the barcode and the barcode
     def new_thread(self) -> threading.Thread:
         return YumiTask.YumiTaskThread()
-
+        #return YumiTask.YumiTaskThreadSimulation()     # Use this class to simulate the Yumi
 
 # Copyright (c) 2020 Covmatic.
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

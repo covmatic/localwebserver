@@ -64,10 +64,13 @@ class ServerButton(OnOffSubprocessButton, metaclass=AppButtonFrame.button):
 class WebAppButton(metaclass=AppButtonFrame.button):
     text: str = "Web App"
     
-    def __init__(self, parent, app_url: str = Args().web_app, *args, **kwargs):
+    def __init__(self, parent,
+                 app_url: str = Args().web_app,
+                 app_fixed_url: str = Args().web_app_fixed, *args, **kwargs):
         self.app_url = app_url
+        self.app_fixed_url = app_fixed_url
         self.robot_name = None
-        if self.app_url:
+        if self.app_fixed_url or self.app_url:
             if try_ssh():
                 try:
                     self.robot_name = requests.get("http://{}:31950/health".format(Args().ip)).json().get("name", None)
@@ -77,9 +80,11 @@ class WebAppButton(metaclass=AppButtonFrame.button):
             self.config(state=tk.DISABLED)
     
     def command(self):
-        if self.app_url:
-            webbrowser.open("{}/station{}".format(self.app_url, "/{}/{}".format(Args().station, self.robot_name) if self.robot_name else "s"))
-
+        if self.app_fixed_url:
+            website_url = self.app_fixed_url
+        elif self.app_url:
+            website_url = "{}/station{}".format(self.app_url, "/{}/{}".format(Args().station, self.robot_name) if self.robot_name else "s")
+        webbrowser.open(website_url)
 
 # Copyright (c) 2020 Covmatic.
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

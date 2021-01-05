@@ -185,7 +185,7 @@ class PCRTask(Task):
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
-@task_definition(0, "YuMi/start")
+@task_definition(0, "YuMistart")
 class YumiTaskStart(Task):
     class YumiTaskStartThread(threading.Thread):
         def __init__(self):
@@ -200,16 +200,19 @@ class YumiTaskStart(Task):
                                   'condition': 'none', 'stopatbp': 'disabled', 'alltaskbytsp': 'true'}
 
         def run(self):
-            start = requests.post(self.hostname + self.start_url,
-                                  auth=HTTPDigestAuth("Default User", "robotics"),
-                                  data=self.start_payload)
-            if start.status_code == 400:
-                # It should answers the controller with the error if any
-                logging.warning("Execution error {}".format(start.json()))
-                # Only connection error -> Probably this will merge in a >= condition.
-            elif start.status_code > 400:
-                logging.warning("Connection error, Status code: {}".format(start.status_code))
-            logging.info("Status code: {} \n Controller response {}".format(start.status_code, start.json()))
+            try:
+                start = requests.post(self.hostname + self.start_url,
+                                      auth=HTTPDigestAuth("Default User", "robotics"),
+                                      data=self.start_payload)
+                if start.status_code == 400:
+                    # It should answers the controller with the error if any
+                    logging.warning("Execution error {}".format(start.json()))
+                    # Only connection error -> Probably this will merge in a >= condition.
+                elif start.status_code > 400:
+                    logging.warning("Connection error, Status code: {}".format(start.status_code))
+                logging.info("Status code: {} \n Controller response {}".format(start.status_code, start.json()))
+            except requests.exceptions.ConnectionError as err:
+                logging.warning("Connection error {}".format(err))
 
     def new_thread(self) -> threading.Thread:
         return YumiTaskStart.YumiTaskStartThread()

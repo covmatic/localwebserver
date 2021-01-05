@@ -15,6 +15,7 @@ import queue
 
 
 task_fwd_queue = queue.Queue()
+task_bwd_queue = queue.Queue()
 
 
 class TaskDefinition:
@@ -217,7 +218,9 @@ class YumiTask(Task):
 
                     # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
                     # VARIABILE STATICA PER SIMULAZIONE CON YUMI
-                    OK = "OK"
+                    # OK = "OK"
+                    # Aspetta finché un elemento non è disponibile
+                    OK = task_bwd_queue.get()
                     if OK == "OK":
                         self.barcode_rack.append(barcode)
                         logging.info('Compliant barcode')

@@ -9,6 +9,7 @@ from typing import Optional
 from abc import ABCMeta, abstractmethod
 import os
 import requests
+from requests.auth import HTTPDigestAuth
 import glob
 import socket
 import queue
@@ -184,6 +185,30 @@ class PCRTask(Task):
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
+@task_definition(0, "YuMi/start")
+class YumiTaskStart(Task):
+    class YumiTaskStartThread(threading.Thread):
+        def __init__(self):
+            super().__init__()
+            # Controller IP
+            #TODO: CHECK IF THE HOSTNAME IS THIS OR IF I HAVE TO USE THE LOCALHOST
+            self.hostname = '192.168.125.1'
+            self.start_url = '/rw/rapid/execution?action=start'
+            # Parameters for starting all the tasks of the Yumi
+            #TODO: CHECK THE PAYLOAD
+            self.start_payload = {'regain': 'continue', 'execmode': 'continue', 'cycle': 'once',
+                                  'condition': 'none', 'stopatbp': 'disabled', 'alltaskbytsp': 'true'}
+
+        def run(self):
+            start = requests.post("http://" + self.hostname + self.start_url,
+                                  auth=HTTPDigestAuth("Default user", "robotics"),
+                                  data=self.start_payload)
+            logging.info("Status code: {}".format(start.status_code))
+
+    def new_thread(self) -> threading.Thread:
+        return YumiTaskStart.YumiTaskStartThread()
+
+
 @task_definition(0, "YuMi")
 class YumiTask(Task):
     class YumiTaskThread(threading.Thread):
@@ -211,7 +236,6 @@ class YumiTask(Task):
                     logging.info("Received barcode: %s", barcode)
 
                     # Enqueue barcode for forwarding (must be a valid JSON string)
-                    # task_fwd_queue.put('"{}"'.format(barcode))
                     # Converted into a string
                     task_fwd_queue.put('{}'.format(barcode))
                     # Next call to chek will return all newly enqueued barcodes

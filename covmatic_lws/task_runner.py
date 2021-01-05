@@ -191,19 +191,25 @@ class YumiTaskStart(Task):
         def __init__(self):
             super().__init__()
             # Controller IP
-            #TODO: CHECK IF THE HOSTNAME IS THIS OR IF I HAVE TO USE THE LOCALHOST
-            self.hostname = '192.168.125.1'
+            # TODO: CHECK IF THE HOSTNAME IS THIS OR IF I HAVE TO USE THE LOCALHOST
+            self.hostname = 'http://192.168.125.1'
             self.start_url = '/rw/rapid/execution?action=start'
             # Parameters for starting all the tasks of the Yumi
-            #TODO: CHECK THE PAYLOAD
+            # TODO: CHECK THE PAYLOAD
             self.start_payload = {'regain': 'continue', 'execmode': 'continue', 'cycle': 'once',
                                   'condition': 'none', 'stopatbp': 'disabled', 'alltaskbytsp': 'true'}
 
         def run(self):
-            start = requests.post("http://" + self.hostname + self.start_url,
-                                  auth=HTTPDigestAuth("Default user", "robotics"),
+            start = requests.post(self.hostname + self.start_url,
+                                  auth=HTTPDigestAuth("Default User", "robotics"),
                                   data=self.start_payload)
-            logging.info("Status code: {}".format(start.status_code))
+            if start.status_code == 400:
+                # It should answers the controller with the error if any
+                logging.warning("Execution error {}".format(start.json()))
+                # Only connection error -> Probably this will merge in a >= condition.
+            elif start.status_code > 400:
+                logging.warning("Connection error, Status code: {}".format(start.status_code))
+            logging.info("Status code: {} \n Controller response {}".format(start.status_code, start.json()))
 
     def new_thread(self) -> threading.Thread:
         return YumiTaskStart.YumiTaskStartThread()
@@ -216,7 +222,6 @@ class YumiTask(Task):
             super().__init__()
             # Using raw sockets because of Rapid API
             self.port = port
-            self.barcode_rack = []  # FIXME: unused
 
         def run(self):
             server = socket.create_server(("", self.port))
@@ -229,28 +234,23 @@ class YumiTask(Task):
                     break
                 # FIXME: Comparing strings of natural language text as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
                 if req.decode() == 'Non ho ricevuto nulla...':
-                    self.barcode_rack.append(None)
-                    logging.warning("Barcode of tube in position %d has not been scanned", len(self.barcode_rack))
+                    logging.warning("Barcode has not been scanned")
                 else:
                     barcode = req.decode()
                     logging.info("Received barcode: %s", barcode)
-
                     # Enqueue barcode for forwarding (must be a valid JSON string)
                     # Converted into a string
                     task_fwd_queue.put('{}'.format(barcode))
                     # Next call to chek will return all newly enqueued barcodes
-
                     # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
                     # VARIABILE STATICA PER SIMULAZIONE CON YUMI
                     # OK = "OK"
                     # Aspetta finché un elemento non è disponibile
                     OK = task_bwd_queue.get()
                     if OK == "OK":
-                        self.barcode_rack.append(barcode)
-                        logging.info('Compliant barcode')
+                        logging.info('Compliant barcode: {}'.format(barcode))
                     else:
-                        self.barcode_rack.append(None)
-                        logging.warning('Non-compliant barcode')
+                        logging.warning('Non-compliant barcode: {}'.format(barcode))
                     # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
                     conn_sock.sendall(OK.encode())
 

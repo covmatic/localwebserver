@@ -7,7 +7,7 @@ import os
 from shutil import copy2
 import json
 from .args import Args
-from .task_runner import Task, StationTask, task_fwd_queue, YumiTask
+from .task_runner import Task, StationTask, task_fwd_queue, task_bwd_queue, YumiTask
 import threading
 from .utils import SingletonMeta, locked, acquire_lock
 from flask_restful import Api
@@ -17,6 +17,7 @@ import time
 import base64
 import queue
 
+
 class LocalWebServerAPI(Api):
     def __init__(self, prefix=Args().api_prefix, *args, **kwargs):
         super(LocalWebServerAPI, self).__init__(*args, prefix=prefix, **kwargs)
@@ -25,6 +26,8 @@ class LocalWebServerAPI(Api):
         self.add_resource(PauseFunction, '/pause')
         self.add_resource(ResumeFunction, '/resume')
         self.add_resource(LogFunction, '/log')
+        self.add_resource(YumiBarcodeOK, '/0/OK')
+        self.add_resource(YumiBarcodeNO, '/0/NO')
 
 
 class LogFunction(Resource):
@@ -244,6 +247,23 @@ class ResumeFunction(Resource):
             else:
                 r = {"status": False, "res": "Barcode lock not acquired, resume skipped"}, 500
         return r
+
+
+class YumiBarcodeOK(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        # Mette in coda "OK"
+        task_bwd_queue.put("OK")
+        return {"status": False, "res": "OK"}, 200
+
+
+class YumiBarcodeNO(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        # Mette in coda "NO"
+        task_bwd_queue.put("NO")
+        return {"status": False, "res": "NO"}, 200
+
 
 
 # Copyright (c) 2020 Covmatic.

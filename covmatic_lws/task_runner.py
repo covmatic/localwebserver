@@ -9,6 +9,7 @@ from typing import Optional
 from abc import ABCMeta, abstractmethod
 import os
 import requests
+from requests.auth import HTTPDigestAuth
 import glob
 import socket
 import queue
@@ -16,6 +17,7 @@ import time
 
 
 task_fwd_queue = queue.Queue()
+task_bwd_queue = queue.Queue()
 
 
 class TaskDefinition:
@@ -184,6 +186,68 @@ class PCRTask(Task):
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
+@task_definition(0, "YuMistart")
+class YumiTaskStart(Task):
+    class YumiTaskStartThread(threading.Thread):
+        def __init__(self):
+            super().__init__()
+            # Controller IP
+            self.hostname = 'http://192.168.125.1'
+            self.start_url = '/rw/rapid/execution?action=start'
+            # Parameters for starting all the tasks of the Yumi
+            self.start_payload = {'regain': 'continue', 'execmode': 'continue', 'cycle': 'once',
+                                  'condition': 'none', 'stopatbp': 'disabled', 'alltaskbytsp': 'true'}
+
+        def run(self):
+            try:
+                start = requests.post(self.hostname + self.start_url,
+                                      auth=HTTPDigestAuth("Default User", "robotics"),
+                                      data=self.start_payload)
+                if start.status_code == 400:
+                    # It should answers the controller with the error if any
+                    logging.warning("Execution error {}".format(start.json()))
+                    # Only connection error -> Probably this will merge in a >= condition.
+                elif start.status_code > 400:
+                    logging.warning("Connection error, Status code: {}".format(start.status_code))
+                logging.info("Status code: {} \n Controller response {}".format(start.status_code, start.json()))
+            except requests.exceptions.ConnectionError as err:
+                logging.warning("Connection error {}".format(err))
+
+    def new_thread(self) -> threading.Thread:
+        return YumiTaskStart.YumiTaskStartThread()
+
+
+@task_definition(0, "YuMistop")
+class YumiTaskStop(Task):
+    class YumiTaskStopThread(threading.Thread):
+        def __init__(self):
+            super().__init__()
+            # Controller IP
+            self.hostname = 'http://192.168.125.1'
+            self.start_url = '/rw/rapid/execution?action=stop'
+            # Parameters for stopping all the tasks of the Yumi
+            self.start_payload = {'stopmode': 'stop', 'usetsp': 'normal'}
+
+        def run(self):
+            try:
+                stop = requests.post(
+                    self.hostname + self.start_url,
+                    auth=HTTPDigestAuth("Default User", "robotics"),
+                    data=self.start_payload)
+                if stop.status_code == 400:
+                    # It should answers the controller with the error if any
+                    logging.warning("Execution error {}".format(stop.json()))
+                    # Only connection error -> Probably this will merge in a >= condition.
+                elif stop.status_code > 400:
+                    logging.warning("Connection error, Status code: {}".format(stop.status_code))
+                logging.info("Status code: {} \n Controller response {}".format(stop.status_code, stop.json()))
+            except requests.exceptions.ConnectionError as err:
+                logging.warning("Connection error {}".format(err))
+
+    def new_thread(self) -> threading.Thread:
+        return YumiTaskStop.YumiTaskStopThread()
+
+
 @task_definition(0, "YuMi")
 class YumiTask(Task):
     class YumiTaskThread(threading.Thread):
@@ -191,7 +255,6 @@ class YumiTask(Task):
             super().__init__()
             # Using raw sockets because of Rapid API
             self.port = port
-            self.barcode_rack = []  # FIXME: unused
 
         def run(self):
             server = socket.create_server(("", self.port))
@@ -204,34 +267,30 @@ class YumiTask(Task):
                     break
                 # FIXME: Comparing strings of natural language text as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
                 if req.decode() == 'Non ho ricevuto nulla...':
-                    self.barcode_rack.append(None)
-                    logging.warning("Barcode of tube in position %d has not been scanned", len(self.barcode_rack))
                     task_fwd_queue.put({
                         "status": True,
                         "res": "EMPTY"
                     }, 200)
+                    logging.warning("Barcode has not been scanned")
                 else:
                     barcode = req.decode()
                     logging.info("Received barcode: %s", barcode)
-
                     # Enqueue barcode for forwarding (must be a valid JSON string)
-                    # task_fwd_queue.put('"{}"'.format(barcode))
                     # Converted into a string
                     task_fwd_queue.put({
                         "status": True,
                         "res": "{}".format(barcode)
                     }, 200)
                     # Next call to chek will return all newly enqueued barcodes
-
                     # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
                     # VARIABILE STATICA PER SIMULAZIONE CON YUMI
-                    OK = "OK"
+                    # OK = "OK"
+                    # Aspetta finché un elemento non è disponibile
+                    OK = task_bwd_queue.get()
                     if OK == "OK":
-                        self.barcode_rack.append(barcode)
-                        logging.info('Compliant barcode')
+                        logging.info('Compliant barcode: {}'.format(barcode))
                     else:
-                        self.barcode_rack.append(None)
-                        logging.warning('Non-compliant barcode')
+                        logging.warning('Non-compliant barcode: {}'.format(barcode))
                     # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
                     conn_sock.sendall(OK.encode())
 

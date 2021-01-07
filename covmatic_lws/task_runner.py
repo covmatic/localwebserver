@@ -191,11 +191,9 @@ class YumiTaskStart(Task):
         def __init__(self):
             super().__init__()
             # Controller IP
-            # TODO: CHECK IF THE HOSTNAME IS THIS OR IF I HAVE TO USE THE LOCALHOST
             self.hostname = 'http://192.168.125.1'
             self.start_url = '/rw/rapid/execution?action=start'
             # Parameters for starting all the tasks of the Yumi
-            # TODO: CHECK THE PAYLOAD
             self.start_payload = {'regain': 'continue', 'execmode': 'continue', 'cycle': 'once',
                                   'condition': 'none', 'stopatbp': 'disabled', 'alltaskbytsp': 'true'}
 

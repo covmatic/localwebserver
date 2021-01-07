@@ -270,7 +270,6 @@ class YumiBarcodeNO(Resource):
 
 class YumiStart(Resource):
     def __init__(self):
-        super().__init__()
         # Controller IP
         self.hostname = 'http://192.168.125.1'
         self.start_url = '/rw/rapid/execution?action=start'
@@ -296,7 +295,6 @@ class YumiStart(Resource):
 
 class YumiStop(Resource):
     def __init__(self):
-        super().__init__()
         # Controller IP
         self.hostname = 'http://192.168.125.1'
         self.start_url = '/rw/rapid/execution?action=stop'

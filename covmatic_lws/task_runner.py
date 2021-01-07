@@ -216,6 +216,37 @@ class YumiTaskStart(Task):
         return YumiTaskStart.YumiTaskStartThread()
 
 
+@task_definition(0, "YuMistop")
+class YumiTaskStop(Task):
+    class YumiTaskStopThread(threading.Thread):
+        def __init__(self):
+            super().__init__()
+            # Controller IP
+            self.hostname = 'http://192.168.125.1'
+            self.start_url = '/rw/rapid/execution?action=stop'
+            # Parameters for stopping all the tasks of the Yumi
+            self.start_payload = {'stopmode': 'stop', 'usetsp': 'normal'}
+
+        def run(self):
+            try:
+                stop = requests.post(
+                    self.hostname + self.start_url,
+                    auth=HTTPDigestAuth("Default User", "robotics"),
+                    data=self.start_payload)
+                if stop.status_code == 400:
+                    # It should answers the controller with the error if any
+                    logging.warning("Execution error {}".format(stop.json()))
+                    # Only connection error -> Probably this will merge in a >= condition.
+                elif stop.status_code > 400:
+                    logging.warning("Connection error, Status code: {}".format(stop.status_code))
+                logging.info("Status code: {} \n Controller response {}".format(stop.status_code, stop.json()))
+            except requests.exceptions.ConnectionError as err:
+                logging.warning("Connection error {}".format(err))
+
+    def new_thread(self) -> threading.Thread:
+        return YumiTaskStop.YumiTaskStopThread()
+
+
 @task_definition(0, "YuMi")
 class YumiTask(Task):
     class YumiTaskThread(threading.Thread):

@@ -267,20 +267,20 @@ class YumiTask(Task):
                     break
                 # FIXME: Comparing strings of natural language text as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
                 if req.decode() == 'Non ho ricevuto nulla...':
-                    task_fwd_queue.put({
+                    task_fwd_queue.put(({
                         "status": True,
                         "res": "EMPTY"
-                    }, 200)
+                    }, 200))
                     logging.warning("Barcode has not been scanned")
                 else:
                     barcode = req.decode()
                     logging.info("Received barcode: %s", barcode)
                     # Enqueue barcode for forwarding (must be a valid JSON string)
                     # Converted into a string
-                    task_fwd_queue.put({
+                    task_fwd_queue.put(({
                         "status": True,
                         "res": "{}".format(barcode)
-                    }, 200)
+                    }, 200))
                     # Next call to chek will return all newly enqueued barcodes
                     # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
                     # VARIABILE STATICA PER SIMULAZIONE CON YUMI

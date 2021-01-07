@@ -29,7 +29,8 @@ class LocalWebServerAPI(Api):
         self.add_resource(LogFunction, '/log')
         self.add_resource(YumiBarcodeOK, '/0/OK')
         self.add_resource(YumiBarcodeNO, '/0/NO')
-        self.add_resource()
+        self.add_resource(YumiStart, '/0/YuMiStart')
+        self.add_resource(YumiStop, '/0/YuMiStop')
 
 
 class LogFunction(Resource):
@@ -267,7 +268,33 @@ class YumiBarcodeNO(Resource):
         return {"status": False, "res": "NO"}, 200
 
 
-class YumiTaskStop(Resource):
+class YumiStart(Resource):
+    def __init__(self):
+        super().__init__()
+        # Controller IP
+        self.hostname = 'http://192.168.125.1'
+        self.start_url = '/rw/rapid/execution?action=start'
+        # Parameters for starting all the tasks of the Yumi
+        self.start_payload = {'regain': 'continue', 'execmode': 'continue', 'cycle': 'once',
+                              'condition': 'none', 'stopatbp': 'disabled', 'alltaskbytsp': 'true'}
+
+    def get(self):
+        try:
+            start = requests.post(self.hostname + self.start_url,
+                                  auth=HTTPDigestAuth("Default User", "robotics"),
+                                  data=self.start_payload)
+            if start.status_code == 400:
+                # It should answers the controller with the error if any
+                logging.warning("Execution error {}".format(start.json()))
+                # Only connection error -> Probably this will merge in a >= condition.
+            elif start.status_code > 400:
+                logging.warning("Connection error, Status code: {}".format(start.status_code))
+            logging.info("Status code: {} \n Controller response {}".format(start.status_code, start.json()))
+        except requests.exceptions.ConnectionError as err:
+            logging.warning("Connection error {}".format(err))
+
+
+class YumiStop(Resource):
     def __init__(self):
         super().__init__()
         # Controller IP

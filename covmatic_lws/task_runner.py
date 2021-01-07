@@ -217,37 +217,6 @@ class YumiTaskStart(Task):
         return YumiTaskStart.YumiTaskStartThread()
 
 
-@task_definition(0, "YuMistop")
-class YumiTaskStop(Task):
-    class YumiTaskStopThread(threading.Thread):
-        def __init__(self):
-            super().__init__()
-            # Controller IP
-            self.hostname = 'http://192.168.125.1'
-            self.start_url = '/rw/rapid/execution?action=stop'
-            # Parameters for stopping all the tasks of the Yumi
-            self.start_payload = {'stopmode': 'stop', 'usetsp': 'normal'}
-
-        def run(self):
-            try:
-                stop = requests.post(
-                    self.hostname + self.start_url,
-                    auth=HTTPDigestAuth("Default User", "robotics"),
-                    data=self.start_payload)
-                if stop.status_code == 400:
-                    # It should answers the controller with the error if any
-                    logging.warning("Execution error {}".format(stop.json()))
-                    # Only connection error -> Probably this will merge in a >= condition.
-                elif stop.status_code > 400:
-                    logging.warning("Connection error, Status code: {}".format(stop.status_code))
-                logging.info("Status code: {} \n Controller response {}".format(stop.status_code, stop.json()))
-            except requests.exceptions.ConnectionError as err:
-                logging.warning("Connection error {}".format(err))
-
-    def new_thread(self) -> threading.Thread:
-        return YumiTaskStop.YumiTaskStopThread()
-
-
 @task_definition(0, "YuMi")
 class YumiTask(Task):
     class YumiTaskThread(threading.Thread):
@@ -265,7 +234,9 @@ class YumiTask(Task):
                 if not req:
                     logging.info("Connection with %s interrupted. Closing task", cli_addr)
                     break
-                # FIXME: Comparing strings of natural language text as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
+                # FIXME: Comparing strings of natural language text as a way
+                #  of decoding message types is really bad practise.
+                #  Remember how it broke the number of samples in the PWA
                 if req.decode() == 'Non ho ricevuto nulla...':
                     task_fwd_queue.put(({
                         "status": True,
@@ -281,8 +252,7 @@ class YumiTask(Task):
                         "status": True,
                         "res": "{}".format(barcode)
                     }, 200))
-                    # Next call to chek will return all newly enqueued barcodes
-                    # TODO: Ricevere OK DA LIS/TRACCIABILITÀ se il barcode è conforme
+                    # Next call to check will return all newly enqueued barcodes
                     # VARIABILE STATICA PER SIMULAZIONE CON YUMI
                     # OK = "OK"
                     # Aspetta finché un elemento non è disponibile
@@ -330,10 +300,10 @@ class YumiTask(Task):
                 task_fwd_queue.put((obj, 200))
 
     # TODO: Create a task that execute a Python module which returns the position
-    # of the barcode and the barcode
+    #  of the barcode and the barcode
     def new_thread(self) -> threading.Thread:
         return YumiTask.YumiTaskThread()
-        #return YumiTask.YumiTaskThreadSimulation()     # Use this class to simulate the Yumi
+        # return YumiTask.YumiTaskThreadSimulation()     # Use this class to simulate the Yumi
 
 # Copyright (c) 2020 Covmatic.
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

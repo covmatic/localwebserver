@@ -284,11 +284,11 @@ class YumiStart(Resource):
                                   data=self.start_payload)
             if start.status_code == 400:
                 # It should answers the controller with the error if any
-                logging.warning("Execution error {}".format(start.json()))
+                logging.warning("Execution error")
                 # Only connection error -> Probably this will merge in a >= condition.
             elif start.status_code > 400:
                 logging.warning("Connection error, Status code: {}".format(start.status_code))
-            logging.info("Status code: {} \n Controller response {}".format(start.status_code, start.json()))
+            logging.info("Status code: {}".format(start.status_code))
         except requests.exceptions.ConnectionError as err:
             logging.warning("Connection error {}".format(err))
 
@@ -309,11 +309,11 @@ class YumiStop(Resource):
                 data=self.start_payload)
             if stop.status_code == 400:
                 # It should answers the controller with the error if any
-                logging.warning("Execution error {}".format(stop.json()))
+                logging.warning("Execution error")
                 # Only connection error -> Probably this will merge in a >= condition.
             elif stop.status_code > 400:
                 logging.warning("Connection error, Status code: {}".format(stop.status_code))
-            logging.info("Status code: {} \n Controller response {}".format(stop.status_code, stop.json()))
+            logging.info("Status code: {} ".format(stop.status_code))
         except requests.exceptions.ConnectionError as err:
             logging.warning("Connection error {}".format(err))
 

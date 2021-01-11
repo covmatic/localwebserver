@@ -1,5 +1,6 @@
 """LocalWebServer API"""
 import requests
+from requests.auth import HTTPDigestAuth
 from flask_restful import Resource
 from flask import request
 import glob
@@ -28,6 +29,8 @@ class LocalWebServerAPI(Api):
         self.add_resource(LogFunction, '/log')
         self.add_resource(YumiBarcodeOK, '/0/OK')
         self.add_resource(YumiBarcodeNO, '/0/NO')
+        self.add_resource(YumiStart, '/0/YuMiStart')
+        self.add_resource(YumiStop, '/0/YuMiStop')
 
 
 class LogFunction(Resource):
@@ -264,6 +267,55 @@ class YumiBarcodeNO(Resource):
         task_bwd_queue.put("NO")
         return {"status": False, "res": "NO"}, 200
 
+
+class YumiStart(Resource):
+    def __init__(self):
+        # Controller IP
+        self.hostname = 'http://192.168.125.1'
+        self.start_url = '/rw/rapid/execution?action=start'
+        # Parameters for starting all the tasks of the Yumi
+        self.start_payload = {'regain': 'continue', 'execmode': 'continue', 'cycle': 'once',
+                              'condition': 'none', 'stopatbp': 'disabled', 'alltaskbytsp': 'true'}
+
+    def get(self):
+        try:
+            start = requests.post(self.hostname + self.start_url,
+                                  auth=HTTPDigestAuth("Default User", "robotics"),
+                                  data=self.start_payload)
+            if start.status_code == 400:
+                # It should answers the controller with the error if any
+                logging.warning("Execution error")
+                # Only connection error -> Probably this will merge in a >= condition.
+            elif start.status_code > 400:
+                logging.warning("Connection error, Status code: {}".format(start.status_code))
+            logging.info("Status code: {}".format(start.status_code))
+        except requests.exceptions.ConnectionError as err:
+            logging.warning("Connection error {}".format(err))
+
+
+class YumiStop(Resource):
+    def __init__(self):
+        # Controller IP
+        self.hostname = 'http://192.168.125.1'
+        self.start_url = '/rw/rapid/execution?action=stop'
+        # Parameters for stopping all the tasks of the Yumi
+        self.start_payload = {'stopmode': 'stop', 'usetsp': 'normal'}
+
+    def get(self):
+        try:
+            stop = requests.post(
+                self.hostname + self.start_url,
+                auth=HTTPDigestAuth("Default User", "robotics"),
+                data=self.start_payload)
+            if stop.status_code == 400:
+                # It should answers the controller with the error if any
+                logging.warning("Execution error")
+                # Only connection error -> Probably this will merge in a >= condition.
+            elif stop.status_code > 400:
+                logging.warning("Connection error, Status code: {}".format(stop.status_code))
+            logging.info("Status code: {} ".format(stop.status_code))
+        except requests.exceptions.ConnectionError as err:
+            logging.warning("Connection error {}".format(err))
 
 
 # Copyright (c) 2020 Covmatic.

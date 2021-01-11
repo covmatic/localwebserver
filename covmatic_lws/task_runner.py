@@ -257,14 +257,15 @@ class YumiTask(Task):
             self.port = port
 
         def run(self):
+            logging.info("Yumi Task started!")
             server = socket.create_server(("", self.port))
             conn_sock, cli_addr = server.accept()
             logging.info("Established connection with %s", cli_addr)
-            while True:
-                req = conn_sock.recv(4096)
-                if not req:
-                    logging.info("Connection with %s interrupted. Closing task", cli_addr)
-                    break
+
+            logging.debug("Waiting for robot data...")
+            req = conn_sock.recv(4096)
+            logging.debug("Robot data received!")
+            if req:
                 # FIXME: Comparing strings of natural language text as a way of decoding message types is really bad practise. Remember how it broke the number of samples in the PWA
                 if req.decode() == 'Non ho ricevuto nulla...':
                     task_fwd_queue.put(({
@@ -293,6 +294,10 @@ class YumiTask(Task):
                         logging.warning('Non-compliant barcode: {}'.format(barcode))
                     # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
                     conn_sock.sendall(OK.encode())
+            else:
+                logging.info("Connection with %s interrupted.", cli_addr)
+            logging.info("Closing Yumi task.")
+
 
     class YumiTaskThreadSimulation(YumiTaskThread):
         class Increment:
@@ -313,7 +318,7 @@ class YumiTask(Task):
 
         def run(self):
             logging.info("Yumi task started!")
-            time.sleep(2)
+            time.sleep(0.5)
             i = self._incrementObj.getIncrement()
             if i == self.iterationsToReturnError:
                 obj = {

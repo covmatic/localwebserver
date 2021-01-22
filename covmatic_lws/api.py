@@ -31,6 +31,7 @@ class LocalWebServerAPI(Api):
         self.add_resource(YumiBarcodeNO, '/0/NO')
         self.add_resource(YumiStart, '/0/YuMiStart')
         self.add_resource(YumiStop, '/0/YuMiStop')
+        self.add_resource(YumiPPtoMain, '/0/YumiPPtoMain')
 
 
 class LogFunction(Resource):
@@ -307,6 +308,31 @@ class YumiStop(Resource):
                 self.hostname + self.start_url,
                 auth=HTTPDigestAuth("Default User", "robotics"),
                 data=self.start_payload)
+            if stop.status_code == 400:
+                # It should answers the controller with the error if any
+                logging.warning("Execution error")
+                # Only connection error -> Probably this will merge in a >= condition.
+            elif stop.status_code > 400:
+                logging.warning("Connection error, Status code: {}".format(stop.status_code))
+            logging.info("Status code: {} ".format(stop.status_code))
+        except requests.exceptions.ConnectionError as err:
+            logging.warning("Connection error {}".format(err))
+
+
+class YumiPPtoMain(Resource):
+    # Resetta il puntatore di programma al main (inizio del programma)
+    # Va chiamato dopo uno STOP.
+    def __init__(self):
+        # Controller IP
+        self.hostname = 'http://192.168.125.1'
+        self.start_url = '/rw/rapid/execution?action=resetpp'
+
+    def get(self):
+        try:
+            stop = requests.post(
+                self.hostname + self.start_url,
+                auth=HTTPDigestAuth("Default User", "robotics")
+            )
             if stop.status_code == 400:
                 # It should answers the controller with the error if any
                 logging.warning("Execution error")

@@ -9,7 +9,6 @@ from typing import Optional
 from abc import ABCMeta, abstractmethod
 import os
 import requests
-from requests.auth import HTTPDigestAuth
 import glob
 import socket
 import queue
@@ -235,7 +234,6 @@ class YumiTask(Task):
             else:
                 logging.info("Connection with %s interrupted.", cli_addr)
             logging.info("Closing Yumi task.")
-
 
     class YumiTaskThreadSimulation(YumiTaskThread):
         class Increment:

@@ -202,6 +202,8 @@ class YumiTask(Task):
             req = conn_sock.recv(4096)
             logging.debug("Robot data received!")
             if req:
+                while not task_bwd_queue.empty():
+                    task_bwd_queue.get()
                 # FIXME: Comparing strings of natural language text as a way
                 #  of decoding message types is really bad practise.
                 #  Remember how it broke the number of samples in the PWA

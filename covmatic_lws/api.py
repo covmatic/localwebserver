@@ -29,8 +29,8 @@ class LocalWebServerAPI(Api):
         self.add_resource(LogFunction, '/log')
         self.add_resource(YumiBarcodeOK, '/0/OK')
         self.add_resource(YumiBarcodeNO, '/0/NO')
-        self.add_resource(YumiStart, '/0/YuMiStart')
-        self.add_resource(YumiStop, '/0/YuMiStop')
+        self.add_resource(YumiStart, '/0/YuMistart')
+        self.add_resource(YumiStop, '/0/YuMistop')
         self.add_resource(YumiPPtoMain, '/0/YumiPPtoMain')
 
 
@@ -329,17 +329,17 @@ class YumiPPtoMain(Resource):
 
     def get(self):
         try:
-            stop = requests.post(
+            PPtoMain = requests.post(
                 self.hostname + self.start_url,
                 auth=HTTPDigestAuth("Default User", "robotics")
             )
-            if stop.status_code == 400:
+            if PPtoMain.status_code == 400:
                 # It should answers the controller with the error if any
                 logging.warning("Execution error")
                 # Only connection error -> Probably this will merge in a >= condition.
-            elif stop.status_code > 400:
-                logging.warning("Connection error, Status code: {}".format(stop.status_code))
-            logging.info("Status code: {} ".format(stop.status_code))
+            elif PPtoMain.status_code > 400:
+                logging.warning("Connection error, Status code: {}".format(PPtoMain.status_code))
+            logging.info("Status code: {} ".format(PPtoMain.status_code))
         except requests.exceptions.ConnectionError as err:
             logging.warning("Connection error {}".format(err))
 

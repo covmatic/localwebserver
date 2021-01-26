@@ -86,6 +86,21 @@ class Task(metaclass=TaskMeta):
         return "{} ({})".format(type(self).__name__, ", ".join("{}={}".format(k, getattr(self, k)) for k in self._str_fields))
 
 
+class SshBufferPrinter(object):
+    def __init__(self, logger):
+        self.logger = logger
+        self.buffer = ""
+
+    def append_and_printline(self, new_byte_string):
+        self.buffer += new_byte_string.decode('utf-8')
+        if "\n" in self.buffer:
+            self.flush_and_printline()
+
+    def flush_and_printline(self):
+        for l in self.buffer.splitlines():
+            self.logger(l)
+        self.buffer = ""
+
 class StationTask(Task):
     class StationConfigFile:
         def __init__(self, local, remote, env_key: str):
@@ -107,11 +122,13 @@ class StationTask(Task):
     
     magnet_config = StationConfigFile(Args().magnet_json_local, Args().magnet_json_remote, "OT_MAGNET_JSON")
     copan48_config = StationConfigFile(Args().copan48_json_local, Args().copan48_json_remote, "OT_COPAN_48_CORRECT")
-    
+
     class StationTaskThread(threading.Thread):
         def __init__(self, task: Task, *args, **kwargs):
             super(StationTask.StationTaskThread, self).__init__(*args, **kwargs)
             self.task = task
+            self.info_printer = SshBufferPrinter(logging.getLogger("SSH").info)
+            self.err_printer = SshBufferPrinter(logging.getLogger("SSH").error)
         
         def run(self):
             logging.getLogger().info("Starting protocol: {}".format(self.task))
@@ -131,13 +148,21 @@ class StationTask(Task):
                 channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
                 # Wait for exit code
                 channel.send('exit \n')
+
                 while not channel.exit_status_ready():
                     channel.settimeout(1)
                     try:
-                        channel.recv(1024)
+                        self.info_printer.append_and_printline(channel.recv(1024))
+                        if channel.recv_stderr_ready():
+                            self.err_printer.append_and_printline(channel.recv_stderr(1024))
                     except Exception:
                         pass
+
                     channel.settimeout(None)
+
+                self.info_printer.flush_and_printline()
+                self.err_printer.flush_and_printline()
+
                 code = channel.recv_exit_status()
             with Task.lock:
                 Task.exit_code = code

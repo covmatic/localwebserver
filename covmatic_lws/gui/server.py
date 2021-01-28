@@ -34,7 +34,7 @@ class GUIServer:
         root.withdraw()
         s = ""
         try:
-            s = tk.simpledialog.askstring("Barcode", "Scan barcode of {}ing rack".format(action), parent=root)
+            s = tk.simpledialog.askstring("Barcode", "Scan {}ing barcode".format(action), parent=root)
         finally:
             root.destroy()
         return s

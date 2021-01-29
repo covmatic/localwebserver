@@ -10,18 +10,25 @@ from abc import ABCMeta, abstractmethod
 import os
 import requests
 import glob
+import socket
+import queue
+import time
+
+
+task_fwd_queue = queue.Queue()
+task_bwd_queue = queue.Queue()
 
 
 class TaskDefinition:
     _list = []
-    
+
     @classmethod
     def get(cls, station, action):
         for t in cls._list:
             if t.station == station and t.action == action:
                 return t
         raise KeyError("Cannot find a {} for keys: station={}, action={}".format(cls.__name__, station, action))
-    
+
     def __init__(self, station, action, cls, *args, **kwargs):
         TaskDefinition._list.append(self)
         self.station = station
@@ -29,6 +36,19 @@ class TaskDefinition:
         self.cls = cls
         self.args = args
         self.kwargs = kwargs
+
+
+def task_definition(station, action, *args, **kwargs):
+    def td_(cls):
+        td = TaskDefinition(
+            station,
+            action,
+            cls,
+            *args,
+            **kwargs
+        )
+        return cls
+    return td_
 
 
 class TaskMeta(ABCMeta):
@@ -42,17 +62,17 @@ class TaskMeta(ABCMeta):
 class Task(metaclass=TaskMeta):
     class TaskRunningException(Exception):
         pass
-    
+
     lock = threading.Lock()
     _running: Optional[Task] = None
     exit_code: int = None
-    
+
     def __init__(self, station, action, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
         self.station = station
         self.action = action
         self._thread = None
-    
+
     @classproperty
     def running(self) -> bool:
         if Task._running is None or Task._running._thread is None:
@@ -63,15 +83,15 @@ class Task(metaclass=TaskMeta):
             Task._running = None
             return False
         return True
-    
+
     @classproperty
     def type(self) -> type:
         return type(Task._running)
-    
+
     @abstractmethod
     def new_thread(self) -> threading.Thread:
         pass
-    
+
     @locked(lock)
     def start(self):
         if Task.running:
@@ -79,9 +99,9 @@ class Task(metaclass=TaskMeta):
         Task._running = self
         self._thread = self.new_thread()
         Task._running._thread.start()
-    
+
     _str_fields = ("station", "action")
-    
+
     def __str__(self) -> str:
         return "{} ({})".format(type(self).__name__, ", ".join("{}={}".format(k, getattr(self, k)) for k in self._str_fields))
 
@@ -101,13 +121,17 @@ class SshBufferPrinter(object):
             self.logger(l)
         self.buffer = ""
 
+@task_definition(1, "stationA")
+@task_definition(2, "stationB")
+@task_definition(3, "stationC")
+
 class StationTask(Task):
     class StationConfigFile:
         def __init__(self, local, remote, env_key: str):
             self._local = local
             self._remote = remote
             self._env_key = env_key
-        
+
         def push(self, ssh_client: SSHClient, ssh_channel):
             if self._remote:
                 # Copy over configuration
@@ -119,7 +143,7 @@ class StationTask(Task):
                 # Set environment key
                 ssh_channel.send('export {}=\"{}\"\n'.format(self._env_key, self._remote))
                 logging.getLogger().info('Using {}=\"{}\"'.format(self._env_key, self._remote))
-    
+
     magnet_config = StationConfigFile(Args().magnet_json_local, Args().magnet_json_remote, "OT_MAGNET_JSON")
     copan48_config = StationConfigFile(Args().copan48_json_local, Args().copan48_json_remote, "OT_COPAN_48_CORRECT")
 
@@ -129,7 +153,7 @@ class StationTask(Task):
             self.task = task
             self.info_printer = SshBufferPrinter(logging.getLogger("SSH").info)
             self.err_printer = SshBufferPrinter(logging.getLogger("SSH").error)
-        
+
         def run(self):
             logging.getLogger().info("Starting protocol: {}".format(self.task))
             # Try to reset the run log
@@ -167,11 +191,12 @@ class StationTask(Task):
             with Task.lock:
                 Task.exit_code = code
             logging.getLogger().info("Protocol exit code: {}".format(code))
-    
+
     def new_thread(self) -> threading.Thread:
         return StationTask.StationTaskThread(self)
 
 
+@task_definition(4, "PCR")
 class PCRTask(Task):
 
     def new_thread(self) -> threading.Thread:
@@ -186,11 +211,98 @@ class PCRTask(Task):
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
-TaskDefinition(1, "stationA", StationTask)
-TaskDefinition(2, "stationB", StationTask)
-TaskDefinition(3, "stationC", StationTask)
-TaskDefinition(4, "PCR", PCRTask)
+@task_definition(0, "YuMi")
+class YumiTask(Task):
+    class YumiTaskThread(threading.Thread):
+        def __init__(self, port: int = 1025):
+            super().__init__()
+            # Using raw sockets because of Rapid API
+            self.port = port
 
+        def run(self):
+            logging.info("Yumi Task started!")
+            server = socket.create_server(("", self.port))
+            conn_sock, cli_addr = server.accept()
+            logging.info("Established connection with %s", cli_addr)
+            logging.debug("Waiting for robot data...")
+            req = conn_sock.recv(4096)
+            logging.debug("Robot data received!")
+            if req:
+                while not task_bwd_queue.empty():
+                    task_bwd_queue.get()
+                # FIXME: Comparing strings of natural language text as a way
+                #  of decoding message types is really bad practise.
+                #  Remember how it broke the number of samples in the PWA
+                if req.decode() == 'Non ho ricevuto nulla...':
+                    task_fwd_queue.put(({
+                        "status": True,
+                        "res": "EMPTY"
+                    }, 200))
+                    logging.warning("Barcode has not been scanned")
+                else:
+                    barcode = req.decode()
+                    logging.info("Received barcode: %s", barcode)
+                    # Enqueue barcode for forwarding (must be a valid JSON string)
+                    # Converted into a string
+                    task_fwd_queue.put(({
+                        "status": True,
+                        "res": "{}".format(barcode)
+                    }, 200))
+                    # Next call to check will return all newly enqueued barcodes
+                    # VARIABILE STATICA PER SIMULAZIONE CON YUMI
+                    # OK = "OK"
+                    # Aspetta finché un elemento non è disponibile
+                    OK = task_bwd_queue.get()
+                    if OK == "OK":
+                        logging.info('Compliant barcode: {}'.format(barcode))
+                    else:
+                        logging.warning('Non-compliant barcode: {}'.format(barcode))
+                    # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
+                    conn_sock.sendall(OK.encode())
+            else:
+                logging.info("Connection with %s interrupted.", cli_addr)
+            logging.info("Closing Yumi task.")
+
+    class YumiTaskThreadSimulation(YumiTaskThread):
+        class Increment:
+            def __init__(self):
+                self.i = 0
+
+            def getIncrement(self):
+                self.i += 1
+                return self.i
+
+        increment = Increment()
+        iterationsToReturnError = 2
+
+        def __init__(self):
+            self._incrementObj = self.increment
+            logging.info("Yumi simulation!")
+            super().__init__()
+
+        def run(self):
+            logging.info("Yumi task started!")
+            time.sleep(0.5)
+            i = self._incrementObj.getIncrement()
+            if i == self.iterationsToReturnError:
+                obj = {
+                    "status": True,
+                    "res": "EMPTY"
+                }
+                task_fwd_queue.put((obj, 200))
+            else:
+                logging.info("returning barcode")
+                obj = {
+                    "status": True,
+                    "res": "helloWorld{}".format(i)
+                }
+                task_fwd_queue.put((obj, 200))
+
+    # TODO: Create a task that execute a Python module which returns the position
+    #  of the barcode and the barcode
+    def new_thread(self) -> threading.Thread:
+        return YumiTask.YumiTaskThread()
+        # return YumiTask.YumiTaskThreadSimulation()     # Use this class to simulate the Yumi
 
 # Copyright (c) 2020 Covmatic.
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

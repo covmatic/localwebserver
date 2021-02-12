@@ -96,6 +96,7 @@ class CheckFunction(Resource):
         except queue.Empty:
             pass
         else:
+            self.logger.info("Check: found results on queue, returning {}".format(j))
             return j
 
         with Task.lock:
@@ -280,6 +281,7 @@ class YumiStart(Resource):
 
     def get(self):
         try:
+            logging.info("Starting request to {}.".format(self.hostname + self.start_url))
             start = requests.post(self.hostname + self.start_url,
                                   auth=HTTPDigestAuth("Default User", "robotics"),
                                   data=self.start_payload)
@@ -290,8 +292,14 @@ class YumiStart(Resource):
             elif start.status_code > 400:
                 logging.warning("Connection error, Status code: {}".format(start.status_code))
             logging.info("Status code: {}".format(start.status_code))
+            r = {"status": False, "res": "Ok"}, 200
         except requests.exceptions.ConnectionError as err:
             logging.warning("Connection error {}".format(err))
+            r = {"status": False, "res": str(err)}, 500
+        except Exception as err:
+            logging.error("{}".format(err))
+            r = {"status": False, "res": str(err)}, 501
+        return r
 
 
 class YumiStop(Resource):
@@ -304,6 +312,7 @@ class YumiStop(Resource):
 
     def get(self):
         try:
+            logging.info("Starting request to {}.".format(self.hostname + self.start_url))
             stop = requests.post(
                 self.hostname + self.start_url,
                 auth=HTTPDigestAuth("Default User", "robotics"),
@@ -315,9 +324,14 @@ class YumiStop(Resource):
             elif stop.status_code > 400:
                 logging.warning("Connection error, Status code: {}".format(stop.status_code))
             logging.info("Status code: {} ".format(stop.status_code))
+            r = {"status": False, "res": "Ok"}, 200
         except requests.exceptions.ConnectionError as err:
             logging.warning("Connection error {}".format(err))
-
+            r = {"status": False, "res": str(err)}, 500
+        except Exception as err:
+            logging.error("{}".format(err))
+            r = {"status": False, "res": str(err)}, 501
+        return r
 
 class YumiPPtoMain(Resource):
     # Resetta il puntatore di programma al main (inizio del programma)
@@ -329,6 +343,7 @@ class YumiPPtoMain(Resource):
 
     def get(self):
         try:
+            logging.info("Starting request to {}.".format(self.hostname + self.start_url))
             PPtoMain = requests.post(
                 self.hostname + self.start_url,
                 auth=HTTPDigestAuth("Default User", "robotics")
@@ -340,8 +355,16 @@ class YumiPPtoMain(Resource):
             elif PPtoMain.status_code > 400:
                 logging.warning("Connection error, Status code: {}".format(PPtoMain.status_code))
             logging.info("Status code: {} ".format(PPtoMain.status_code))
+            r = {"status": False, "res": ""}, PPtoMain.status_code
         except requests.exceptions.ConnectionError as err:
             logging.warning("Connection error {}".format(err))
+            r = {"status": False, "res": str(err)}, 500
+        except Exception as err:
+            logging.error("{}".format(err))
+            r = {"status": False, "res": str(err)}, 501
+        return r
+
+
 
 
 # Copyright (c) 2020 Covmatic.

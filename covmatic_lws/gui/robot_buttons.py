@@ -15,6 +15,7 @@ import json
 import os
 from typing import Tuple
 
+OT_request_headers = {"Opentrons-Version":  "2"}
 
 class RobotButtonFrame(ButtonFrameBase):
     pass
@@ -93,7 +94,7 @@ class LightsButton(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFra
     @property
     def state(self) -> bool:
         try:
-            response = requests.get(self.url)
+            response = requests.get(self.url, headers=OT_request_headers)
         except requests.exceptions.ConnectionError:
             state = False
         else:
@@ -106,7 +107,7 @@ class LightsButton(SSHButtonMixin, ColorChangingButton, metaclass=RobotButtonFra
     @state.setter
     def state(self, value: bool):
         try:
-            requests.post(self.url, json={'on': value})
+            requests.post(self.url, json={'on': value}, headers=OT_request_headers)
         except requests.exceptions.ConnectionError:
             pass
         self.update()
@@ -122,7 +123,7 @@ class HomeButton(SSHButtonMixin, tk.Button, metaclass=RobotButtonFrame.button):
     
     def command(self):
         try:
-            requests.post(self.url, json={'target': 'robot'})
+            requests.post(self.url, json={'target': 'robot'}, headers=OT_request_headers)
         except requests.exceptions.ConnectionError:
             pass
 

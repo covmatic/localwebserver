@@ -17,6 +17,7 @@ import time
 
 task_fwd_queue = queue.Queue()
 task_bwd_queue = queue.Queue()
+task_finished_queue = queue.Queue()
 
 
 class TaskDefinition:
@@ -220,6 +221,8 @@ class YumiTask(Task):
             self.port = port
 
         def run(self):
+            with task_finished_queue.mutex:
+                task_finished_queue.queue.clear()
             logging.info("Yumi Task started!")
             server = socket.create_server(("", self.port))
             conn_sock, cli_addr = server.accept()
@@ -262,6 +265,7 @@ class YumiTask(Task):
             else:
                 logging.info("Connection with %s interrupted.", cli_addr)
             logging.info("Closing Yumi task.")
+            task_finished_queue.put("CLOSED")
 
     class YumiTaskThreadSimulation(YumiTaskThread):
         class Increment:

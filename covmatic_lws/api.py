@@ -8,7 +8,7 @@ import os
 from shutil import copy2
 import json
 from .args import Args
-from .task_runner import Task, StationTask, task_fwd_queue, task_bwd_queue, YumiTask
+from .task_runner import Task, StationTask, task_fwd_queue, task_bwd_queue, task_finished_queue, YumiTask
 import threading
 from .utils import SingletonMeta, locked, acquire_lock
 from flask_restful import Api
@@ -257,17 +257,42 @@ class ResumeFunction(Resource):
 class YumiBarcodeOK(Resource):
     # noinspection PyMethodMayBeStatic
     def get(self):
+        # emptying queue
+        logging.info("Got YES answer from dashboard!")
+        with task_finished_queue.mutex:
+            task_finished_queue.queue.clear()
+
         # Mette in coda "OK"
         task_bwd_queue.put("OK")
+        # Aspetta che il task abbia finito prima di ritornare
+        try:
+            task_finished_queue.get(timeout=5)
+            logging.info("Task closed, returning...")
+        except queue.Empty:
+            logging.error("No CLOSED answer returned from task!")
+            return {"status": False, "res": ""}, 501
         return {"status": False, "res": "OK"}, 200
 
 
 class YumiBarcodeNO(Resource):
     # noinspection PyMethodMayBeStatic
     def get(self):
+        logging.info("Got NO answer from dashboard!")
+        # emptying queue
+        with task_finished_queue.mutex:
+            task_finished_queue.queue.clear()
+
         # Mette in coda "NO"
         task_bwd_queue.put("NO")
-        return {"status": False, "res": "NO"}, 200
+
+        # Aspetta che il task abbia finito prima di ritornare
+        try:
+            task_finished_queue.get(timeout=5)
+            logging.info("Task closed, returning...")
+        except queue.Empty:
+            logging.error("No CLOSED answer returned from task!")
+            return {"status": False, "res": ""}, 501
+        return {"status": False, "res": "OK"}, 200
 
 
 class YumiStart(Resource):

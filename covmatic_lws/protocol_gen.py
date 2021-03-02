@@ -103,7 +103,7 @@ if Args().start_at:
     _classes = {k: (*v, StartAt) for k, v in _classes.items()}
 
 
-def protocol_gen(cls: str, log_level: str = "INFO", apiLevel='2.3', **prot_kwargs) -> str:
+def protocol_gen(cls: str, log_level: str = "INFO", apiLevel='2.7', **prot_kwargs) -> str:
     if cls not in _classes:
         raise KeyError("Class {} is not supported: supported classes are: {}".format(cls, ", ".join(_classes.keys())))
     module, cls = _classes[cls][:2]

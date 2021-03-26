@@ -11,6 +11,7 @@ import requests
 import webbrowser
 import os
 from typing import Tuple, List
+from .robot_buttons import OT_request_headers
 
 
 class AppButtonFrame(ButtonFrameBase):
@@ -73,7 +74,7 @@ class WebAppButton(metaclass=AppButtonFrame.button):
         if self.app_fixed_url or self.app_url:
             if try_ssh():
                 try:
-                    self.robot_name = requests.get("http://{}:31950/health".format(Args().ip)).json().get("name", None)
+                    self.robot_name = requests.get("http://{}:31950/health".format(Args().ip), headers=OT_request_headers).json().get("name", None)
                 except Exception:
                     pass
         else:

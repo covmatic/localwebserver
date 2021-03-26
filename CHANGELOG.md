@@ -1,6 +1,6 @@
 ### COVMATIC LocalWebServer changelog
 
-## v2.2.1
+## v2.3.1
 ### Fixed
 - Compatibility issue with robot with Opentrons version 4.x.x
 

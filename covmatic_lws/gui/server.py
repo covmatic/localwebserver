@@ -11,7 +11,7 @@ from ..utils import SingletonMeta
 
 DEFAULT_CONFIG = {
     "global": {
-        "server.socket_host": "::",
+        "server.socket_host": "127.0.0.1",
         "server.socket_port": Args().barcode_port,
         "engine.autoreload.on": False,
     }

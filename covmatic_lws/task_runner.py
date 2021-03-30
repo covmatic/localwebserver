@@ -225,11 +225,12 @@ class YumiTask(Task):
                 task_finished_queue.queue.clear()
             logging.info("Yumi Task started!")
             server = socket.create_server(("", self.port))
+            logging.debug("Created.")
             conn_sock, cli_addr = server.accept()
             logging.info("Established connection with %s", cli_addr)
             logging.debug("Waiting for robot data...")
             req = conn_sock.recv(4096)
-            logging.debug("Robot data received!")
+            logging.debug("Robot data received: {}".format(req.decode()))
             if req:
                 while not task_bwd_queue.empty():
                     task_bwd_queue.get()
@@ -262,9 +263,15 @@ class YumiTask(Task):
                         logging.warning('Non-compliant barcode: {}'.format(barcode))
                     # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
                     conn_sock.sendall(OK.encode())
+                    logging.debug("Waiting for socketo to close...")
             else:
                 logging.info("Connection with %s interrupted.", cli_addr)
-            logging.info("Closing Yumi task.")
+            logging.info("task shoudl close now..")
+            while True:
+                req2 = conn_sock.recv(4096)
+                if not req2:
+                    logging.debug("closed")
+                    break
             task_finished_queue.put("CLOSED")
 
     class YumiTaskThreadSimulation(YumiTaskThread):

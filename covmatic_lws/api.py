@@ -266,7 +266,7 @@ class YumiBarcodeOK(Resource):
         task_bwd_queue.put("OK")
         # Aspetta che il task abbia finito prima di ritornare
         try:
-            task_finished_queue.get(timeout=5)
+            task_finished_queue.get(timeout=10)
             logging.info("Task closed, returning from OK...")
         except queue.Empty:
             logging.error("No CLOSED answer returned from task!")
@@ -287,7 +287,7 @@ class YumiBarcodeNO(Resource):
 
         # Aspetta che il task abbia finito prima di ritornare
         try:
-            task_finished_queue.get(timeout=5)
+            task_finished_queue.get(timeout=10)
             logging.info("Task closed, returning from NO...")
         except queue.Empty:
             logging.error("No CLOSED answer returned from task!")

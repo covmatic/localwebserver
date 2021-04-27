@@ -1,13 +1,10 @@
 import tkinter as tk
 import tkinter.messagebox
 import subprocess
-import threading
 from typing import Tuple, List
 from . import _kill_app
 from .utils import setIntervalForTimerButton
 from ..ssh import try_ssh
-import psutil
-import os
 
 _palette = {
     "off": {
@@ -125,19 +122,10 @@ class ColorChangingTimerButton(ColorChangingButton):
 
     @setIntervalForTimerButton
     def _loop(self):
-        print("updating trhread...")
-        PROCESS = psutil.Process(os.getpid())
-
-        def get_mem_usage():
-            return PROCESS.memory_info().rss // 1024
-        print("Memory: {}".format(get_mem_usage()))
-        print("thread: {}".format(threading.active_count()))
         self.update()
     
     def update_thread(self):
-        print("update_thread")
         func = self._loop()      # call func.set() to stop looping
-        print("Exit from update_thread")
     
     def destroy(self):
         if self._thread is not None:

@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 import tkinter.messagebox
 from functools import wraps
@@ -12,6 +13,30 @@ def warningbox(foo):
             tk.messagebox.showwarning(type(e).__name__, str(e))
     return foo_
 
+
+def setIntervalForTimerButton(function):
+    '''
+    This decorator starts a thread with the decorated function as loop;
+    The first argument of the function must contain the _interval property.
+    Args:
+        function: the decorated function
+
+    Returns:
+
+    '''
+    def wrapper(*args, **kwargs):
+        stopped = threading.Event()
+        interval = args[0]._interval
+
+        def _loop(): # executed in another thread
+            while not stopped.wait(interval): # until stopped
+                function(*args, **kwargs)
+
+        t = threading.Thread(target=_loop)
+        t.daemon = True # stop if the program exits
+        t.start()
+        return stopped
+    return wrapper
 
 # Copyright (c) 2020 Covmatic.
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

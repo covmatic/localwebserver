@@ -9,9 +9,14 @@ from .utils import warningbox
 from ..utils import SingletonMeta
 
 
+# Configuration for the GUI server;
+# keep in mind it will:
+# - receive log from OT2
+# - receive barcode calls for barcode dialogs
+#
 DEFAULT_CONFIG = {
     "global": {
-        "server.socket_host": "127.0.0.1",
+        "server.socket_host": "::",
         "server.socket_port": Args().barcode_port,
         "engine.autoreload.on": False,
     }

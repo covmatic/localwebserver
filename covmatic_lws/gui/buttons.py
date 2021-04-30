@@ -3,7 +3,6 @@ import tkinter.messagebox
 import subprocess
 from typing import Tuple, List
 from . import _kill_app
-from .utils import setIntervalForTimerButton
 from ..ssh import try_ssh
 
 _palette = {

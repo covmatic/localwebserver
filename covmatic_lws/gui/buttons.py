@@ -117,20 +117,16 @@ class ColorChangingTimerButton(ColorChangingButton):
     def __init__(self, parent, interval: float = 1, *args, **kwargs):
         super(ColorChangingTimerButton, self).__init__(parent, *args, **kwargs)
         self._interval = interval
-        self._thread = None
-        self.update_thread()
+        self._loop()
 
-    @setIntervalForTimerButton
     def _loop(self):
         self.update()
+        self.after(int(self._interval*1000), self._loop)
     
     def update_thread(self):
-        func = self._loop()      # call func.set() to stop looping
+        self.update()
     
     def destroy(self):
-        if self._thread is not None:
-            self._thread.cancel()
-            self._thread = None
         super(ColorChangingTimerButton, self).destroy()
 
 

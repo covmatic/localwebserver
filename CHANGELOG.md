@@ -1,5 +1,8 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.3.2
+- Fixed bug on thread creation that filled available memory;
+
 ## v2.3.1
 ### Fixed
 - Compatibility issue with robot with Opentrons version 4.x.x

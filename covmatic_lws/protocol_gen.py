@@ -96,6 +96,7 @@ _classes = {
     "C": ("covmatic_stations.c.technogenetics", "StationCTechnogenetics", NumSamples),
     "Elution Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
     "Wash B Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
+    "Bioer": ("covmatic_stations.Bioer.Bioer_full_dw_prova", "BioerProtocol", NumSamples)
 }
 
 

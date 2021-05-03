@@ -1,5 +1,9 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.4.0
+### Added
+- Bioer protocol now can be loaded to robot;
+
 ## v2.3.2
 - Fixed bug on thread creation that filled available memory;
 

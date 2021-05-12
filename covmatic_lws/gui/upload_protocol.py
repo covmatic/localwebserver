@@ -65,7 +65,7 @@ class ProtocolDefinition(tk.Frame):
     def generate(self) -> str:
         return protocol_gen.protocol_gen(
             self._station_menu.var.get(),
-            **self._argframe.as_dict(),
+            **self._argframe.as_dict(allow_none=False),
             language=self._right._buttons[2].var.get(),
             wait_first_log=Args().wait_log,
         )
@@ -93,8 +93,9 @@ class ArgFrame(ParentFrame):
     def __iter__(self):
         return ((v.key, v.check_get()) for v in (self._vars or []))
     
-    def as_dict(self):
-        return dict(iter(self))
+    def as_dict(self, allow_none = True):
+        args = [(key, value) for (key, value) in iter(self) if value is not None or allow_none]
+        return dict(args)
     
     def update(self, *args, **kwargs):
         for v in chain(self._labels or [], self._entries or []):

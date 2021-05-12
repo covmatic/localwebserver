@@ -3,6 +3,7 @@ import json
 from abc import ABCMeta, abstractmethod
 from .args import Args
 import os
+import re
 
 
 with open(os.path.join(os.path.dirname(__file__), "templates", "protocol.py")) as f:
@@ -88,6 +89,37 @@ class StartAt(tk.StringVar, ProtocolArgument):
     def verbose_name(self) -> str:
         return "Start at"
 
+class StringListArgument(tk.StringVar, ProtocolArgument):
+    @staticmethod
+    def getListFromValue(values: str) -> list:
+        retlist = None
+        if values:
+            values = values.replace(",", " ").replace(";", " ")  # all delimiters to whitespaces
+            values = " ".join(values.split())  # joining multiple whitespaces
+            splitted = values.split(" ")
+            retlist = list()
+            for s in splitted:
+                retlist.append(s.strip())
+        return retlist
+
+    def get(self):
+        value = super(StringListArgument, self).get() or None
+        return self.getListFromValue(value)
+
+
+class ControlsPosition(StringListArgument):
+    def __init__(self, *args, **kwargs):
+        kwargs["name"] = kwargs.get("name", "control_well_positions")
+        super(ControlsPosition, self).__init__(*args, **kwargs)
+
+    @property
+    def key(self) -> str:
+        return self._name
+
+    @property
+    def verbose_name(self) -> str:
+        return "Controls positions"
+
 
 _classes = {
     "A-24": ("covmatic_stations.a.technogenetics", "StationATechnogenetics24", NumSamples),
@@ -96,7 +128,8 @@ _classes = {
     "C": ("covmatic_stations.c.technogenetics", "StationCTechnogenetics", NumSamples),
     "Elution Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
     "Wash B Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
-    "Bioer": ("covmatic_stations.Bioer.Bioer_full_dw_prova", "BioerProtocol", NumSamples)
+    "BioerPrep": ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToBioer", NumSamples),
+    "BioerPCR": ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToPcr", NumSamples, ControlsPosition)
 }
 
 

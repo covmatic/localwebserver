@@ -2,7 +2,7 @@
 
 ## v2.4.0
 ### Added
-- Bioer protocol now can be loaded to robot;
+- Bioer protocol now can be loaded to robot with covmatic-stations from v2.3.0;
 
 ## v2.3.2
 - Fixed bug on thread creation that filled available memory;

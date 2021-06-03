@@ -1,7 +1,8 @@
 ### COVMATIC LocalWebServer changelog
 
-## v2.4.0
+## v2.4.1
 ### Added
+- Paired pipette station B Techogenetics protocol can now be loaded to robot;
 - Bioer protocol now can be loaded to robot with covmatic-stations from v2.3.0;
 
 ## v2.3.2

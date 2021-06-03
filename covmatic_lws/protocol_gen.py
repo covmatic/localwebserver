@@ -3,7 +3,6 @@ import json
 from abc import ABCMeta, abstractmethod
 from .args import Args
 import os
-import re
 
 
 with open(os.path.join(os.path.dirname(__file__), "templates", "protocol.py")) as f:
@@ -125,6 +124,7 @@ _classes = {
     "A-24": ("covmatic_stations.a.technogenetics", "StationATechnogenetics24", NumSamples),
     "A": ("covmatic_stations.a.technogenetics", "StationATechnogenetics48", NumSamples),
     "B": ("covmatic_stations.b.technogenetics", "StationBTechnogenetics", NumSamples),
+    "B-Paired Pipette": ("covmatic_stations.b.technogenetics_paired_pipette", "StationBTechnogeneticsPairedPipette", NumSamples),
     "C": ("covmatic_stations.c.technogenetics", "StationCTechnogenetics", NumSamples),
     "Elution Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
     "Wash B Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),

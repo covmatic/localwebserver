@@ -270,7 +270,7 @@ class YumiBarcodeOK(Resource):
             logging.info("Task closed, returning from OK...")
         except queue.Empty:
             logging.error("No CLOSED answer returned from task!")
-            return {"status": False, "res": ""}, 501
+            return {"status": False, "res": ""}, 504
         return {"status": False, "res": "OK"}, 200
 
 
@@ -291,7 +291,7 @@ class YumiBarcodeNO(Resource):
             logging.info("Task closed, returning from NO...")
         except queue.Empty:
             logging.error("No CLOSED answer returned from task!")
-            return {"status": False, "res": ""}, 501
+            return {"status": False, "res": ""}, 504
         return {"status": False, "res": "OK"}, 200
 
 
@@ -323,7 +323,7 @@ class YumiStart(Resource):
             r = {"status": False, "res": str(err)}, 500
         except Exception as err:
             logging.error("{}".format(err))
-            r = {"status": False, "res": str(err)}, 501
+            r = {"status": False, "res": str(err)}, 500
         return r
 
 
@@ -355,7 +355,7 @@ class YumiStop(Resource):
             r = {"status": False, "res": str(err)}, 500
         except Exception as err:
             logging.error("{}".format(err))
-            r = {"status": False, "res": str(err)}, 501
+            r = {"status": False, "res": str(err)}, 500
         return r
 
 class YumiPPtoMain(Resource):
@@ -386,7 +386,7 @@ class YumiPPtoMain(Resource):
             r = {"status": False, "res": str(err)}, 500
         except Exception as err:
             logging.error("{}".format(err))
-            r = {"status": False, "res": str(err)}, 501
+            r = {"status": False, "res": str(err)}, 500
         return r
 
 

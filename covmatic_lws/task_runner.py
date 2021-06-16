@@ -19,6 +19,8 @@ task_fwd_queue = queue.Queue()
 task_bwd_queue = queue.Queue()
 task_finished_queue = queue.Queue()
 
+logger = logging.getLogger(__name__)
+
 
 class TaskDefinition:
     _list = []
@@ -140,10 +142,10 @@ class StationTask(Task):
                     ssh_client.exec_command("mkdir -p {}".format(os.path.dirname(self._remote)))
                     with ssh_client.scp_client() as scp_client:
                         scp_client.put(self._local, self._remote)
-                    logging.getLogger().info("Copied '{}' to '{}'".format(self._local, self._remote))
+                    logger.info("Copied '{}' to '{}'".format(self._local, self._remote))
                 # Set environment key
                 ssh_channel.send('export {}=\"{}\"\n'.format(self._env_key, self._remote))
-                logging.getLogger().info('Using {}=\"{}\"'.format(self._env_key, self._remote))
+                logger.info('Using {}=\"{}\"'.format(self._env_key, self._remote))
 
     magnet_config = StationConfigFile(Args().magnet_json_local, Args().magnet_json_remote, "OT_MAGNET_JSON")
     copan48_config = StationConfigFile(Args().copan48_json_local, Args().copan48_json_remote, "OT_COPAN_48_CORRECT")
@@ -156,7 +158,7 @@ class StationTask(Task):
             self.err_printer = SshBufferPrinter(logging.getLogger("SSH").error)
 
         def run(self):
-            logging.getLogger().info("Starting protocol: {}".format(self.task))
+            logger.info("Starting protocol: {}".format(self.task))
             # Try to reset the run log
             try:
                 requests.get("http://127.0.0.1:{}/reset_log".format(Args().barcode_port))
@@ -191,7 +193,7 @@ class StationTask(Task):
                 code = channel.recv_exit_status()
             with Task.lock:
                 Task.exit_code = code
-            logging.getLogger().info("Protocol exit code: {}".format(code))
+            logger.info("Protocol exit code: {}".format(code))
 
     def new_thread(self) -> threading.Thread:
         return StationTask.StationTaskThread(self)
@@ -205,10 +207,10 @@ class PCRTask(Task):
         pcr_result_files = glob.glob(Args().pcr_results)
         if pcr_result_files:
             for f in pcr_result_files:
-                logging.debug('file removed: {}'.format(f))
+                logger.debug('file removed: {}'.format(f))
                 os.remove(f)
         else:
-            logging.debug('PCR results folder already clean!')
+            logger.debug('PCR results folder already clean!')
         return threading.Thread(target=subprocess.call, args=(Args().pcr_app,))
 
 
@@ -223,14 +225,14 @@ class YumiTask(Task):
         def run(self):
             with task_finished_queue.mutex:
                 task_finished_queue.queue.clear()
-            logging.info("Yumi Task started!")
+            logger.info("Yumi Task started!")
             server = socket.create_server(("", self.port))
-            logging.debug("Created.")
+            logger.debug("Created.")
             conn_sock, cli_addr = server.accept()
-            logging.info("Established connection with %s", cli_addr)
-            logging.debug("Waiting for robot data...")
+            logger.info("Established connection with %s", cli_addr)
+            logger.debug("Waiting for robot data...")
             req = conn_sock.recv(4096)
-            logging.debug("Robot data received: {}".format(req.decode()))
+            logger.debug("Robot data received: {}".format(req.decode()))
             if req:
                 while not task_bwd_queue.empty():
                     task_bwd_queue.get()
@@ -242,10 +244,10 @@ class YumiTask(Task):
                         "status": True,
                         "res": "EMPTY"
                     }, 200))
-                    logging.warning("Barcode has not been scanned")
+                    logger.warning("Barcode has not been scanned")
                 else:
                     barcode = req.decode()
-                    logging.info("Received barcode: %s", barcode)
+                    logger.info("Received barcode: %s", barcode)
                     # Enqueue barcode for forwarding (must be a valid JSON string)
                     # Converted into a string
                     task_fwd_queue.put(({
@@ -258,19 +260,19 @@ class YumiTask(Task):
                     # Aspetta finché un elemento non è disponibile
                     OK = task_bwd_queue.get()
                     if OK == "OK":
-                        logging.info('Compliant barcode: {}'.format(barcode))
+                        logger.info('Compliant barcode: {}'.format(barcode))
                     else:
-                        logging.warning('Non-compliant barcode: {}'.format(barcode))
+                        logger.warning('Non-compliant barcode: {}'.format(barcode))
                     # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
                     conn_sock.sendall(OK.encode())
-                    logging.debug("Waiting for socketo to close...")
+                    logger.debug("Waiting for socketo to close...")
             else:
-                logging.info("Connection with %s interrupted.", cli_addr)
-            logging.info("task shoudl close now..")
+                logger.info("Connection with %s interrupted.", cli_addr)
+            logger.info("task shoudl close now..")
             while True:
                 req2 = conn_sock.recv(4096)
                 if not req2:
-                    logging.debug("closed")
+                    logger.debug("closed")
                     break
             task_finished_queue.put("CLOSED")
 
@@ -288,11 +290,11 @@ class YumiTask(Task):
 
         def __init__(self):
             self._incrementObj = self.increment
-            logging.info("Yumi simulation!")
+            logger.info("Yumi simulation!")
             super().__init__()
 
         def run(self):
-            logging.info("Yumi task started!")
+            logger.info("Yumi task started!")
             time.sleep(0.5)
             i = self._incrementObj.getIncrement()
             if i == self.iterationsToReturnError:
@@ -302,7 +304,7 @@ class YumiTask(Task):
                 }
                 task_fwd_queue.put((obj, 200))
             else:
-                logging.info("returning barcode")
+                logger.info("returning barcode")
                 obj = {
                     "status": True,
                     "res": "helloWorld{}".format(i)

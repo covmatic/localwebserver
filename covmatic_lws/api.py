@@ -262,16 +262,19 @@ class YumiBarcodeOK(Resource):
         with task_finished_queue.mutex:
             task_finished_queue.queue.clear()
 
-        # Mette in coda "OK"
-        task_bwd_queue.put("OK")
-        # Aspetta che il task abbia finito prima di ritornare
-        try:
-            task_finished_queue.get(timeout=10)
-            logging.info("Task closed, returning from OK...")
-        except queue.Empty:
-            logging.error("No CLOSED answer returned from task!")
-            return {"status": False, "res": ""}, 504
-        return {"status": False, "res": "OK"}, 200
+        if Task.running:
+            # Mette in coda "OK"
+            task_bwd_queue.put("OK")
+            # Aspetta che il task abbia finito prima di ritornare
+            try:
+                logging.info("Waiting Task closed")
+                task_finished_queue.get(timeout=600)
+                logging.info("Task closed, returning from OK...")
+            except queue.Empty:
+                logging.error("No CLOSED answer returned from task!")
+                return {"status": False, "res": ""}, 504
+            return {"status": False, "res": "OK"}, 200
+        return {"status": False, "res": ""}, 500
 
 
 class YumiBarcodeNO(Resource):
@@ -285,14 +288,17 @@ class YumiBarcodeNO(Resource):
         # Mette in coda "NO"
         task_bwd_queue.put("NO")
 
-        # Aspetta che il task abbia finito prima di ritornare
-        try:
-            task_finished_queue.get(timeout=10)
-            logging.info("Task closed, returning from NO...")
-        except queue.Empty:
-            logging.error("No CLOSED answer returned from task!")
-            return {"status": False, "res": ""}, 504
-        return {"status": False, "res": "OK"}, 200
+        if Task.running:
+            # Aspetta che il task abbia finito prima di ritornare
+            try:
+                logging.info("Waiting Task closed")
+                task_finished_queue.get(timeout=600)
+                logging.info("Task closed, returning from NO...")
+            except queue.Empty:
+                logging.error("No CLOSED answer returned from task!")
+                return {"status": False, "res": ""}, 504
+            return {"status": False, "res": "OK"}, 200
+        return {"status": False, "res": ""}, 500
 
 
 class YumiStart(Resource):

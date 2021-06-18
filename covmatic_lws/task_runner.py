@@ -221,6 +221,7 @@ class YumiTask(Task):
             super().__init__()
             # Using raw sockets because of Rapid API
             self.port = port
+            self.socket_timeout = 20
 
         def run(self):
             with task_finished_queue.mutex:
@@ -228,53 +229,62 @@ class YumiTask(Task):
             logger.info("Yumi Task started!")
             server = socket.create_server(("", self.port))
             logger.debug("Created.")
+            server.settimeout(self.socket_timeout)
             conn_sock, cli_addr = server.accept()
             logger.info("Established connection with %s", cli_addr)
             logger.debug("Waiting for robot data...")
-            req = conn_sock.recv(4096)
-            logger.debug("Robot data received: {}".format(req.decode()))
-            if req:
-                while not task_bwd_queue.empty():
-                    task_bwd_queue.get()
-                # FIXME: Comparing strings of natural language text as a way
-                #  of decoding message types is really bad practise.
-                #  Remember how it broke the number of samples in the PWA
-                if req.decode() == 'Non ho ricevuto nulla...':
-                    task_fwd_queue.put(({
-                        "status": True,
-                        "res": "EMPTY"
-                    }, 200))
-                    logger.warning("Barcode has not been scanned")
-                else:
-                    barcode = req.decode()
-                    logger.info("Received barcode: %s", barcode)
-                    # Enqueue barcode for forwarding (must be a valid JSON string)
-                    # Converted into a string
-                    task_fwd_queue.put(({
-                        "status": True,
-                        "res": "{}".format(barcode)
-                    }, 200))
-                    # Next call to check will return all newly enqueued barcodes
-                    # VARIABILE STATICA PER SIMULAZIONE CON YUMI
-                    # OK = "OK"
-                    # Aspetta finché un elemento non è disponibile
-                    OK = task_bwd_queue.get()
-                    if OK == "OK":
-                        logger.info('Compliant barcode: {}'.format(barcode))
+            conn_sock.settimeout(self.socket_timeout)
+            try:
+                # Wait until robot has a sample
+                while True:
+                    req = conn_sock.recv(4096)
+                    logger.debug("Received from robot: {}".format(req.decode()))
+                    if not req or req.decode() != "Searching":
+                        break
+                logger.debug("Robot data received: {}".format(req.decode()))
+                if req:
+                    while not task_bwd_queue.empty():
+                        task_bwd_queue.get()
+                    # FIXME: Comparing strings of natural language text as a way
+                    #  of decoding message types is really bad practise.
+                    #  Remember how it broke the number of samples in the PWA
+                    if req.decode() == 'Non ho ricevuto nulla...':
+                        task_fwd_queue.put(({
+                            "status": True,
+                            "res": "EMPTY"
+                        }, 200))
+                        logger.warning("Barcode has not been scanned")
                     else:
-                        logger.warning('Non-compliant barcode: {}'.format(barcode))
-                    # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
-                    conn_sock.sendall(OK.encode())
-                    logger.debug("Waiting for socketo to close...")
-            else:
-                logger.info("Connection with %s interrupted.", cli_addr)
-            logger.info("task shoudl close now..")
-            while True:
-                req2 = conn_sock.recv(4096)
-                if not req2:
-                    logger.debug("closed")
-                    break
-            task_finished_queue.put("CLOSED")
+                        barcode = req.decode()
+                        logger.info("Received barcode: %s", barcode)
+                        # Enqueue barcode for forwarding (must be a valid JSON string)
+                        # Converted into a string
+                        task_fwd_queue.put(({
+                            "status": True,
+                            "res": "{}".format(barcode)
+                        }, 200))
+                        # Next call to check will return all newly enqueued barcodes
+                        # VARIABILE STATICA PER SIMULAZIONE CON YUMI
+                        # OK = "OK"
+                        # Aspetta finché un elemento non è disponibile
+                        OK = task_bwd_queue.get()
+                        if OK == "OK":
+                            logger.info('Compliant barcode: {}'.format(barcode))
+                        else:
+                            logger.warning('Non-compliant barcode: {}'.format(barcode))
+                        # Manda OK/NONOK allo YuMi per decidere se scartare la provetta o meno
+                        conn_sock.sendall(OK.encode())
+                        logger.debug("Waiting for socketo to close...")
+                else:
+                    logger.info("Connection with %s interrupted.", cli_addr)
+                logger.info("task shoudl close now..")
+                while True:
+                    req2 = conn_sock.recv(4096)
+                    if not req2:
+                        logger.debug("closed")
+                        break
+            finally:
+                task_finished_queue.put("CLOSED")
 
     class YumiTaskThreadSimulation(YumiTaskThread):
         class Increment:

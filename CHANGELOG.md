@@ -1,5 +1,8 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.4.2
+- Yumi task: fixed some minor behavior.
+
 ## v2.4.1
 ### Added
 - Paired pipette station B Techogenetics protocol can now be loaded to robot;

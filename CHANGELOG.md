@@ -1,6 +1,7 @@
 ### COVMATIC LocalWebServer changelog
 
 ## v2.4.2
+- Disabled version check at startup. 
 - Yumi task: fixed some minor behavior.
 
 ## v2.4.1

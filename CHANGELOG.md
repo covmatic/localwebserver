@@ -1,8 +1,12 @@
 ### COVMATIC LocalWebServer changelog
 
-## v2.4.2
-- Disabled version check at startup. 
-- Yumi task: fixed some minor behavior.
+## v2.5.1
+### Added
+- Yumi task: start, stop and barcode reading action
+- Disabled version check at startup because the PyPI service is unavailable.
+
+## Fixed
+- Bug on PCR Task that returned _null_ during the task.
 
 ## v2.4.1
 ### Added

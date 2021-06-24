@@ -143,6 +143,8 @@ class CheckFunction(Resource):
                            "status": False,
                            "res": "Waiting for barcode..."
                        }, 200
+            else:
+                return {"status": False, "res": task_str}, 200
 
         else:
             self.logger.debug("No task is running")

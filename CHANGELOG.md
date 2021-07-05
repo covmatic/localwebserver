@@ -1,5 +1,9 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.6.0
+### Added
+- Check function now have _stage_ field in the _runinfo_ dictionary to pass information to dashboard
+
 ## v2.5.1
 ### Added
 - Yumi task: start, stop and barcode reading action

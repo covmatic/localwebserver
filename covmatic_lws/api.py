@@ -136,7 +136,10 @@ class CheckFunction(Resource):
                                output.get("status", None),
                                output.get("stage", None),
                                "\n\n{}".format(output["msg"]) if output.get("msg", None) else ""
-                           )
+                           ),
+                           "runinfo": {
+                               "stage": output.get("stage", None)
+                           }
                        }, 200
             elif issubclass(task_type, YumiTask):
                 return {

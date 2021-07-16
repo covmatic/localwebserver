@@ -3,6 +3,7 @@ import tkinter as tk
 import tkinter.messagebox
 import os
 from ..check_update import up_to_date
+import logging
 
 
 up2date, cv, lv, up_cmd = up_to_date()
@@ -26,6 +27,7 @@ from .gui import Covmatic
 from .images import set_ico
 import tkinter as tk
 
+logging.info("Starting with version " + __version__)
 
 root = tk.Tk()
 root.title('Covmatic GUI')

@@ -5,6 +5,7 @@ from .app_buttons import AppButtonFrame
 from .images import get_logo
 from .server import GUIServerThread, LogContent
 from .buttons import ConnectionLabel
+from .. import __version__
 
 
 class Covmatic(tk.Frame):
@@ -15,6 +16,7 @@ class Covmatic(tk.Frame):
         super(Covmatic, self).__init__(parent, *args, **kwargs)
         LogContent(self)
         self._ip_label = tk.Label(self, text=Args().ip)
+        self._version_label = tk.Label(self, text=__version__)
         self._empty_label = ConnectionLabel(self)
         self._logo_photo = get_logo(resize=0.1)
         self._logo = tk.Label(self, image=self._logo_photo)
@@ -22,7 +24,8 @@ class Covmatic(tk.Frame):
         self._app_buttons = AppButtonFrame(self)
         
         self._logo.grid(row=0, columnspan=2)
-        self._ip_label.grid(row=1, columnspan=2)
+        self._version_label.grid(row=0, column=1, sticky=tk.NE)
+        self._ip_label.grid(row=1,  columnspan=2)
         self._empty_label.grid(row=2, columnspan=2)
         self._robot_buttons.grid(row=3, column=0, sticky=tk.N)
         self._app_buttons.grid(row=3, column=1, sticky=tk.N)

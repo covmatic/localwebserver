@@ -3,6 +3,7 @@ import tkinter as tk
 import tkinter.messagebox
 import os
 from ..check_update import up_to_date
+from .. import __version__
 import logging
 
 

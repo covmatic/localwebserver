@@ -7,13 +7,16 @@ import glob
 import os
 from shutil import copy2
 import json
+
+from scp import SCPException
+
 from .args import Args
 from .task_runner import Task, StationTask, task_fwd_queue, task_bwd_queue, task_finished_queue, YumiTask
 import threading
 from .utils import SingletonMeta, locked, acquire_lock
 from flask_restful import Api
 import logging
-from .ssh import SSHClient
+from .ssh import SSHClient, copy_file_ssh
 import time
 import base64
 import queue
@@ -68,6 +71,29 @@ class TaskFunction(Resource):
 class BarcodeSingleton(str, metaclass=SingletonMeta):
     lock = threading.Lock()
     valid = True
+
+
+class ExceptionLogSingleton(metaclass=SingletonMeta):
+    exception_log_filepath = None
+    logger = logging.getLogger("ExceptionSingleton")
+
+    @classmethod
+    def get_error(cls) -> str:
+        if cls.exception_log_filepath:
+            filename = os.path.basename(os.path.normpath(cls.exception_log_filepath))
+            temp_path = os.path.join(Args().temp_data_dir, filename)
+            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+            cls.logger.info("Copying to temporary file: {}".format(temp_path))
+            try:
+                copy_file_ssh(cls.exception_log_filepath, temp_path)
+            except SCPException as e:
+                cls.logger.error("Error copying file {} to {}: {}".format(cls.exception_log_filepath, temp_path, e))
+            else:
+                cls.logger.info("Copied {} to {}".format(cls.exception_log_filepath, temp_path))
+                with open(temp_path, 'r') as f:
+                    return json.load(f).get('error', None)
+        cls.logger.error("Remote error filename is empty.")
+        return "unknown; see error file on robot."
 
 
 class CheckFunction(Resource):
@@ -130,6 +156,7 @@ class CheckFunction(Resource):
                             BarcodeSingleton.valid = True
                     else:
                         self.logger.debug("Barcode lock not acquired, skipped")
+                ExceptionLogSingleton.exception_log_filepath = output.get('exceptionlog', None)
                 return {
                            "status": False,
                            "res": "Status: {}\nStage: {}{}".format(
@@ -198,20 +225,20 @@ class CheckFunction(Resource):
                     log_remote = CheckFunction.bak().get("runlog", None)
                     log_local = Args().log_local.format(time.strftime("%Y_%m_%d__%H_%M_%S"))
                     if log_remote:
-                        os.makedirs(os.path.dirname(log_local), exist_ok=True)
                         try:
-                            with SSHClient() as client:
-                                with client.scp_client() as scp_client:
-                                    scp_client.get(log_remote, log_local)
+                            copy_file_ssh(log_remote, log_local)
                         except Exception as e:
                             self.logger.warning("Could not copy runlog from '{}' to '{}':\n{}".format(log_remote, log_local, e))
                         else:
                             self.logger.info("Copied runlog from '{}' to '{}'".format(log_remote, log_local))
                 CheckFunction.bak({})
                 if code:
-                    return {"message": "Protocol execution {}. Exit code: {}".format(res, code)}, 500
+                    return {"message": "Protocol execution {} with exit code: {}. Message: {}".format(
+                                            res,
+                                            code,
+                                            ExceptionLogSingleton.get_error())
+                            }, 503
                 return {"status": True, "res": res, "exit_code": code}, 200
-
 
 class PauseFunction(Resource):
     def get(self):

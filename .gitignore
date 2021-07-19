@@ -19,3 +19,4 @@ dist
 # IDE
 venv
 .idea
+/covmatic_lws/temp_data/

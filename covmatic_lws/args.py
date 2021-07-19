@@ -58,9 +58,11 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('--pcr-pcrd', metavar="path", type=str, default="C:/PCR_BioRad/pcrd_results", help="the PCR pcrd folder")
         parser.add_argument('--web-app-fixed', metavar='url', type=str, default="", help="the Web App URL to be opened independently without building path with the station name")
         parser.add_argument('--web-app', metavar='url', type=str, default="", help="the Web App URL")
-        parser.add_argument('--log-local', metavar='path', type=str, default="", help="local file path for run log file")
+        parser.add_argument('--log-local', metavar='path', type=str, default="", help="local file path for run log file. Use '{}' to add date time info.")
         parser.add_argument('--tip-log-remote', metavar='path', type=str, default="/var/lib/jupyter/notebooks/outputs/tip_log.json", help="remote file path for tip log file")
         parser.add_argument('--tip-log-local', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), "tip_log.json"), help="local file path for tip log file")
+        parser.add_argument('--temp-data-dir', metavar='path', type=str, default=os.path.join(os.path.dirname(__file__), "temp_data"), help="directory for temporary data")
+
         parser.add_argument('--copan48-json-remote', metavar='path', type=str, default="", help="remote file path for copan48 configuration (this is used for rack configuration)")
         parser.add_argument('--copan48-json-local', metavar='path', type=str, default="", help="local file path for copan48 configuration (if both remote and local paths are given, this is used for rack configuration)")
         parser.add_argument('--magnet-json-remote', metavar='path', type=str, default="", help="remote file path for magnet configuration (this is used for magnet configuration)")

@@ -1,9 +1,14 @@
 from .args import Args
 import paramiko as pk
+import os
+
 from scp import SCPClient
 import socket
 from .utils import locked
 from threading import Lock
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class SSHClient(pk.SSHClient):
@@ -50,6 +55,20 @@ def try_ssh(timeout: float = 0.5, force: bool = False) -> bool:
         except Exception:
             _try_ssh_cache = False
     return _try_ssh_cache
+
+
+def copy_file_ssh(remote_filepath: str, local_file: str):
+    local_abs_path = os.path.abspath(os.path.normpath(local_file))
+
+    if not os.path.exists(local_abs_path):
+        logger.debug("File {} does not exist. Creating file.".format(local_abs_path))
+        with open(local_abs_path, 'w'):
+            pass
+
+    os.makedirs(os.path.dirname(local_abs_path), exist_ok=True)
+    with SSHClient() as client:
+        with client.scp_client() as scp_client:
+            scp_client.get(remote_filepath, local_abs_path)
 
 
 # Copyright (c) 2020 Covmatic.

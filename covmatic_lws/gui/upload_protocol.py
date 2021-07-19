@@ -2,6 +2,8 @@ import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
 import socket
+from json import JSONDecodeError
+
 from .button_frames import ButtonFrameBase
 from .buttons import SSHButtonMixin, ConnectionLabel, _palette
 from .images import set_ico, get_logo
@@ -227,12 +229,12 @@ class TipLog(tk.Text):
                 with SSHClient() as client:
                     with client.scp_client() as scp_client:
                         scp_client.get(Args().tip_log_remote, Args().tip_log_local)
-            except SCPException as e:
-                s = "tip log not found\nstarting from the beginning"
-            else:
                 with open(Args().tip_log_local, "r") as f:
                     j = json.load(f)
-                s = "\n\n".join("{}\n{}".format(k.replace("_", " ").strip(), v) for k, v in j.get("next", {}).items())
+                    s = "\n\n".join(
+                        "{}\n{}".format(k.replace("_", " ").strip(), v) for k, v in j.get("next", {}).items())
+            except (SCPException, JSONDecodeError) as e:
+                s = "tip log not found\nstarting from the beginning"
         return s
     
     def update(self):

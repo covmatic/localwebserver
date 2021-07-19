@@ -73,29 +73,6 @@ class BarcodeSingleton(str, metaclass=SingletonMeta):
     valid = True
 
 
-class ExceptionLogSingleton(metaclass=SingletonMeta):
-    exception_log_filepath = None
-    logger = logging.getLogger("ExceptionSingleton")
-
-    @classmethod
-    def get_error(cls) -> str:
-        if cls.exception_log_filepath:
-            filename = os.path.basename(os.path.normpath(cls.exception_log_filepath))
-            temp_path = os.path.join(Args().temp_data_dir, filename)
-            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-            cls.logger.info("Copying to temporary file: {}".format(temp_path))
-            try:
-                copy_file_ssh(cls.exception_log_filepath, temp_path)
-            except SCPException as e:
-                cls.logger.error("Error copying file {} to {}: {}".format(cls.exception_log_filepath, temp_path, e))
-            else:
-                cls.logger.info("Copied {} to {}".format(cls.exception_log_filepath, temp_path))
-                with open(temp_path, 'r') as f:
-                    return json.load(f).get('error', None)
-        cls.logger.error("Remote error filename is empty.")
-        return "unknown; see error file on robot."
-
-
 class CheckFunction(Resource):
     bak_lock = threading.Lock()
     _bak = {}
@@ -156,7 +133,6 @@ class CheckFunction(Resource):
                             BarcodeSingleton.valid = True
                     else:
                         self.logger.debug("Barcode lock not acquired, skipped")
-                ExceptionLogSingleton.exception_log_filepath = output.get('exceptionlog', None)
                 return {
                            "status": False,
                            "res": "Status: {}\nStage: {}{}".format(
@@ -231,14 +207,33 @@ class CheckFunction(Resource):
                             self.logger.warning("Could not copy runlog from '{}' to '{}':\n{}".format(log_remote, log_local, e))
                         else:
                             self.logger.info("Copied runlog from '{}' to '{}'".format(log_remote, log_local))
+                exception_log_filepath = CheckFunction.bak().get('exceptionlog', None)
                 CheckFunction.bak({})
                 if code:
                     return {"message": "Protocol execution {} with exit code: {}. Message: {}".format(
                                             res,
                                             code,
-                                            ExceptionLogSingleton.get_error())
+                                            self.get_error_from_remote_exception_file(exception_log_filepath))
                             }, 503
                 return {"status": True, "res": res, "exit_code": code}, 200
+
+    def get_error_from_remote_exception_file(self, remote_exception_log_filepath: str) -> str:
+        if remote_exception_log_filepath:
+            filename = os.path.basename(os.path.normpath(remote_exception_log_filepath))
+            temp_path = os.path.join(Args().temp_data_dir, filename)
+            self.logger.debug("Copying to temporary file: {}".format(temp_path))
+            try:
+                copy_file_ssh(remote_exception_log_filepath, temp_path)
+            except SCPException as e:
+                self.logger.error("Error copying file {} to {}: {}".format(remote_exception_log_filepath, temp_path, e))
+            else:
+                self.logger.info("Copied {} to {}".format(remote_exception_log_filepath, temp_path))
+                with open(temp_path, 'r') as f:
+                    error = json.load(f).get('error', None)
+                # os.remove(temp_path)
+                return error
+        self.logger.error("Remote error filename is empty.")
+        return "unknown; see error file on robot."
 
 class PauseFunction(Resource):
     def get(self):

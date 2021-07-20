@@ -46,11 +46,11 @@ class GUIServer:
     
     @cherrypy.expose
     def enter(self):
-        return self.barcode("enter")
+        return self.barcode("enter").encode('utf-8')
     
     @cherrypy.expose
     def exit(self):
-        return self.barcode("exit")
+        return self.barcode("exit").encode('utf-8')
     
     @cherrypy.expose
     def reset_log(self):

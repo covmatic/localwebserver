@@ -126,7 +126,7 @@ class CheckFunction(Resource):
                             self.logger.debug("Barcode is valid and stage is external")
                             while not BarcodeSingleton():
                                 self.logger.debug("Requesting barcode (exit)")
-                                BarcodeSingleton.reset(requests.get("http://127.0.0.1:{}/exit".format(Args().barcode_port)).content.decode('ascii'))
+                                BarcodeSingleton.reset(requests.get("http://127.0.0.1:{}/exit".format(Args().barcode_port)).content.decode('utf-8'))
                         if not BarcodeSingleton.valid and not output.get("external", True):
                             self.logger.debug("Barcode is not valid and stage is internal. Resetting barcode")
                             BarcodeSingleton.reset()
@@ -267,7 +267,7 @@ class ResumeFunction(Resource):
                 if BarcodeSingleton() and BarcodeSingleton.valid:
                     self.logger.debug("Requesting barcode (enter)")
                     try:
-                        while requests.get("http://127.0.0.1:{}/enter".format(Args().barcode_port)).content.decode('ascii') != BarcodeSingleton():
+                        while requests.get("http://127.0.0.1:{}/enter".format(Args().barcode_port)).content.decode('utf-8') != BarcodeSingleton():
                             pass
                     except Exception as e:
                         r = {"status": False, "res": str(e)}, 500

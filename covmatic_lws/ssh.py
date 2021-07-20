@@ -59,12 +59,6 @@ def try_ssh(timeout: float = 0.5, force: bool = False) -> bool:
 
 def copy_file_ssh(remote_filepath: str, local_file: str):
     local_abs_path = os.path.abspath(os.path.normpath(local_file))
-
-    if not os.path.exists(local_abs_path):
-        logger.debug("File {} does not exist. Creating file.".format(local_abs_path))
-        with open(local_abs_path, 'w'):
-            pass
-
     os.makedirs(os.path.dirname(local_abs_path), exist_ok=True)
     with SSHClient() as client:
         with client.scp_client() as scp_client:

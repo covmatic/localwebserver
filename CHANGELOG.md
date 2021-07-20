@@ -1,5 +1,11 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.6.1
+### Fixed
+- Error from protocol execution is retrieved and added to the Dashboard message. Needs **covmatic-stations >= v2.6.0**
+- Upload Protocol interface does not go in error with empty tip_log.json file on robot.
+- Non-ASCII characters on barcode request are handled correctly and do not cause internal server error.
+
 ## v2.6.0
 ### Added
 - Check function now have _stage_ field in the _runinfo_ dictionary to pass information to dashboard

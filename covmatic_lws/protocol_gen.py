@@ -128,7 +128,7 @@ _classes = {
     "C": ("covmatic_stations.c.technogenetics", "StationCTechnogenetics", NumSamples),
     "Elution Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
     "Wash B Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
-    "BioerPrep": ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToBioer", NumSamples),
+    "BioerPrep": ("covmatic_stations.bioer.Bioer_preparation", "BioerPreparation", NumSamples),
     "BioerPCR": ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToPcr", NumSamples, ControlsPosition)
 }
 

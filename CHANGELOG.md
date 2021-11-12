@@ -1,5 +1,9 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.6.2
+### Fixed
+- BioerPrep protocol updated to be used with *covmatic-stations* v2.10.0
+
 ## v2.6.1
 ### Fixed
 - Error from protocol execution is retrieved and added to the Dashboard message. Needs **covmatic-stations >= v2.6.0**

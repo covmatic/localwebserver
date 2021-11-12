@@ -1,8 +1,9 @@
 ### COVMATIC LocalWebServer changelog
 
-## v2.6.2
+## v2.6.3
 ### Fixed
 - BioerPrep protocol updated to be used with *covmatic-stations* v2.10.0
+- Fixed workflow for *libsystemd-dev* package
 
 ## v2.6.1
 ### Fixed

@@ -1,5 +1,10 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.7.0
+### Added
+- Station A: Added bioer preparation protocol with P1000 and station A.
+- Watchdog enable parameter is now appended to uploaded protocol. Needs *covmatic_stations* >= v2.12.0
+
 ## v2.6.3
 ### Fixed
 - BioerPrep protocol updated to be used with *covmatic-stations* v2.10.0

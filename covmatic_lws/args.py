@@ -53,6 +53,8 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('-U', '--user', metavar='name', type=str, default="root", help="the SSH username")
         parser.add_argument('--barcode-port', metavar='port', type=int, default=5002, help="the barcode server port")
         parser.add_argument('--no-wait-log', dest="wait_log", action='store_false', help='make the protocol start as soon as possible, without waiting for the first log request')
+        parser.add_argument('--disable_watchdog', dest="watchdog_enable", action='store_false', help='disable watchdog for execution')
+
         parser.add_argument('--pcr-app', metavar="path", type=str, default="C:/PCR_BioRad/APIs/BioRad_CFX_API_v1.4/BioRad.Example_Application.exe", help="the PCR app filepath")
         parser.add_argument('--pcr-results', metavar="path", type=str, default="C:/PCR_BioRad/json_results/????????_Data_??-??-????_??-??-??_Result.json", help="the PCR results filepath (scheme)")
         parser.add_argument('--pcr-pcrd', metavar="path", type=str, default="C:/PCR_BioRad/pcrd_results", help="the PCR pcrd folder")

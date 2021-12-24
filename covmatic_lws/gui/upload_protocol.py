@@ -70,6 +70,7 @@ class ProtocolDefinition(tk.Frame):
             **self._argframe.as_dict(allow_none=False),
             language=self._right._buttons[2].var.get(),
             wait_first_log=Args().wait_log,
+            watchdog_enable=Args().watchdog_enable
         )
 
 

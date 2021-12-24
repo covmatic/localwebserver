@@ -123,6 +123,7 @@ class ControlsPosition(StringListArgument):
 _classes = {
     "A-24": ("covmatic_stations.a.technogenetics", "StationATechnogenetics24", NumSamples),
     "A": ("covmatic_stations.a.technogenetics", "StationATechnogenetics48", NumSamples),
+    "A-Bioer": ("covmatic_stations.a.aBioerPreparation", "StationABioerPreparation"),
     "B": ("covmatic_stations.b.technogenetics", "StationBTechnogenetics", NumSamples),
     "B-Paired Pipette": ("covmatic_stations.b.technogenetics_paired_pipette", "StationBTechnogeneticsPairedPipette", NumSamples),
     "C": ("covmatic_stations.c.technogenetics", "StationCTechnogenetics", NumSamples),

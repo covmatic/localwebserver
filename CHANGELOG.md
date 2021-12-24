@@ -1,5 +1,8 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.7.1
+- Added Bioer preparation to PCR with Technogenetics mastermix.
+
 ## v2.7.0
 ### Added
 - Station A: Added bioer preparation protocol with P1000 and station A.

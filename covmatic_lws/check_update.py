@@ -51,7 +51,7 @@ def latest_version(pkg_name: str = "covmatic-localwebserver", index=None, python
     return __version__
 
 # TODO: re-enable the version check service.
-#       now it takes some second to say that the service has been disabled due to unmanagabe load;
+#       now it takes some second to say that the service has been disabled due to unmanageable load;
 #       so we disable it because it is useless.
 # def up_to_date(current_version: str = __version__, pkg_name: str = "covmatic-localwebserver", index=None, python_lookup: str = os.sys.executable, python_install: str = None) -> Tuple[bool, str, str, str]:
 #     """Returns:

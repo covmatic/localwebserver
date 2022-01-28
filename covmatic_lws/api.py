@@ -61,17 +61,7 @@ class TaskFunction(Resource):
             }, 422
         else:
             CheckFunction.bak({})
-            with acquire_lock(BarcodeSingleton.lock, timeout=2) as acq:
-                if acq:
-                    BarcodeSingleton.reset()
-                    BarcodeSingleton.valid = True
             return {"status": False, "message": "Started {}".format(t)}, 201
-
-
-class BarcodeSingleton(str, metaclass=SingletonMeta):
-    lock = threading.Lock()
-    valid = True
-
 
 class CheckFunction(Resource):
     bak_lock = threading.Lock()
@@ -120,19 +110,6 @@ class CheckFunction(Resource):
                         CheckFunction.bak(rv.json())
                 finally:
                     output = CheckFunction.bak()
-                # with acquire_lock(BarcodeSingleton.lock, timeout=2) as acq:
-                #     if acq:
-                #         if BarcodeSingleton.valid and output.get("external", False):
-                #             self.logger.debug("Barcode is valid and stage is external")
-                #             while not BarcodeSingleton():
-                #                 self.logger.debug("Requesting barcode (exit)")
-                #                 BarcodeSingleton.reset(requests.get("http://127.0.0.1:{}/exit".format(Args().barcode_port)).content.decode('utf-8'))
-                #         if not BarcodeSingleton.valid and not output.get("external", True):
-                #             self.logger.debug("Barcode is not valid and stage is internal. Resetting barcode")
-                #             BarcodeSingleton.reset()
-                #             BarcodeSingleton.valid = True
-                #     else:
-                #         self.logger.debug("Barcode lock not acquired, skipped")
                 return {
                            "status": False,
                            "res": "Status: {}\nStage: {}{}".format(
@@ -265,23 +242,6 @@ class ResumeFunction(Resource):
         return r
 
     def get(self):
-        # with acquire_lock(BarcodeSingleton.lock, timeout=2) as acq:
-        #     if acq:
-        #         if BarcodeSingleton() and BarcodeSingleton.valid:
-        #             self.logger.debug("Requesting barcode (enter)")
-        #             try:
-        #                 while requests.get("http://127.0.0.1:{}/enter".format(Args().barcode_port)).content.decode('utf-8') != BarcodeSingleton():
-        #                     pass
-        #             except Exception as e:
-        #                 r = {"status": False, "res": str(e)}, 500
-        #             else:
-        #                 r = self._resume()
-        #                 BarcodeSingleton.valid = False
-        #         else:
-        #             r = self._resume()
-        #     else:
-        #         r = {"status": False, "res": "Barcode lock not acquired, resume skipped"}, 500
-        # return r
         return self._resume()
 
 

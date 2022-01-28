@@ -12,7 +12,6 @@ from ..utils import SingletonMeta
 # Configuration for the GUI server;
 # keep in mind it will:
 # - receive log from OT2
-# - receive barcode calls for barcode dialogs
 #
 DEFAULT_CONFIG = {
     "global": {
@@ -32,25 +31,6 @@ class GUIServer:
         super(GUIServer, self).__init__()
         self._parent = parent
         self._config = config
-    
-    @warningbox
-    def barcode(self, action: str) -> str:
-        root = tk.Tk()
-        root.withdraw()
-        s = ""
-        try:
-            s = tk.simpledialog.askstring("Barcode", "Scan {}ing barcode".format(action), parent=root)
-        finally:
-            root.destroy()
-        return s
-    
-    @cherrypy.expose
-    def enter(self):
-        return self.barcode("enter").encode('utf-8')
-    
-    @cherrypy.expose
-    def exit(self):
-        return self.barcode("exit").encode('utf-8')
     
     @cherrypy.expose
     def reset_log(self):

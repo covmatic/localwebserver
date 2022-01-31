@@ -1,5 +1,13 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.8.0
+### Notes
+- Needs **Dashboard >= v0.9.1**
+
+### Added
+- More run fields passed to Dashboard;
+- Deleted barcode server now managed by Dashboard;
+
 ## v2.7.1
 - Added Bioer preparation to PCR with Technogenetics mastermix.
 

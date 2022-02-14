@@ -121,7 +121,8 @@ class CheckFunction(Resource):
                                "status": output.get("status", None),
                                "stage": output.get("stage", None),
                                "msg": output["msg"] if output.get("msg", None) else "",
-                               "external": output.get("external", False)
+                               "external": output.get("external", False),
+                               "dashboard_input": output.get("dashboard_input", False)
                            }
                        }, 200
             elif issubclass(task_type, YumiTask):

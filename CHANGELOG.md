@@ -1,5 +1,14 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.9.0
+### Note
+- Needs **stations >= v2.15.0**
+- Needs **dashboard >= v0.10.0**
+- Needs **webserver >= v0.9.0**
+
+### Added
+- *dashboard_input* parameter retrieved from station is passed through to *dashboard*.
+
 ## v2.8.0
 ### Notes
 - Needs **Dashboard >= v0.9.1**

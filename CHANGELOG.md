@@ -1,5 +1,10 @@
 ### COVMATIC LocalWebServer changelog
 
+
+## v2.9.1
+
+- [Station B Technogenetics] Added protocols for saliva samples both single and paired pipette
+
 ## v2.9.0
 ### Note
 - Needs **stations >= v2.15.0**

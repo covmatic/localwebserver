@@ -1,5 +1,8 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.10.0
+
+- [Configuration] Added the parameter *protocols-to-show* to show only specific protocol in upload window; comma separated.
 
 ## v2.9.1
 

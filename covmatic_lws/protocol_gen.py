@@ -138,9 +138,13 @@ _classes = {
 }
 
 
+# Adding 'start_at' field if requested
 if Args().start_at:
     _classes = {k: (*v, StartAt) for k, v in _classes.items()}
 
+# Filtering shown protocols based on configuration
+if Args().protocols_to_show != "":
+    _classes = {k: v for k, v in _classes.items() if k in [p.strip() for p in Args().protocols_to_show.split(',')]}
 
 def protocol_gen(cls: str, log_level: str = "INFO", apiLevel='2.7', **prot_kwargs) -> str:
     if cls not in _classes:

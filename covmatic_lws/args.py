@@ -78,6 +78,7 @@ class Args(argparse.Namespace, metaclass=SingletonMeta):
         parser.add_argument('--tempdeck-desktop-file', metavar='path', type=str, default=tempdeck_desktop_file(), help="(setup) the desktop file path for the Tempdeck GUI")
         parser.add_argument('--tempdeck-desktop', action='store_true', help='(setup) create a desktop file for the Tempdeck GUI')
         parser.add_argument('--python', metavar='path', type=str, default=os.sys.executable, help="(setup) the Python instance file path")
+        parser.add_argument('--protocols-to-show', type=str, default="", help="Limit protocols name to show to these, comma separated")
         return cls.reset(**parser.parse_known_args()[0].__dict__)
     
     @classmethod

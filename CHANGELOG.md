@@ -1,5 +1,12 @@
 ### COVMATIC LocalWebServer changelog
 
+## v2.11.0
+
+### Note: Station C labware is changed. Needs *covmatic-stations* >= v2.19.1
+
+- [Station C Technognetics] Switched protocol launched: now it uses Bioer station.
+
+
 ## v2.10.0
 
 - [Configuration] Added the parameter *protocols-to-show* to show only specific protocol in upload window; comma separated.

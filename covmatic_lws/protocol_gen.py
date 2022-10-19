@@ -129,7 +129,7 @@ _classes = {
     "B-Paired Pipette": ("covmatic_stations.b.technogenetics_paired_pipette", "StationBTechnogeneticsPairedPipette", NumSamples),
     "B-Saliva":     ("covmatic_stations.b.technogenetics", "StationBTechnogeneticsSaliva", NumSamples),
     "B-Saliva-Paired Pipette":  ("covmatic_stations.b.technogenetics_paired_pipette", "StationBTechnogeneticsSalivaPairedPipette", NumSamples),
-    "C":            ("covmatic_stations.c.technogenetics", "StationCTechnogenetics", NumSamples),
+    "C":            ("covmatic_stations.bioer.Bioer_full_dw", "DistributeMastermixTechnogenetics", NumSamples),
     "Elution Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsElutionRemoval", NumSamples, NumCycles),
     "Wash B Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
     "BioerPrep":    ("covmatic_stations.bioer.Bioer_preparation", "BioerPreparation", NumSamples),

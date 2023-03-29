@@ -134,7 +134,9 @@ _classes = {
     "Wash B Removal": ("covmatic_stations.b.technogenetics_short", "StationBTechnogeneticsWashBRemoval", NumSamples, NumCycles),
     "BioerPrep":    ("covmatic_stations.bioer.Bioer_preparation", "BioerPreparation", NumSamples),
     "BioerPCR":     ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToPcr", NumSamples, ControlsPosition),
-    "BioerPCR-Technogenetics": ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToPcrTechogenetics", NumSamples, ControlsPosition)
+    "BioerPCR-Technogenetics": ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToPcrTechogenetics", NumSamples, ControlsPosition),
+    "CovidSeq-Reagent": ("covmatic_covidseq.stations.reagent", "ReagentStation", NumSamples),
+    "CovidSeq-Library": ("covmatic_covidseq.stations.library", "LibraryStation", NumSamples)
 }
 
 
@@ -146,7 +148,7 @@ if Args().start_at:
 if Args().protocols_to_show != "":
     _classes = {k: v for k, v in _classes.items() if k in [p.strip() for p in Args().protocols_to_show.split(',')]}
 
-def protocol_gen(cls: str, log_level: str = "INFO", apiLevel='2.7', **prot_kwargs) -> str:
+def protocol_gen(cls: str, log_level: str = "INFO", apiLevel='2.13', **prot_kwargs) -> str:
     if cls not in _classes:
         raise KeyError("Class {} is not supported: supported classes are: {}".format(cls, ", ".join(_classes.keys())))
     module, cls = _classes[cls][:2]

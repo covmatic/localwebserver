@@ -198,10 +198,9 @@ class StationTask(Task):
 
                 if Args().stop_robot_server:
                     logger.info("Starting opentrons-robot-server")
-                    info, warn, err = client.exec_command('systemctl start opentrons-robot-server')
-                    logger.info(info)
-                    logger.warning(warn)
-                    logger.error(err)
+                    _stdin, _stdout, _stderr = client.exec_command('systemctl start opentrons-robot-server')
+                    logger.info(_stdout.read())
+                    logger.error(_stderr.read())
                     logger.info("opentrons-robot-server started")
 
             with Task.lock:

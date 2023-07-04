@@ -171,6 +171,10 @@ class StationTask(Task):
                 # Copy over configurations
                 StationTask.magnet_config.push(client, channel)
                 StationTask.copan48_config.push(client, channel)
+
+                if Args().stop_robot_server:
+                    logger.info("Stopping opentrons-robot-server")
+                    channel.send('systemctl stop opentrons-robot-server \n')
                 # Launch protocol
                 channel.send('opentrons_execute {} -n \n'.format(Args().protocol_remote))
                 # Wait for exit code
@@ -191,6 +195,15 @@ class StationTask(Task):
                 self.err_printer.flush_and_printline()
 
                 code = channel.recv_exit_status()
+
+                if Args().stop_robot_server:
+                    logger.info("Starting opentrons-robot-server")
+                    info, warn, err = client.exec_command('systemctl start opentrons-robot-server')
+                    logger.info(info)
+                    logger.warning(warn)
+                    logger.error(err)
+                    logger.info("opentrons-robot-server started")
+
             with Task.lock:
                 Task.exit_code = code
             logger.info("Protocol exit code: {}".format(code))

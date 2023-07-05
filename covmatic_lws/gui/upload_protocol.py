@@ -4,6 +4,8 @@ import tkinter.messagebox
 import socket
 from json import JSONDecodeError
 
+from covmatic_lws.protocol_gen import StringListArgument
+
 from .button_frames import ButtonFrameBase
 from .buttons import SSHButtonMixin, ConnectionLabel, _palette
 from .images import set_ico, get_logo
@@ -110,12 +112,15 @@ class ArgFrame(ParentFrame):
         self._vars = []
         self._labels = []
         self._entries = []
-        for Arg in protocol_gen._classes.get(self._station.get(), [])[2:]:
+        for Arg in protocol_gen._classes.get_value(self._station.get(), [])[2:]:
             self._vars.append(Arg())
             self._vars[-1].trace_add("write", self.parent.parent.protocol_changed)
             self._labels.append(tk.Label(self, text=self._vars[-1].verbose_name))
             self._labels[-1].grid()
-            self._entries.append(tk.Entry(self, textvariable=self._vars[-1]))
+            if isinstance(self._vars[-1], StringListArgument):
+                self._entries.append(self._vars[-1])
+            else:
+                self._entries.append(tk.Entry(self, textvariable=self._vars[-1]))
             self._entries[-1].grid()
         self._labels.append(tk.Label(self, text="Next tips"))
         self._labels[-1].grid()

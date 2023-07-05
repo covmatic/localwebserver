@@ -21,7 +21,7 @@ class ProtocolArgument(metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def get_value(self):
+    def get(self):
         pass
     
     def check(self) -> bool:
@@ -33,7 +33,7 @@ class ProtocolArgument(metaclass=ABCMeta):
     
     def check_get(self):
         if self.check():
-            return self.get_value()
+            return self.get()
         raise ValueError(self.err_msg)
 
 
@@ -81,15 +81,16 @@ class StartAt(tk.StringVar, ProtocolArgument):
     def key(self) -> str:
         return self._name
     
-    def get_value(self):
-        return super(StartAt, self).get_value() or None
+    def get(self):
+        return super(StartAt, self).get() or None
     
     @property
     def verbose_name(self) -> str:
         return "Start at"
 
 
-class StringListArgument(tk.Text, ProtocolArgument, metaclass=ABCMeta):
+class StringListArgument(tk.StringVar, ProtocolArgument, metaclass=ABCMeta):
+
     @staticmethod
     def getListFromValue(values: str) -> list:
         retlist = None
@@ -102,8 +103,8 @@ class StringListArgument(tk.Text, ProtocolArgument, metaclass=ABCMeta):
                 retlist.append(s.strip())
         return retlist
 
-    def get_value(self):
-        value = self.get(0)
+    def get(self):
+        value = super(StringListArgument, self).get() or None
         return self.getListFromValue(value)
 
 

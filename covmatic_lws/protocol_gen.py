@@ -120,6 +120,20 @@ class ControlsPosition(StringListArgument):
         return "Controls positions"
 
 
+class IndexList(StringListArgument):
+    def __init__(self, *args, **kwargs):
+        kwargs["name"] = kwargs.get("name", "index_list")
+        super(IndexList, self).__init__(*args, **kwargs)
+
+    @property
+    def key(self) -> str:
+        return self._name
+
+    @property
+    def verbose_name(self) -> str:
+        return "Index list"
+
+
 _classes = {
     "A-24":         ("covmatic_stations.a.technogenetics", "StationATechnogenetics24", NumSamples),
     "A":            ("covmatic_stations.a.technogenetics", "StationATechnogenetics48", NumSamples),
@@ -135,7 +149,7 @@ _classes = {
     "BioerPrep":    ("covmatic_stations.bioer.Bioer_preparation", "BioerPreparation", NumSamples),
     "BioerPCR":     ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToPcr", NumSamples, ControlsPosition),
     "BioerPCR-Technogenetics": ("covmatic_stations.bioer.Bioer_full_dw", "BioerPreparationToPcrTechogenetics", NumSamples, ControlsPosition),
-    "CovidSeq-Reagent": ("covmatic_covidseq.stations.reagent", "ReagentStation", NumSamples),
+    "CovidSeq-Reagent": ("covmatic_covidseq.stations.reagent", "ReagentStation", NumSamples, IndexList),
     "CovidSeq-Library": ("covmatic_covidseq.stations.library", "LibraryStation", NumSamples)
 }
 

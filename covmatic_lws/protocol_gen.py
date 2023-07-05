@@ -82,7 +82,7 @@ class StartAt(tk.StringVar, ProtocolArgument):
         return self._name
     
     def get(self):
-        return super(StartAt, self).get() or None
+        return super(StartAt, self).get().strip().strip("\t") or None
     
     @property
     def verbose_name(self) -> str:
